@@ -1,0 +1,32 @@
+project_name: example
+model:
+  average:
+    # <fn> will be automatically replaced by hparam values
+    command: >-
+      [](make download file=data/;) python src/avg.py <fn>
+    # # Model can also have hparam, hparam could be either list or single value
+    # hparam:
+    #   hid_dim: [256, 512]
+    #   ...
+    # # Override *non-projectwise* kube config, see Section 2
+    gpu_count: 0
+    # memory: 8  # 8GiB
+    # image: gitlab-registry.nrp-nautilus.io/prp/jupyter-stack/minimal
+    # ...
+  median:
+    command: >-
+      [](make download file=data/;) python src/med.py <fn>
+    gpu_count: 0
+dataset:
+  data1:
+    hparam:
+      # Launch will automatically consider all combinations of hparam
+      # hparam preceded by _ will NOT appear in the job name
+      # If your hparam contain special characters, you must _ them
+      _fn: data/1.txt
+  data2:
+    hparam:
+      _fn: data/2.txt
+run:
+  dataset: [data1]
+  model: [average]

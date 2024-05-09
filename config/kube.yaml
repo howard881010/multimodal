@@ -1,0 +1,11 @@
+project_name: mistral7b
+namespace: spatiotemporal-decision-making
+user: howard
+registry_host: gitlab-registry.nrp-nautilus.io
+ssh_host: gitlab-ssh.nrp-nautilus.io
+ssh_port: 30622
+conda_home: /opt/conda
+image: gitlab-registry.nrp-nautilus.io/howard/mistral7b:latest
+gpu_whitelist:
+  - NVIDIA-GeForce-RTX-3090
+  - NVIDIA-A10
