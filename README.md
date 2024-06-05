@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # mistral7b
+=======
+# multimodal
+>>>>>>> gitlab/main
 
 
 
@@ -15,14 +19,22 @@ Already a pro? Just edit this README.md and make it your own. Want to make it ea
 
 ```
 cd existing_repo
+<<<<<<< HEAD
 git remote add origin https://gitlab.nrp-nautilus.io/Howard/mistral7b.git
+=======
+git remote add origin https://gitlab.nrp-nautilus.io/Howard/multimodal.git
+>>>>>>> gitlab/main
 git branch -M main
 git push -uf origin main
 ```
 
 ## Integrate with your tools
 
+<<<<<<< HEAD
 - [ ] [Set up project integrations](https://gitlab.nrp-nautilus.io/Howard/mistral7b/-/settings/integrations)
+=======
+- [ ] [Set up project integrations](https://gitlab.nrp-nautilus.io/Howard/multimodal/-/settings/integrations)
+>>>>>>> gitlab/main
 
 ## Collaborate with your team
 
