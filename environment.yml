@@ -1,4 +1,4 @@
-name: example
+name: multimodal
 channels:
   - conda-forge
   - nvidia
