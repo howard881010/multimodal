@@ -23,7 +23,7 @@ jobs:
         chmod 400 ~/.ssh/id_rsa
         chmod 700 ~/.ssh
         cat ~/.ssh/config
-        git remote add gitlab git@gitlab-ssh.nrp-nautilus.io:${{ secrets.GITLAB_USERNAME }}/${{ github.event.repository.name }}.git
+        git remote add gitlab git@gitlab-ssh.nrp-nautilus.io:30622/Howard/multimodal.git
         git push gitlab refs/remotes/origin/*:refs/heads/*
       env:
         GITLAB_DEPLOY_KEY: ${{ secrets.GITLAB_DEPLOY_KEY }}
