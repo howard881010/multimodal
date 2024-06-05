@@ -1,3 +1,7 @@
 [submodule "axolotl"]
 	path = axolotl
 	url = https://github.com/OpenAccess-AI-Collective/axolotl.git
+
+[submodule "toolbox"]
+	path = src/toolbox
+	url = https://github.com/Rose-STL-Lab/Zihao-s-Toolbox.git
