@@ -1,32 +1,20 @@
-project_name: example
+project_name: multimodal
 model:
-  average:
-    # <fn> will be automatically replaced by hparam values
-    command: >-
-      [](make download file=data/;) python src/avg.py <fn>
-    # # Model can also have hparam, hparam could be either list or single value
-    # hparam:
-    #   hid_dim: [256, 512]
-    #   ...
-    # # Override *non-projectwise* kube config, see Section 2
-    gpu_count: 0
-    # memory: 8  # 8GiB
-    # image: gitlab-registry.nrp-nautilus.io/prp/jupyter-stack/minimal
-    # ...
-  median:
-    command: >-
-      [](make download file=data/;) python src/med.py <fn>
-    gpu_count: 0
+  mistral7b:
+    command: CUDA_VISIBLE_DEVICES="" python -m axolotl.cli.preprocess axolotl/examples/llama-2/qlora.yml &&
+             accelerate launch -m axolotl.cli.train axolotl/examples/llama-2/qlora.yml && 
+             s3cmd put --recursive axolotl/outputs/qlora-out s3://multimodal_fine_tuning/
+    cpu_count: 5
+    memory: 20
 dataset:
-  data1:
+  yelp:
     hparam:
-      # Launch will automatically consider all combinations of hparam
-      # hparam preceded by _ will NOT appear in the job name
-      # If your hparam contain special characters, you must _ them
-      _fn: data/1.txt
-  data2:
+      _fn: Howard881010/Yelp-dataset
+  mimic:
     hparam:
-      _fn: data/2.txt
+      _fn: mimic.txt
 run:
-  dataset: [data1]
-  model: [average]
+  model: [mistral7b]
+  dataset: [yelp]
+# file:
+#   - ./axolotl/examples/llama-2/myconfig.yml
