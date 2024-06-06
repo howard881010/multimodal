@@ -1,6 +1,6 @@
 [submodule "axolotl"]
 	path = axolotl
-	url = https://github.com/OpenAccess-AI-Collective/axolotl.git
+	url = https://github.com/howard881010/axolotl.git
 
 [submodule "toolbox"]
 	path = src/toolbox
