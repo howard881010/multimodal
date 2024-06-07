@@ -3,7 +3,7 @@ model:
   mistral7b:
     command: CUDA_VISIBLE_DEVICES="" python -m axolotl.cli.preprocess axolotl/examples/llama-2/qlora.yml &&
              accelerate launch -m axolotl.cli.train axolotl/examples/llama-2/qlora.yml && 
-             s3cmd put --recursive axolotl/outputs/qlora-out s3://multimodal_fine_tuning/
+             s3cmd --config=.s3cfg put --recursive axolotl/outputs/qlora-out s3://multimodal_fine_tuning
     cpu_count: 5
     memory: 20
 dataset:
