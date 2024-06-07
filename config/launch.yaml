@@ -5,6 +5,7 @@ model:
              accelerate launch -m axolotl.cli.train axolotl/examples/llama-2/qlora.yml && 
              s3cmd --config=.s3cfg put --recursive axolotl/outputs/qlora-out s3://multimodal_fine_tuning
     cpu_count: 5
+    gpu_count: 8
     memory: 20
 dataset:
   yelp:
