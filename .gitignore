@@ -6,3 +6,4 @@
 /src/Upload.ipynb
 /.env
 /.s3cfg
+/finetune/outputs
