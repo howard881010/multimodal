@@ -9,7 +9,7 @@ RUN apt update && apt install -y make rsync git vim
 RUN mkdir -p /root/.ssh
 ADD .ssh/id_rsa /root/.ssh/id_rsa
 ADD .ssh/github /root/.ssh/github
-ADD .ssh/gitlab /root/.ssh/gitlab
+# ADD .ssh/gitlab /root/.ssh/gitlab
 ADD .ssh/config /root/.ssh/config
 ADD .ssh/known_hosts /root/.ssh/known_hosts
 RUN chmod 400 /root/.ssh/id_rsa
