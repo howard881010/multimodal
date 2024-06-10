@@ -1,9 +1,9 @@
 project_name: multimodal
 model:
   mistral7b:
-    command: CUDA_VISIBLE_DEVICES="" python -m axolotl.cli.preprocess axolotl/examples/llama-2/qlora.yml &&
-             accelerate launch -m axolotl.cli.train axolotl/examples/llama-2/qlora.yml && 
-             s3cmd --config=.s3cfg put --recursive axolotl/outputs/qlora-out s3://multimodal_fine_tuning
+    command: CUDA_VISIBLE_DEVICES="" python -m axolotl.cli.preprocess finetune/myconfig.yml &&
+             accelerate launch -m axolotl.cli.train finetune/myconfig.yml && 
+             s5cmd cp -r finetune/outputs/Yelp-finetune s3://multimodal_fine_tuning
     cpu_count: 5
     gpu_count: 8
     memory: 20
