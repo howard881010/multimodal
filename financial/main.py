@@ -27,32 +27,35 @@ if __name__ == "__main__":
 
 
     for idx, date_str in enumerate(df["timestamp"].unique()):
-        if os.path.exists(f"summary/{ticker}_{date_str}_final_summary.txt"):
+        if os.path.exists(f"{data_dir}/{ticker}_{date_str}_final_summary.txt"):
+            logging.info(f"Skipping {ticker}_{date_str}")
             continue
 
         logger.info(f"Running {idx} / {len(df)} for {date_str}")
         current_urls = df[df["timestamp"] == date_str]["url"]
 
-        try:
-            raw_texts = load_text_from(f"summary/{ticker}_{date_str}_raw.txt")
+        raw_path = f"{data_dir}/{ticker}_{date_str}_raw.txt"
+        if os.path.exists(raw_path):
+            raw_texts = load_text_from(raw_path)
             raw_texts = [r for r in raw_texts if r != "<SEP>"]
-        except:
+        else:
             raw_texts = download_raw_texts_from_urls(current_urls)
-            save_text_to(raw_texts, f"{data_dir}/{ticker}_{date_str}_raw.txt")
+            save_text_to(raw_texts, raw_path)
 
         summaries = []
 
         for i, text in enumerate(tqdm(raw_texts, total=len(raw_texts))):
             clear_output(wait=True)
-            logger.info(f"Running {i} / {len(raw_texts)}")
+            logger.info(f"Running {i} / {len(raw_texts)} for {date_str}")
             out = pipe.run_llama([pipe.summary_prompt, text + pipe.summary_ending_prompt])
             summaries.append(out)
         
-        try:
-            summaries = load_text_from(f"summary/{ticker}_{date_str}_summaries.txt")
+        summary_path = f"{data_dir}/{ticker}_{date_str}_summaries.txt"
+        if os.path.exists(summary_path):
+            summaries = load_text_from(summary_path)
             summaries = [s for s in summaries if s !="" and s != "<SEP>"]
-        except:
-            save_text_to(summaries, f"{data_dir}/{ticker}_{date_str}_summaries.txt")
+        else:
+            save_text_to(summaries, summary_path)
 
         combined_summary = pipe.combine_summaries(summaries)
 
