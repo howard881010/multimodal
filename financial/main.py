@@ -31,7 +31,7 @@ if __name__ == "__main__":
             logging.info(f"Skipping {ticker}_{date_str}")
             continue
 
-        logger.info(f"Running {idx} / {len(df)} for {date_str}")
+        logger.info(f"Running {idx} / {len(df)} urls for {date_str} for {ticker}")
         current_urls = df[df["timestamp"] == date_str]["url"]
 
         raw_path = f"{data_dir}/{ticker}_{date_str}_raw.txt"
@@ -42,19 +42,12 @@ if __name__ == "__main__":
             raw_texts = download_raw_texts_from_urls(current_urls)
             save_text_to(raw_texts, raw_path)
 
-        summaries = []
-
-        for i, text in enumerate(tqdm(raw_texts, total=len(raw_texts))):
-            clear_output(wait=True)
-            logger.info(f"Running {i} / {len(raw_texts)} for {date_str}")
-            out = pipe.run_llama([pipe.summary_prompt, text + pipe.summary_ending_prompt])
-            summaries.append(out)
-        
         summary_path = f"{data_dir}/{ticker}_{date_str}_summaries.txt"
         if os.path.exists(summary_path):
             summaries = load_text_from(summary_path)
             summaries = [s for s in summaries if s !="" and s != "<SEP>"]
         else:
+            summaries = pipe.get_summaries(raw_texts)
             save_text_to(summaries, summary_path)
 
         combined_summary = pipe.combine_summaries(summaries)
