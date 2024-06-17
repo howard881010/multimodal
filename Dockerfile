@@ -18,9 +18,7 @@ RUN git clone --depth=1 PROJECT_SSH_URL
 WORKDIR /root/PROJECT_NAME/
 
 # Handle git submodule
-RUN git config --global url."https://github.com/".insteadOf git@github.com:; \
-    git config --global url."https://".insteadOf git://; \
-    git submodule update --init --recursive
+RUN git submodule update --init --recursive
 
 # Install conda environment
 RUN conda update --all
