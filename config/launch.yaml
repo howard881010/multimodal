@@ -2,11 +2,11 @@ project_name: multimodal
 model:
   mistral7b:
     command: >
-      python -m axolotl.cli.preprocess finetune/myconfig.yml &&
-      accelerate launch -m axolotl.cli.train finetune/myconfig.yml && 
-      s5cmd cp -r finetune/outputs/Yelp-finetune s3://multimodal_fine_tuning
+      python -m axolotl.cli.preprocess finetune/climate.yml &&
+      accelerate launch -m axolotl.cli.train finetune/climate.yml && 
+      s5cmd cp -r finetune/outputs/climate-finetune s3://multimodal_fine_tuning
     cpu_count: 5
-    gpu_count: 8
+    gpu_count: 4
     memory: 20
 dataset:
   yelp:
