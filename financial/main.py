@@ -2,8 +2,8 @@ import pandas as pd
 import os
 from tqdm import tqdm
 from IPython.display import clear_output
-from model.pipeline import FinancePipeline
-from model.data_utils import download_raw_texts_from_urls, save_text_to, load_text_from
+from src.pipeline import FinancePipeline
+from src.data_utils import download_raw_texts_from_urls, save_text_to, load_text_from
 import logging
 
 if __name__ == "__main__":
@@ -15,23 +15,23 @@ if __name__ == "__main__":
     )
     logger = logging.getLogger()
 
-    directory_path = '/home/mkim/code/forecasting/stocks/raw_urls'
+    directory_path = '/data/kai/forecasting/raw_urls'
     file_names = os.listdir(directory_path)
 
     ticker = "aapl"
     df = pd.read_csv(directory_path + f'/{ticker}_text.csv')[::-1]
 
-    data_dir = "/home/mkim/code/forecasting/stocks/summary"
+    data_dir = "/data/kai/forecasting/summary"
     pipe = FinancePipeline(data_dir)
     pipe.set_prompts_for_ticker(ticker)
 
 
     for idx, date_str in enumerate(df["timestamp"].unique()):
         if os.path.exists(f"{data_dir}/{ticker}_{date_str}_final_summary.txt"):
-            logging.info(f"Skipping {ticker}_{date_str}")
+            # logging.info(f"Skipping {ticker}_{date_str}")
             continue
 
-        logger.info(f"Running {idx} / {len(df)} urls for {date_str} for {ticker}")
+        logger.info(f"Running {idx} / {len(df["timestamp"].unique())} urls for {date_str} for {ticker}")
         current_urls = df[df["timestamp"] == date_str]["url"]
 
         raw_path = f"{data_dir}/{ticker}_{date_str}_raw.txt"
@@ -49,7 +49,7 @@ if __name__ == "__main__":
         else:
             summaries = pipe.get_summaries(raw_texts)
             save_text_to(summaries, summary_path)
-
+        
         combined_summary = pipe.combine_summaries(summaries)
 
         if len(combined_summary) == 1:

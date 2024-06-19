@@ -1,0 +1,55 @@
+from openai import OpenAI
+import threading
+import queue
+
+# Set OpenAI's API key and API base to use vLLM's API server.
+openai_api_key = "EMPTY"
+openai_api_base = "http://localhost:8000/v1"
+
+client = OpenAI(
+    api_key=openai_api_key,
+    base_url=openai_api_base,
+)
+
+def llm_chat(messages, model="meta-llama/Meta-Llama-3-70B-Instruct"):
+    chat_response = client.chat.completions.create(
+        model=model,
+        messages=messages
+    )
+    return chat_response.choices[0].message.content
+
+def message_template(prompt, content):
+    messages=[{
+        "role": "system",
+        "content": prompt,
+    }, {
+        "role": "user",
+        "content": content
+    }]
+    return messages
+
+def call_llm_chat(prompt, messages, thread_id, result_queue):
+    try:
+        response = llm_chat(message_template(prompt, messages))
+        result_queue.put((thread_id, response))
+    except Exception as e:
+        result_queue.put((thread_id, str(e)))
+
+def batch_call_llm_chat(prompt, data):
+    result_queue = queue.Queue()
+    threads = []
+    for thread_id, content in enumerate(data):
+        thread = threading.Thread(target=call_llm_chat, args=(prompt, content, thread_id, result_queue))
+        threads.append(thread)
+        thread.start()
+
+    # Wait for all threads to complete
+    for thread in threads:
+        thread.join()
+
+    responses = [None] * len(data)
+    while not result_queue.empty():
+        thread_id, response = result_queue.get()
+        responses[thread_id] = response
+
+    return responses

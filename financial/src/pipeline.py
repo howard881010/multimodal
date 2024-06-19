@@ -5,12 +5,13 @@ import os
 from openai import OpenAI
 from dotenv import load_dotenv
 import os
-from tqdm import tqdm
+from tqdm import tqdm, trange
 import transformers
 import torch
 from transformers import AutoTokenizer, TextStreamer, AutoModelForCausalLM
 from IPython.display import clear_output
 import logging
+from vllm import LLM, SamplingParams
 
 
 # load_dotenv()
@@ -35,21 +36,27 @@ def get_summary_gpt(ticker, news):
 
 class FinancePipeline:
 
-    def __init__(self, data_dir):
+    def __init__(self, data_dir, device="cuda"):
         model_id = "meta-llama/Meta-Llama-3-8B-Instruct"
         self.tokenizer = AutoTokenizer.from_pretrained(model_id)
         self.tokenizer.pad_token = self.tokenizer.eos_token
         self.streamer = TextStreamer(tokenizer=self.tokenizer, skip_prompt=True)
         # streamer = None
 
-        self.model = transformers.pipeline(
-            "text-generation",
-            model=model_id,
-            model_kwargs={"torch_dtype": torch.bfloat16},
-            device_map="auto",
-            streamer=self.streamer,
-            max_length=8000,
-        )
+        # pipeline
+        # self.model = transformers.pipeline(
+        #     "text-generation",
+        #     model=model_id,
+        #     model_kwargs={"torch_dtype": torch.bfloat16},
+        #     device_map=device,
+        #     streamer=self.streamer,
+        #     max_length=8000,
+        # )
+
+        # VLLM
+        self.sampling_params = SamplingParams(temperature=0.8, top_p=0.95, max_tokens=8000)
+        self.model = LLM(model="meta-llama/Meta-Llama-3-8B-Instruct", gpu_memory_utilization=0.9)
+
 
         self.terminators = [
             self.tokenizer.eos_token_id,
@@ -60,7 +67,7 @@ class FinancePipeline:
 
     def set_prompts_for_ticker(self, ticker):
         self.ticker = ticker
-        self.summary_ending_prompt = f" Filter out irrelevant information and provide a concise summary including key numbers, growth trends, and the overall market outlook. Ensure to mention major stock movements, significant economic indicators, and any notable company-specific news."
+        self.summary_ending_prompt = f"Filter out irrelevant information and provide a concise summary including key numbers, growth trends, and the overall market outlook. Ensure to mention major stock movements, significant economic indicators, and any notable company-specific news. Do not make up false information."
         self.filter_prompt = "Keep the query the same, but please avoid any extraneous phrases or commentary such as 'Here is the filtered text' or 'I hope this helps.'"
         self.summary_prompt = f"You are a helpful assistant that filters and summarizes stock news specifically for company with ticker symbol {ticker}."
         self.combine_prompt = self.summary_prompt + " Combine the following summaries while preserving as much information as you can: "
@@ -79,7 +86,7 @@ class FinancePipeline:
         # output = [o.split("assistant\n\n")[1] for o in output]
         return output
 
-    def run_llama(self, prompts):
+    def run_llama(self, prompts, batch_size=1):
         """
         With pipeline
 
@@ -89,15 +96,22 @@ class FinancePipeline:
         """
         messages = [{"role": "system", "content": prompts[p]} if p % 2 == 0 else {"role": "user", "content": prompts[p]} for p in range(len(prompts))]
 
-        outputs = self.model(
-            messages,
-            eos_token_id=self.terminators,
-            do_sample=True,
-            temperature=0.6,
-            top_p=0.9,
-        )
-        return outputs[0]["generated_text"][-1]["content"].replace("<|eot_id|>", "")
+        # pipeline
+        # outputs = self.model(
+        #     messages,
+        #     eos_token_id=self.terminators,
+        #     do_sample=True,
+        #     temperature=0.6,
+        #     top_p=0.9,
+        #     batch_size=batch_size
+        # )
+        # return [o["generated_text"][-1]["content"].replace("<|eot_id|>", "") for o in outputs]
 
+        # vllm
+        formatted_message = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        outputs = self.model.generate(formatted_message, self.sampling_params)
+
+        return [o.outputs[0].text for o in outputs][0]
 
     def combine_summaries(self, summaries):
         """
@@ -107,16 +121,17 @@ class FinancePipeline:
         """
         all_summaries = " ".join(summaries)
 
-        total_tokens = sum([len(self.tokenizer.tokenize(s)) for s in summaries])
+        total_tokens = len(self.tokenizer.tokenize(all_summaries))
         text_to_token_ratio = len(all_summaries) / total_tokens
-
         chunk_size = int(8192*self.context_window_ratio * text_to_token_ratio)
+
         combined_summaries = []
         # logging.info(chunk_size)
 
         for i in range(0, len(all_summaries), chunk_size):
             clear_output(wait=True)
-            logging.info(f"Combining {i} / {len(all_summaries)}, text_length = {chunk_size} text_token={len(self.tokenizer.encode(all_summaries[i:i+chunk_size]))}")
+
+            logging.info(f"Combining {i} / {len(all_summaries)}, text_length = {int(chunk_size / text_to_token_ratio)} text_token={len(self.tokenizer.encode(self.combine_prompt + all_summaries[i:i+chunk_size]))}")
 
             out = self.run_llama([self.combine_prompt, all_summaries[i:i+chunk_size]])
             combined_summaries.append(out)
@@ -129,13 +144,13 @@ class FinancePipeline:
         summaries = []
         all_texts = " ".join(processed_texts)
     
-        total_tokens = sum([len(self.tokenizer.tokenize(s)) for s in all_texts])
+        total_tokens = len(self.tokenizer.tokenize(all_texts))
         text_to_token_ratio = len(all_texts) / total_tokens
         chunk_size = int(8192*self.context_window_ratio * text_to_token_ratio)
 
-        for i in range(0, len(all_texts), chunk_size):
+        for i in trange(0, len(all_texts), chunk_size):
             clear_output(wait=True)
-            logging.info(f"Summarizing {i} / {len(all_texts)}, text_length = {chunk_size} text_token={len(self.tokenizer.encode(all_texts[i:i+chunk_size]))}")
+            logging.info(f"Summarizing {i} / {len(all_texts)}, text_length = {int(chunk_size / text_to_token_ratio)} text_token_with_prompt={len(self.tokenizer.encode(self.summary_prompt + all_texts[i:i+chunk_size] + self.summary_ending_prompt))}")
             out = self.run_llama([self.summary_prompt, all_texts[i:i+chunk_size] + self.summary_ending_prompt])
             summaries.append(out)
         return summaries
