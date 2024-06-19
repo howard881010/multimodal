@@ -3,7 +3,7 @@ import os
 from tqdm import tqdm
 from IPython.display import clear_output
 from src.pipeline import FinancePipeline
-from src.data_utils import download_raw_texts_from_urls, save_text_to, load_text_from
+from multimodal.financial.src.utils import download_raw_texts_from_urls, save_text_to, load_text_from
 import logging
 
 if __name__ == "__main__":

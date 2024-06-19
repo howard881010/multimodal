@@ -1,5 +1,5 @@
 class Prompts:
-    def __init__(self, ticker):
+    def __init__(self, ticker: str):
 
         self.SUMMARY_PROMPT = f"""
         You are a helpful assistant that filters and summarizes stock news specifically for the company with ticker symbol {ticker}. 

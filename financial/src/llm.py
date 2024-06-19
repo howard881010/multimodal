@@ -11,14 +11,14 @@ client = OpenAI(
     base_url=openai_api_base,
 )
 
-def llm_chat(messages, model="meta-llama/Meta-Llama-3-70B-Instruct"):
+def llm_chat(messages: list[dict], model="meta-llama/Meta-Llama-3-70B-Instruct"):
     chat_response = client.chat.completions.create(
         model=model,
         messages=messages
     )
     return chat_response.choices[0].message.content
 
-def message_template(prompt, content):
+def message_template(prompt: str, content: str):
     messages=[{
         "role": "system",
         "content": prompt,
@@ -28,14 +28,18 @@ def message_template(prompt, content):
     }]
     return messages
 
-def call_llm_chat(prompt, messages, thread_id, result_queue):
+def call_llm_chat(prompt: str, messages: list[dict], thread_id: int, result_queue: queue.Queue):
     try:
         response = llm_chat(message_template(prompt, messages))
         result_queue.put((thread_id, response))
     except Exception as e:
         result_queue.put((thread_id, str(e)))
 
-def batch_call_llm_chat(prompt, data):
+def batch_call_llm_chat(prompt: str, data: list[str]):
+    """
+    Prompt: for system prompt
+    data: list of string
+    """
     result_queue = queue.Queue()
     threads = []
     for thread_id, content in enumerate(data):
