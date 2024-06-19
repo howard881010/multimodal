@@ -5,7 +5,7 @@
 
 
 from transformers import AutoTokenizer
-from PROMPTS import *
+from PROMPTS import Prompts
 from llm import batch_call_llm_chat, llm_chat, message_template
 import time
 from datetime import datetime, timedelta
@@ -24,6 +24,7 @@ def load_text_from(file_path):
 
 
 ticker = "aapl"
+prompts = Prompts(ticker)
 
 raw_data = load_text_from("/data/kai/forecasting/summary/aapl_2022-08-19_raw.txt")
 raw_data = [d for d in raw_data if d != "<SEP>" and d != ""]
@@ -35,12 +36,12 @@ tokenizer = AutoTokenizer.from_pretrained(model_name)
 
 # summarize and ignore error messages
 start_time = time.time()
-summaries = batch_call_llm_chat(SUMMARY_PROMPT, raw_data)
+summaries = batch_call_llm_chat(prompts.SUMMARY_PROMPT, raw_data)
 print("SUMMARIZING PROMPT")
 print_time(start_time)
 
 start_time = time.time()
-result = batch_call_llm_chat(IGNORE_PROMPT, summaries)
+result = batch_call_llm_chat(prompts.IGNORE_PROMPT, summaries)
 print("IGNORE PROMPT")
 print_time(start_time)
 
@@ -63,15 +64,16 @@ if token_length > max_token_length:
         for i in range(0, len(valid_summaries), summaries_per_chunk)
     ]
 
-    combined_summary = batch_call_llm_chat(COMBINE_PROMPT, valid_summaries_combined)
+    combined_summary = batch_call_llm_chat(prompts.COMBINE_PROMPT, valid_summaries_combined)
     valid_summaries_combined.append(combined_summary)
 else:
     valid_summaries_combined = valid_summaries
+
 print("COMBINE PROMPT")
 print_time(start_time)
 
 start_time = time.time()
-final_summary = llm_chat(message_template(FINAL_PROMPT, '\n'.join(valid_summaries_combined)))
+final_summary = llm_chat(message_template(prompts.FINAL_PROMPT, '\n'.join(valid_summaries_combined)))
 print("FINAL PROMPT")
 print_time(start_time)
 
