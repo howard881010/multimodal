@@ -1,66 +1,99 @@
-import pandas as pd
-import os
-from tqdm import tqdm
-from IPython.display import clear_output
-from src.pipeline import FinancePipeline
-from multimodal.financial.src.utils import download_raw_texts_from_urls, save_text_to, load_text_from
+# first spin up the vLLM server. takes a while
+
+# export CUDA_VISIBLE_DEVICES='0,1'
+# python -m vllm.entrypoints.openai.api_server --model meta-llama/Meta-Llama-3-70B-Instruct --tensor-parallel-size=2 --disable-log-requests
+
+# offline inference
+# from vllm import LLM, SamplingParams
+# prompts = [
+#     "Hello, my name is",
+#     "The president of the United States is",
+#     "The capital of France is",
+#     "The future of AI is",
+# ]
+# sampling_params = SamplingParams(temperature=0.8, top_p=0.95, max_tokens=8000)
+# llm = LLM(model="meta-llama/Meta-Llama-3-8B-Instruct", gpu_memory_utilization=0.9)
+
+# from transformers import AutoTokenizer
+# model_id = "meta-llama/Meta-Llama-3-8B-Instruct"
+# tokenizer = AutoTokenizer.from_pretrained(model_id)
+# tokenizer.pad_token = tokenizer.eos_token
+
+# # format to role, content format
+# messages_dicts = [[{"role": "user", 'content': p}] for p in prompts]
+# formatted_message = tokenizer.apply_chat_template(messages_dicts, tokenize=False, add_generation_prompt=True)
+# outputs = llm.generate(formatted_message, sampling_params)
+
+
+# online
+from transformers import AutoTokenizer
+from src.PROMPTS import Prompts
+from src.vllm import batch_call_llm_chat, llm_chat, message_template
+from src.utils import load_text_from, log_time
+import time
+from src.utils import get_logger
 import logging
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        filename='log.txt',  # Set the filename for the log file
-        level=logging.INFO,  # Set the logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-        format='%(asctime)s - %(levelname)s - %(message)s',  # Set the format for log messages
-        datefmt='%Y-%m-%d %H:%M:%S'  # Set the format for the date in log messages
-    )
-    logger = logging.getLogger()
-
-    directory_path = '/data/kai/forecasting/raw_urls'
-    file_names = os.listdir(directory_path)
-
     ticker = "aapl"
-    df = pd.read_csv(directory_path + f'/{ticker}_text.csv')[::-1]
+    prompts = Prompts(ticker)
+    logger = get_logger(f"logs/{ticker}_summary.txt")
 
-    data_dir = "/data/kai/forecasting/summary"
-    pipe = FinancePipeline(data_dir)
-    pipe.set_prompts_for_ticker(ticker)
+    raw_data = load_text_from(
+        "/data/kai/forecasting/summary/aapl_2022-08-19_raw.txt")
+    raw_data = [d for d in raw_data if d != "<SEP>" and d != ""]
 
+    model_name = "meta-llama/Meta-Llama-3-8B-Instruct"
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
 
-    for idx, date_str in enumerate(df["timestamp"].unique()):
-        if os.path.exists(f"{data_dir}/{ticker}_{date_str}_final_summary.txt"):
-            # logging.info(f"Skipping {ticker}_{date_str}")
-            continue
+    script_start_time = time.time()
 
-        logger.info(f"Running {idx} / {len(df["timestamp"].unique())} urls for {date_str} for {ticker}")
-        current_urls = df[df["timestamp"] == date_str]["url"]
+    # summarize and ignore error messages
+    start_time = time.time()
+    summaries = batch_call_llm_chat(prompts.SUMMARY_PROMPT, raw_data)
+    logging.info("SUMMARIZING PROMPT")
+    log_time(start_time)
 
-        raw_path = f"{data_dir}/{ticker}_{date_str}_raw.txt"
-        if os.path.exists(raw_path):
-            raw_texts = load_text_from(raw_path)
-            raw_texts = [r for r in raw_texts if r != "<SEP>"]
-        else:
-            raw_texts = download_raw_texts_from_urls(current_urls)
-            save_text_to(raw_texts, raw_path)
+    start_time = time.time()
+    result = batch_call_llm_chat(prompts.IGNORE_PROMPT, summaries)
+    logging.info("IGNORE PROMPT")
+    log_time(start_time)
 
-        summary_path = f"{data_dir}/{ticker}_{date_str}_summaries.txt"
-        if os.path.exists(summary_path):
-            summaries = load_text_from(summary_path)
-            summaries = [s for s in summaries if s !="" and s != "<SEP>"]
-        else:
-            summaries = pipe.get_summaries(raw_texts)
-            save_text_to(summaries, summary_path)
-        
-        combined_summary = pipe.combine_summaries(summaries)
+    valid_idxs = [i for i, r in enumerate(result) if r != "<NONE>"]
+    valid_summaries = [summaries[i] for i in valid_idxs]
 
-        if len(combined_summary) == 1:
-            final_summary = pipe.run_llama([pipe.filter_prompt, combined_summary[0]])
+    token_length = len(tokenizer.encode('\n'.join(valid_summaries)))
+    max_token_length = 4096
 
-        if len(combined_summary) > 1:
-            logger.info("Combinig summarys one more time...")
-            combined_summary_again = pipe.combine_summaries(combined_summary)
-            final_summary = pipe.run_llama([pipe.filter_prompt, combined_summary_again[0]])
+    start_time = time.time()
+    if token_length > max_token_length:
+        logging.info(f"token_length: {token_length}")
+        # Determine how many summaries to combine per chunk
+        avg_token_per_summary = token_length / len(valid_summaries)
+        summaries_per_chunk = int(max_token_length / avg_token_per_summary)
+        logging.info(f"summaries_per_chunk: {summaries_per_chunk}")
+        # Split the summaries into chunks
+        valid_summaries_combined = [
+            valid_summaries[i: i + summaries_per_chunk]
+            for i in range(0, len(valid_summaries), summaries_per_chunk)
+        ]
 
-        save_text_to(final_summary, f"{data_dir}/{ticker}_{date_str}_final_summary.txt")
+        combined_summary = batch_call_llm_chat(
+            prompts.COMBINE_PROMPT, valid_summaries_combined)
+        valid_summaries_combined += combined_summary
+    else:
+        valid_summaries_combined = valid_summaries
 
-        final_sentiment = pipe.run_llama(["Provide a sentiment for the following stock news:", final_summary])
-        logger.info(final_sentiment)
+    logging.info("COMBINE PROMPT")
+    log_time(start_time)
+
+    start_time = time.time()
+    final_summary = llm_chat(message_template(
+        prompts.FINAL_PROMPT, '\n'.join(valid_summaries_combined)))
+    logging.info("FINAL PROMPT")
+    log_time(start_time)
+
+    logging.info("------------------------")
+    logging.info(final_summary)
+
+    log_time(script_start_time)

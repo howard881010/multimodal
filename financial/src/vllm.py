@@ -1,94 +1,64 @@
-# first spin up the vLLM server. takes a while
+from openai import OpenAI
+import threading
+import queue
 
-# export CUDA_VISIBLE_DEVICES='0,1'
-# python -m vllm.entrypoints.openai.api_server --model meta-llama/Meta-Llama-3-70B-Instruct --tensor-parallel-size=2 --disable-log-requests
+# Set OpenAI's API key and API base to use vLLM's API server.
+openai_api_key = "EMPTY"
+openai_api_base = "http://localhost:8000/v1"
 
-## offline inference
-# from vllm import LLM, SamplingParams
-# prompts = [
-#     "Hello, my name is",
-#     "The president of the United States is",
-#     "The capital of France is",
-#     "The future of AI is",
-# ]
-# sampling_params = SamplingParams(temperature=0.8, top_p=0.95, max_tokens=8000)
-# llm = LLM(model="meta-llama/Meta-Llama-3-8B-Instruct", gpu_memory_utilization=0.9)
-
-# from transformers import AutoTokenizer
-# model_id = "meta-llama/Meta-Llama-3-8B-Instruct"
-# tokenizer = AutoTokenizer.from_pretrained(model_id)
-# tokenizer.pad_token = tokenizer.eos_token
-
-# # format to role, content format
-# messages_dicts = [[{"role": "user", 'content': p}] for p in prompts]
-# formatted_message = tokenizer.apply_chat_template(messages_dicts, tokenize=False, add_generation_prompt=True)
-# outputs = llm.generate(formatted_message, sampling_params)
+client = OpenAI(
+    api_key=openai_api_key,
+    base_url=openai_api_base,
+)
 
 
-# online
-from transformers import AutoTokenizer
-from PROMPTS import Prompts
-from llm import batch_call_llm_chat, llm_chat, message_template
-from utils import load_text_from, print_time
-import time
-
-ticker = "aapl"
-prompts = Prompts(ticker)
-
-raw_data = load_text_from("/data/kai/forecasting/summary/aapl_2022-08-19_raw.txt")
-raw_data = [d for d in raw_data if d != "<SEP>" and d != ""]
+def llm_chat(messages: list[dict], model="meta-llama/Meta-Llama-3-70B-Instruct"):
+    chat_response = client.chat.completions.create(
+        model=model,
+        messages=messages
+    )
+    return chat_response.choices[0].message.content
 
 
-model_name = "meta-llama/Meta-Llama-3-8B-Instruct"
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-
-script_start_time = time.time()
-
-# summarize and ignore error messages
-start_time = time.time()
-summaries = batch_call_llm_chat(prompts.SUMMARY_PROMPT, raw_data)
-print("SUMMARIZING PROMPT")
-print_time(start_time)
-
-start_time = time.time()
-result = batch_call_llm_chat(prompts.IGNORE_PROMPT, summaries)
-print("IGNORE PROMPT")
-print_time(start_time)
-
-valid_idxs = [i for i, r in enumerate(result) if r != "<NONE>"]
-valid_summaries = [summaries[i] for i in valid_idxs]
+def message_template(prompt: str, content: str):
+    messages = [{
+        "role": "system",
+        "content": prompt,
+    }, {
+        "role": "user",
+        "content": content
+    }]
+    return messages
 
 
-token_length = len(tokenizer.encode('\n'.join(valid_summaries)))
-max_token_length = 4096
+def call_llm_chat(prompt: str, messages: list[dict], thread_id: int, result_queue: queue.Queue):
+    try:
+        response = llm_chat(message_template(prompt, messages))
+        result_queue.put((thread_id, response))
+    except Exception as e:
+        result_queue.put((thread_id, str(e)))
 
-start_time = time.time()
-if token_length > max_token_length:
-    print(f"token_length: {token_length}")
-    # Determine how many summaries to combine per chunk
-    avg_token_per_summary = token_length / len(valid_summaries)
-    summaries_per_chunk = int(max_token_length / avg_token_per_summary)
-    print(f"summaries_per_chunk: {summaries_per_chunk}")
-    # Split the summaries into chunks
-    valid_summaries_combined = [
-        valid_summaries[i: i + summaries_per_chunk]
-        for i in range(0, len(valid_summaries), summaries_per_chunk)
-    ]
 
-    combined_summary = batch_call_llm_chat(prompts.COMBINE_PROMPT, valid_summaries_combined)
-    valid_summaries_combined += combined_summary
-else:
-    valid_summaries_combined = valid_summaries
+def batch_call_llm_chat(prompt: str, data: list[str]):
+    """
+    Prompt: for system prompt
+    data: list of string
+    """
+    result_queue = queue.Queue()
+    threads = []
+    for thread_id, content in enumerate(data):
+        thread = threading.Thread(target=call_llm_chat, args=(
+            prompt, content, thread_id, result_queue))
+        threads.append(thread)
+        thread.start()
 
-print("COMBINE PROMPT")
-print_time(start_time)
+    # Wait for all threads to complete
+    for thread in threads:
+        thread.join()
 
-start_time = time.time()
-final_summary = llm_chat(message_template(prompts.FINAL_PROMPT, '\n'.join(valid_summaries_combined)))
-print("FINAL PROMPT")
-print_time(start_time)
+    responses = [None] * len(data)
+    while not result_queue.empty():
+        thread_id, response = result_queue.get()
+        responses[thread_id] = response
 
-print("------------------------")
-print(final_summary)
-
-print_time(script_start_time)
+    return responses
