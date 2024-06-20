@@ -8,4 +8,4 @@
 /.s3cfg
 /finetune/outputs
 **/__pycache__/
-financial/log.txt
+financial/logs/

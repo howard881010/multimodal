@@ -29,71 +29,107 @@
 from transformers import AutoTokenizer
 from src.PROMPTS import Prompts
 from src.vllm import batch_call_llm_chat, llm_chat, message_template
-from src.utils import load_text_from, log_time
-import time
-from src.utils import get_logger
+from src.utils import load_text_from, log_time, save_text_to, get_logger
 import logging
+import time
+import os
+import argparse
+from tqdm import tqdm
 
-if __name__ == "__main__":
-    ticker = "aapl"
-    prompts = Prompts(ticker)
-    logger = get_logger(f"logs/{ticker}_summary.txt")
 
-    raw_data = load_text_from(
-        "/data/kai/forecasting/summary/aapl_2022-08-19_raw.txt")
-    raw_data = [d for d in raw_data if d != "<SEP>" and d != ""]
+def chunk_documents(tokenizer, data, max_token_length=4096):
+    # chunk list of documents
+    if type(data) == list:
+        chunk_data = []
+        for document in data:
+            token_length = len(tokenizer.encode('\n'.join(document)))
+            avg_token_per_summary = token_length / len(document)
+            document_per_chunk = int(max_token_length / avg_token_per_summary)
+            if token_length > max_token_length:
+                chunks = [
+                    document[i: i + document_per_chunk]
+                    for i in range(0, len(data), document_per_chunk)
+                ]
+                chunk_data += chunks
+            else:
+                chunk_data.append(document)
+        return chunk_data
 
+    # chunk one long document
+    elif type(data) == str:
+        token_length = len(tokenizer.encode(data))
+        avg_token_per_summary = token_length / len(data)
+        document_per_chunk = int(max_token_length / avg_token_per_summary)
+        chunk_data = [data[i: i+document_per_chunk]
+                      for i in range(0, len(data), document_per_chunk)]
+        return chunk_data
+
+
+def main(dir_path):
     model_name = "meta-llama/Meta-Llama-3-8B-Instruct"
     tokenizer = AutoTokenizer.from_pretrained(model_name)
 
-    script_start_time = time.time()
+    file_paths = sorted(os.listdir(dir_path))
+    for path in tqdm(file_paths, total=len(file_paths)):
+        script_start_time = time.time()
 
-    # summarize and ignore error messages
-    start_time = time.time()
-    summaries = batch_call_llm_chat(prompts.SUMMARY_PROMPT, raw_data)
-    logging.info("SUMMARIZING PROMPT")
-    log_time(start_time)
+        save_path = os.path.join(dir_path, path.replace("raw", "summary"))
+        if os.path.exists(save_path):
+            continue
 
-    start_time = time.time()
-    result = batch_call_llm_chat(prompts.IGNORE_PROMPT, summaries)
-    logging.info("IGNORE PROMPT")
-    log_time(start_time)
+        logging.info("------------------------")
+        logging.info(save_path)
 
-    valid_idxs = [i for i, r in enumerate(result) if r != "<NONE>"]
-    valid_summaries = [summaries[i] for i in valid_idxs]
+        raw_data = load_text_from(os.path.join(dir_path, path))
+        raw_data = [d for d in raw_data if d != "<SEP>" and d != ""]
+        logging.info(f'{len(raw_data)} urls found.')
 
-    token_length = len(tokenizer.encode('\n'.join(valid_summaries)))
-    max_token_length = 4096
+        chunk_data = chunk_documents(tokenizer, raw_data)
 
-    start_time = time.time()
-    if token_length > max_token_length:
-        logging.info(f"token_length: {token_length}")
-        # Determine how many summaries to combine per chunk
-        avg_token_per_summary = token_length / len(valid_summaries)
-        summaries_per_chunk = int(max_token_length / avg_token_per_summary)
-        logging.info(f"summaries_per_chunk: {summaries_per_chunk}")
-        # Split the summaries into chunks
-        valid_summaries_combined = [
-            valid_summaries[i: i + summaries_per_chunk]
-            for i in range(0, len(valid_summaries), summaries_per_chunk)
-        ]
+        summaries = batch_call_llm_chat(prompts.SUMMARY_PROMPT, chunk_data)
+        valid_summaries = batch_call_llm_chat(prompts.IGNORE_PROMPT, summaries)
 
-        combined_summary = batch_call_llm_chat(
-            prompts.COMBINE_PROMPT, valid_summaries_combined)
-        valid_summaries_combined += combined_summary
-    else:
-        valid_summaries_combined = valid_summaries
+        valid_idxs = [i for i, r in enumerate(
+            valid_summaries) if r != "<NONE>"]
+        valid_summaries = [summaries[i] for i in valid_idxs]
 
-    logging.info("COMBINE PROMPT")
-    log_time(start_time)
+        if len(valid_summaries) > 0:
+            combined_summaries = chunk_documents(
+                tokenizer, "\n".join(valid_summaries))
+            if len(combined_summaries) > 1:
+                combined_summaries = batch_call_llm_chat(
+                    prompts.COMBINE_PROMPT, combined_summaries)
 
-    start_time = time.time()
-    final_summary = llm_chat(message_template(
-        prompts.FINAL_PROMPT, '\n'.join(valid_summaries_combined)))
-    logging.info("FINAL PROMPT")
-    log_time(start_time)
+            chunked_summaries = chunk_documents(tokenizer, combined_summaries)
+            if len(chunked_summaries) > 1:
+                chunked_summaries = batch_call_llm_chat(
+                    prompts.COMBINE_PROMPT, chunked_summaries)
 
-    logging.info("------------------------")
-    logging.info(final_summary)
+            final_summary = llm_chat(message_template(
+                prompts.FINAL_PROMPT, '\n'.join(chunked_summaries)))
 
-    log_time(script_start_time)
+            save_text_to(final_summary, save_path)
+
+            logging.info("------------------------")
+            logging.info(final_summary)
+
+            log_time(script_start_time)
+        else:
+            save_text_to("", save_path)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Process stock ticker information.")
+    parser.add_argument('--ticker', type=str, required=True,
+                        help='Stock ticker symbol')
+    args = parser.parse_args()
+
+    ticker = args.ticker
+    # ticker = "AMD"
+
+    prompts = Prompts(ticker)
+    logger = get_logger(f"logs/{ticker}_summary.txt")
+
+    dir_path = f"/data/kai/forecasting/summary/{ticker}"
+    main(dir_path)

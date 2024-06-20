@@ -9,6 +9,7 @@ class Prompts:
         2. Provide a concise summary that includes key numbers, growth trends, and the overall market outlook.
         3. Mention major stock movements, significant economic indicators, and any notable company-specific news.
         4. Avoid making up any information.
+        5. Provide a concise summary without using introductory phrases like 'Here is a summary of ___' or similar. Focus directly on the key points.
 
         If there is no relevant information, the website is blocked, or there is an error message, return nothing.
         """
@@ -22,6 +23,7 @@ class Prompts:
 
         1. Provide a concise summary that includes key numbers, growth trends, and the overall market outlook.
         2. Mention major stock movements, significant economic indicators, and any notable company-specific news.
+        3. Provide a concise summary without using introductory phrases like 'Here is a summary of ___' or similar. Focus directly on the key points.
         """
 
         self.FINAL_PROMPT = f"""
@@ -31,4 +33,5 @@ class Prompts:
         2. Provide key numbers, growth trends, and the overall market outlook.
         3. Mention major stock movements, significant economic indicators, and any notable company-specific news.
         4. Avoid making up any information.
+        5. Provide a concise summary without using introductory phrases like 'Here is a summary of ___' or similar. Focus directly on the key points.
         """

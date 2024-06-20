@@ -1,6 +1,7 @@
 from openai import OpenAI
 import threading
 import queue
+import logging
 
 # Set OpenAI's API key and API base to use vLLM's API server.
 openai_api_key = "EMPTY"

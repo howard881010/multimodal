@@ -73,4 +73,7 @@ def get_logger(filepath="log.txt"):
         format='%(asctime)s - %(levelname)s - %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'  # Set the format for the date in log messages
     )
-    logger = logging.getLogger()
+    logger = logging.getLogger("FinancialSummary")
+    logging.getLogger("openai").setLevel(logging.ERROR)
+    logging.getLogger("httpx").setLevel(logging.ERROR)
+    return logger

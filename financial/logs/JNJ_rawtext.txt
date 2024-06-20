@@ -1,2 +1,0 @@
-2024-06-20 04:23:40 - INFO - Starting with 6315
-2024-06-20 04:23:40 - INFO - Dropped duplicate to 5352
