@@ -6,7 +6,7 @@ model:
       git pull &&
       python -m axolotl.cli.preprocess finetune/climate_numerical.yml &&
       accelerate launch -m axolotl.cli.train finetune/climate_numerical.yml && 
-      s5cmd cp -r finetune/outputs/climate-numerical-finetune s3://multimodal_fine_tuning
+      s5cmd cp finetune/outputs/climate-numerical-finetune s3://multimodal_fine_tuning
     cpu_count: 8
     gpu_count: 8
     memory: 30

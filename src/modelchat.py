@@ -10,19 +10,20 @@ from num2words import num2words
 from transformers import AutoConfig
 from torch.nn import DataParallel
 import xformers
+from peft import PeftModel
 
 
 class ChatModel:
-    def __init__(self, model_name, token):
+    def __init__(self, model_name):
         self.model_name = model_name
-        self.tokenizer = self.load_tokenizer(model_name, token)
+        self.tokenizer = self.load_tokenizer(model_name)
         self.tokenizer.pad_token = self.tokenizer.eos_token
 
-    def load_model(self, model_name, token):
+    def load_model(self, model_name):
         raise NotImplementedError("Subclasses must implement this method")
 
-    def load_tokenizer(self, model_name, token):
-        return AutoTokenizer.from_pretrained(model_name, token=token, device_map="auto")
+    def load_tokenizer(self, model_name):
+        return AutoTokenizer.from_pretrained(model_name, device_map="auto")
 
     def apply_chat_template(self, template):
         if template is not None:
@@ -66,13 +67,14 @@ class MistralChatModel(ChatModel):
 
 
 class LLMChatModel(ChatModel):
-    def __init__(self, model_name, token):
-        super().__init__(model_name, token)
-        self.model = self.load_model(model_name, token)
+    def __init__(self, model_name):
+        super().__init__(model_name)
+        self.model = self.load_model(model_name)
         self.device = next(self.model.parameters()).device
 
-    def load_model(self, model_name, token):
-        return AutoModelForCausalLM.from_pretrained(model_name, token=token, device_map="auto")
+    def load_model(self, model_name):
+        base_model = AutoModelForCausalLM.from_pretrained(model_name, device_map="auto")
+        return PeftModel.from_pretrained(base_model, "Howard881010/climate_numerical")
 
     def chat(self, prompt):
         new_prompt = self.tokenizer.apply_chat_template(
@@ -149,6 +151,7 @@ if __name__ == "__main__":
 
     # model_chat = MistralChatModel(
     #     "mistralai/Mistral-7B-Instruct-v0.1")
+    # fine-tuned model
     model_chat = LLMChatModel("meta-llama/Llama-2-7b-chat-hf")
     # model_chat = GemmaChatModel("google/gemma-7b-it")
 
