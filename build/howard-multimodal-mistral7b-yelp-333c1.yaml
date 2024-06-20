@@ -1,0 +1,91 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    project: multimodal
+    user: howard
+  name: howard-multimodal-mistral7b-yelp-333c1
+  namespace: spatiotemporal-decision-making
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        project: multimodal
+        user: howard
+      namespace: spatiotemporal-decision-making
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: nvidia.com/gpu.product
+                operator: In
+                values:
+                - NVIDIA-GeForce-RTX-3090
+                - NVIDIA-A10
+      containers:
+      - command:
+        - conda
+        - run
+        - -n
+        - multimodal
+        - /bin/bash
+        - -c
+        - 'echo IyEvYmluL2Jhc2gKbWtkaXIgLXAgY29uZmlnCnNzaC1rZXlzY2FuIGdpdGh1Yi5jb20gPj4gL3Jvb3QvLnNzaC9rbm93bl9ob3N0cwpzc2gta2V5c2NhbiAtdCBlY2RzYSAtcCAzMDYyMiAtSCBnaXRsYWItc3NoLm5ycC1uYXV0aWx1cy5pbyA+PiAvcm9vdC8uc3NoL2tub3duX2hvc3RzCmdpdCBwdWxsCmdpdCBzdWJtb2R1bGUgdXBkYXRlIC0taW5pdCAtLXJlY3Vyc2l2ZQplY2hvICJjb25kYSBhY3RpdmF0ZSBtdWx0aW1vZGFsOyBzb3VyY2Ugc3JjL3Rvb2xib3gvczNyZWdpb24uc2giID4+IH4vLmJhc2hyYwpleHBvcnQgUEFUSD0iL29wdC9jb25kYS9lbnZzL211bHRpbW9kYWwvYmluLzokUEFUSCIKY2htb2QgK3ggc3JjL3Rvb2xib3gvczNyZWdpb24uc2gKc291cmNlIHNyYy90b29sYm94L3MzcmVnaW9uLnNoCmVjaG8gJ1V6TmZRbFZEUzBWVVgwNUJUVVU5YlRKbWIzSmxZMkZ6ZEFwQlYxTmZRVU5EUlZOVFgwdEZXVjlKUkQxSFkwOUNlbk0zUkRZNVNtRnJhM3BDUWtoRWJRcEJWMU5mVTBWRFVrVlVYMEZEUTBWVFUxOUxSVms5UVRSdGVtMXRVbnBJVjJGM1dUbERPWFkxYVZWTlVWbHBWM0JGV1dKdVFWQldaRWd4U1ZKM1NBcFRNMTlGVGtSUVQwbE9WRjlWVWt3OWFIUjBjSE02THk5eWIzTmxaR0YwWVM1MVkzTmtMbVZrZFFvaklGTXpYMFZPUkZCUFNVNVVYMVZTVEQxb2RIUndjem92TDNNekxYZGxjM1F1Ym5Kd0xXNWhkWFJwYkhWekxtbHZDa2hHWDFSUFMwVk9QV2htWDJOb1NWTm9WWE5zVFVoWVptMUdUWGgxYmtkWmVXUkdkVVZ3UlZGM1VXTnFSRTRLVjBGT1JFSmZRVkJKWDB0RldUMXNiMk5oYkMxbU0yTTJZekF4WW1OaE9HSmxNRFkxWkRSaE5EVXhZVEV4TldZM01HSXdPVGhrWWpjek5qQTBDaU1nVjBGT1JFSmZRVkJKWDB0RldUMDVNR1JqT0dNME1EZzVZekl4TXpZNFlqWXhaalprTWpBMk9XUXpPREl5TkdReU16WTBZMlkzQ2tkSlZGOVZVMFZTVGtGTlJUMW9iM2RoY21RNE9ERXdNVEFLUjBsVVgxQkJVMU5YVDFKRVBXZG9jRjk1VTA1ck4zSlFTMmhEZUdVd2VtMWlkMHg2TWpCWmFYUjFhR2RxUTNrME5UaHdWRlFLSXlCQlYxTmZRVU5EUlZOVFgwdEZXVjlKUkQwNE5EWk1ValZJUkRNeE0wTk5PVTVOTkRaS013b2pJRUZYVTE5VFJVTlNSVlJmUVVORFJWTlRYMHRGV1QxTVVVeHNVVWR4V2tnMWJrbERTa2RSVlRsQ1RGSjJUMHhNYlVsMlRVNUJaM1ZTVkdSdVZGVXdDZz09JyB8IGJhc2U2NCAtZCB8IHRyIC1kICdccicgPiAnLmVudicgJiYgZWNobyA+PiAnLmVudicgCmVjaG8gJ2NISnZhbVZqZEY5dVlXMWxPaUJ0ZFd4MGFXMXZaR0ZzQ201aGJXVnpjR0ZqWlRvZ2MzQmhkR2x2ZEdWdGNHOXlZV3d0WkdWamFYTnBiMjR0YldGcmFXNW5DblZ6WlhJNklHaHZkMkZ5WkFweVpXZHBjM1J5ZVY5b2IzTjBPaUJuYVhSc1lXSXRjbVZuYVhOMGNua3Vibkp3TFc1aGRYUnBiSFZ6TG1sdkNuTnphRjlvYjNOME9pQm5hWFJzWVdJdGMzTm9MbTV5Y0MxdVlYVjBhV3gxY3k1cGJ3cHpjMmhmY0c5eWREb2dNekEyTWpJS1kyOXVaR0ZmYUc5dFpUb2dMMjl3ZEM5amIyNWtZUXBwYldGblpUb2daMmwwYkdGaUxYSmxaMmx6ZEhKNUxtNXljQzF1WVhWMGFXeDFjeTVwYnk5b2IzZGhjbVF2YlhWc2RHbHRiMlJoYkRwc1lYUmxjM1FLWjNCMVgzZG9hWFJsYkdsemREb0tJQ0F0SUU1V1NVUkpRUzFIWlVadmNtTmxMVkpVV0Mwek1Ea3dDaUFnTFNCT1ZrbEVTVUV0UVRFdycgfCBiYXNlNjQgLWQgfCB0ciAtZCAnXHInID4gJ2NvbmZpZy9rdWJlLnlhbWwnICYmIGVjaG8gPj4gJ2NvbmZpZy9rdWJlLnlhbWwnIAplY2hvICdjSEp2YW1WamRGOXVZVzFsT2lCdGRXeDBhVzF2WkdGc0NtMXZaR1ZzT2dvZ0lHMXBjM1J5WVd3M1lqb0tJQ0FnSUdOdmJXMWhibVE2SUQ0S0lDQWdJQ0FnWjJsMElITjBZWE5vSUNZbUNpQWdJQ0FnSUdkcGRDQndkV3hzSUNZbUNpQWdJQ0FnSUhCNWRHaHZiaUF0YlNCaGVHOXNiM1JzTG1Oc2FTNXdjbVZ3Y205alpYTnpJR1pwYm1WMGRXNWxMMk5zYVcxaGRHVXVlVzFzSUNZbUNpQWdJQ0FnSUdGalkyVnNaWEpoZEdVZ2JHRjFibU5vSUMxdElHRjRiMnh2ZEd3dVkyeHBMblJ5WVdsdUlHWnBibVYwZFc1bEwyTnNhVzFoZEdVdWVXMXNJQ1ltSUFvZ0lDQWdJQ0J6TldOdFpDQmpjQ0F0Y2lCbWFXNWxkSFZ1WlM5dmRYUndkWFJ6TDJOc2FXMWhkR1V0Wm1sdVpYUjFibVVnY3pNNkx5OXRkV3gwYVcxdlpHRnNYMlpwYm1WZmRIVnVhVzVuQ2lBZ0lDQmpjSFZmWTI5MWJuUTZJRFVLSUNBZ0lHZHdkVjlqYjNWdWREb2dOQW9nSUNBZ2JXVnRiM0o1T2lBek1BcGtZWFJoYzJWME9nb2dJSGxsYkhBNkNpQWdJQ0JvY0dGeVlXMDZDaUFnSUNBZ0lGOW1iam9nU0c5M1lYSmtPRGd4TURFd0wxbGxiSEF0WkdGMFlYTmxkQW9nSUcxcGJXbGpPZ29nSUNBZ2FIQmhjbUZ0T2dvZ0lDQWdJQ0JmWm00NklHMXBiV2xqTG5SNGRBcHlkVzQ2Q2lBZ2JXOWtaV3c2SUZ0dGFYTjBjbUZzTjJKZENpQWdaR0YwWVhObGREb2dXM2xsYkhCZENpTWdabWxzWlRvS0l5QWdJQzBnTGk5aGVHOXNiM1JzTDJWNFlXMXdiR1Z6TDJ4c1lXMWhMVEl2YlhsamIyNW1hV2N1ZVcxc0NpTWdhRzl6ZEc1aGJXVmZkMmhwZEdWc2FYTjBPZ29qSUNBZ0xTQm9ZMk10WTJoaGMyVXRjMmh2Y2kxak5EY3hPUzUxYm13dVpXUjFDZz09JyB8IGJhc2U2NCAtZCB8IHRyIC1kICdccicgPiAnY29uZmlnL2xhdW5jaC55YW1sJyAmJiBlY2hvID4+ICdjb25maWcvbGF1bmNoLnlhbWwnIAplY2hvICdjSEp2YW1WamRGOXVZVzFsT2lCdGRXeDBhVzF2WkdGc0NtNWhiV1Z6Y0dGalpUb2djM0JoZEdsdmRHVnRjRzl5WVd3dFpHVmphWE5wYjI0dGJXRnJhVzVuQ25WelpYSTZJR2h2ZDJGeVpBcHlaV2RwYzNSeWVWOW9iM04wT2lCbmFYUnNZV0l0Y21WbmFYTjBjbmt1Ym5Kd0xXNWhkWFJwYkhWekxtbHZDbk56YUY5b2IzTjBPaUJuYVhSc1lXSXRjM05vTG01eWNDMXVZWFYwYVd4MWN5NXBid3B6YzJoZmNHOXlkRG9nTXpBMk1qSUtZMjl1WkdGZmFHOXRaVG9nTDI5d2RDOWpiMjVrWVFwcGJXRm5aVG9nWjJsMGJHRmlMWEpsWjJsemRISjVMbTV5Y0MxdVlYVjBhV3gxY3k1cGJ5OW9iM2RoY21RdmJYVnNkR2x0YjJSaGJEcHNZWFJsYzNRS1ozQjFYM2RvYVhSbGJHbHpkRG9LSUNBdElFNVdTVVJKUVMxSFpVWnZjbU5sTFZKVVdDMHpNRGt3Q2lBZ0xTQk9Wa2xFU1VFdFFURXcnIHwgYmFzZTY0IC1kIHwgdHIgLWQgJ1xyJyA+ICdjb25maWcva3ViZS55YW1sJyAmJiBlY2hvID4+ICdjb25maWcva3ViZS55YW1sJyA=
+          | base64 -d > startup.sh && chmod +x startup.sh && source startup.sh; git
+          stash && git pull && python -m axolotl.cli.preprocess finetune/climate.yml
+          && accelerate launch -m axolotl.cli.train finetune/climate.yml &&  s5cmd
+          cp -r finetune/outputs/climate-finetune s3://multimodal_fine_tuning
+
+          '
+        env:
+        - name: PYTHONUNBUFFERED
+          value: '1'
+        - name: PYTHONIOENCODING
+          value: UTF-8
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: S3_BUCKET_NAME
+          value: m2forecast
+        - name: AWS_ACCESS_KEY_ID
+          value: GcOBzs7D69JakkzBBHDm
+        - name: AWS_SECRET_ACCESS_KEY
+          value: A4mzmmRzHWawY9C9v5iUMQYiWpEYbnAPVdH1IRwH
+        - name: S3_ENDPOINT_URL
+          value: https://rosedata.ucsd.edu
+        - name: HF_TOKEN
+          value: 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
+        - name: WANDB_API_KEY
+          value: local-f3c6c01bca8be065d4a451a115f70b098db73604
+        - name: GIT_USERNAME
+          value: howard881010
+        - name: GIT_PASSWORD
+          value: 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
+        - name: PYTHONPATH
+          value: src
+        image: gitlab-registry.nrp-nautilus.io/howard/multimodal:latest
+        name: gpu-container
+        resources:
+          limits:
+            cpu: '6.0'
+            memory: 36.0G
+            nvidia.com/gpu: '4'
+          requests:
+            cpu: '5'
+            memory: 30G
+            nvidia.com/gpu: '4'
+        volumeMounts:
+        - mountPath: /dev/shm
+          name: dshm
+      imagePullSecrets:
+      - name: multimodal-read-registry
+      restartPolicy: Never
+      tolerations: []
+      volumes:
+      - emptyDir:
+          medium: Memory
+        name: dshm

@@ -2,12 +2,14 @@ project_name: multimodal
 model:
   mistral7b:
     command: >
+      git stash &&
+      git pull &&
       python -m axolotl.cli.preprocess finetune/climate.yml &&
       accelerate launch -m axolotl.cli.train finetune/climate.yml && 
       s5cmd cp -r finetune/outputs/climate-finetune s3://multimodal_fine_tuning
     cpu_count: 5
     gpu_count: 4
-    memory: 20
+    memory: 30
 dataset:
   yelp:
     hparam:
@@ -20,5 +22,5 @@ run:
   dataset: [yelp]
 # file:
 #   - ./axolotl/examples/llama-2/myconfig.yml
-hostname_whitelist:
-  - ry-gpu-03.sdsc.optiputer.net
+# hostname_whitelist:
+#   - hcc-chase-shor-c4719.unl.edu
