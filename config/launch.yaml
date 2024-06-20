@@ -4,9 +4,9 @@ model:
     command: >
       git stash &&
       git pull &&
-      python -m axolotl.cli.preprocess finetune/climate.yml &&
-      accelerate launch -m axolotl.cli.train finetune/climate.yml && 
-      s5cmd cp -r finetune/outputs/climate-finetune s3://multimodal_fine_tuning
+      python -m axolotl.cli.preprocess finetune/climate_summary.yml &&
+      accelerate launch -m axolotl.cli.train finetune/climate_summmary.yml && 
+      s5cmd cp -r finetune/outputs/climate-summary-finetune s3://multimodal_fine_tuning
     cpu_count: 5
     gpu_count: 4
     memory: 30

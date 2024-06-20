@@ -7,16 +7,16 @@ load_in_4bit: true
 strict: false
 
 datasets:
-  - path: Howard881010/Climate-dataset
+  - path: Howard881010/Climate-dataset-summary
     type: alpaca
 dataset_prepared_path:
 val_set_size: 0.05
-output_dir: ./finetune/outputs/climate-finetune
+output_dir: ./finetune/outputs/climate-summary-finetune
 
 adapter: qlora
 lora_model_dir:
 
-sequence_len: 5200
+sequence_len: 18700
 sample_packing: false
 pad_to_sequence_len: true
 
@@ -30,7 +30,7 @@ lora_fan_in_fan_out:
 wandb_project: finetune
 wandb_entity:
 wandb_watch:
-wandb_name: climate-finetune
+wandb_name: climate-summary-finetune
 wandb_log_model:
 
 gradient_accumulation_steps: 2
