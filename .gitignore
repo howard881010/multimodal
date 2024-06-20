@@ -3,8 +3,10 @@
 /Predictions_and_attempts/
 /Results/
 /wandb/
-/src/Upload.ipynb
+/src/Upload_fixed.ipynb
+/src/Upload_random.ipynb
 /.env
 /.s3cfg
 /finetune/outputs
 /Dataset
+/parquet_dir
