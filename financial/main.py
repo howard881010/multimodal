@@ -75,7 +75,7 @@ def main(dir_path):
         script_start_time = time.time()
 
         save_path = os.path.join(dir_path, path.replace("raw", "summary"))
-
+        print(f"Running {save_path}")
         logging.info("------------------------")
         logging.info(save_path)
 
