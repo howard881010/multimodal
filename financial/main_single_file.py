@@ -65,70 +65,73 @@ def chunk_documents(tokenizer, data, max_token_length=4096):
         return chunk_data
 
 # "jnj nflx, goog, cost, lly, ma, aapl"
-def main(dir_path):
+
+
+def main(path):
     model_name = "meta-llama/Meta-Llama-3-8B-Instruct"
     tokenizer = AutoTokenizer.from_pretrained(model_name)
 
-    file_paths = sorted(os.listdir(dir_path))
-    file_paths = [f for f in file_paths if not os.path.exists(os.path.join(dir_path, f.replace("raw", "summary")))]
-    for path in tqdm(file_paths, total=len(file_paths)):
-        script_start_time = time.time()
+    script_start_time = time.time()
 
-        save_path = os.path.join(dir_path, path.replace("raw", "summary"))
+    save_path = os.path.join(path, path.replace("raw", "summary"))
 
-        logging.info("------------------------")
-        logging.info(save_path)
+    logging.info("------------------------")
+    logging.info(save_path)
 
-        raw_data = load_text_from(os.path.join(dir_path, path))
-        raw_data = [d for d in raw_data if d != "<SEP>" and d != ""]
-        logging.info(f'{len(raw_data)} urls found.')
+    raw_data = load_text_from(path)
+    raw_data = [d for d in raw_data if d != "<SEP>" and d != ""]
+    print(raw_data)
+    logging.info(f'{len(raw_data)} urls found.')
 
-        chunk_data = chunk_documents(tokenizer, raw_data)
+    chunk_data = chunk_documents(tokenizer, raw_data)
 
-        summaries = batch_call_llm_chat(prompts.SUMMARY_PROMPT, chunk_data)
-        valid_summaries = batch_call_llm_chat(prompts.IGNORE_PROMPT, summaries)
+    summaries = batch_call_llm_chat(prompts.SUMMARY_PROMPT, chunk_data)
 
-        valid_idxs = [i for i, r in enumerate(
-            valid_summaries) if r != "<NONE>"]
-        valid_summaries = [summaries[i] for i in valid_idxs]
+    logging.info('\n\n'.join(summaries))
+    # valid_summaries = batch_call_llm_chat(prompts.IGNORE_PROMPT, summaries)
 
-        if len(valid_summaries) > 0:
-            combined_summaries = chunk_documents(
-                tokenizer, "\n".join(valid_summaries))
-            if len(combined_summaries) > 1:
-                combined_summaries = batch_call_llm_chat(
-                    prompts.COMBINE_PROMPT, combined_summaries)
+    # valid_idxs = [i for i, r in enumerate(
+    #     valid_summaries) if r != "<NONE>"]
+    # valid_summaries = [summaries[i] for i in valid_idxs]
 
-            chunked_summaries = chunk_documents(tokenizer, combined_summaries)
-            if len(chunked_summaries) > 1:
-                chunked_summaries = batch_call_llm_chat(
-                    prompts.COMBINE_PROMPT, chunked_summaries)
+    # if len(valid_summaries) > 0:
+    combined_summaries = chunk_documents(
+        tokenizer, "\n".join(summaries))
+    if len(combined_summaries) > 1:
+        combined_summaries = batch_call_llm_chat(
+            prompts.COMBINE_PROMPT, combined_summaries)
 
-            final_summary = llm_chat(message_template(
-                prompts.FINAL_PROMPT, '\n'.join(chunked_summaries)))
+    chunked_summaries = chunk_documents(tokenizer, combined_summaries)
+    if len(chunked_summaries) > 1:
+        chunked_summaries = batch_call_llm_chat(
+            prompts.COMBINE_PROMPT, chunked_summaries)
 
-            save_text_to(final_summary, save_path)
+    final_summary = llm_chat(message_template(
+        prompts.FINAL_PROMPT, '\n'.join(chunked_summaries)))
 
-            logging.info("------------------------")
-            logging.info(final_summary)
+    save_text_to(final_summary, save_path)
 
-            log_time(script_start_time)
-        else:
-            save_text_to("", save_path)
+    logging.info("------------------------")
+    logging.info(final_summary)
+
+    log_time(script_start_time)
+    # else:
+    #     save_text_to("", save_path)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Process stock ticker information.")
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--path', type=str, required=True,
+                        help='raw text path')
     parser.add_argument('--ticker', type=str, required=True,
                         help='Stock ticker symbol')
-    args = parser.parse_args()
+    # /data/kai/forecasting/summary/CVX/2022-03-02_raw.txt
 
+    args = parser.parse_args()
     ticker = args.ticker
     # ticker = "AMD"
 
     prompts = Prompts(ticker)
-    logger = get_logger(f"logs/{ticker}_summary.txt")
+    logger = get_logger(f"logs/{ticker}_{args.path.split('/')[-1]}")
 
-    dir_path = f"/data/kai/forecasting/summary/{ticker}"
-    main(dir_path)
+    main(args.path)

@@ -131,4 +131,5 @@ if __name__ == "__main__":
     logger = get_logger(f"logs/{ticker}_summary.txt")
 
     dir_path = f"/data/kai/forecasting/summary/{ticker}"
+
     main(dir_path)
