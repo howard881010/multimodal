@@ -5,7 +5,7 @@ from glob import glob
 from utils import download_raw_texts_from_urls, save_text_to, get_logger
 import logging
 
-data_dir = "/data/kai/forecasting/summary"
+data_dir = "/data/kai/forecasting/data/summary"
 os.makedirs(data_dir, exist_ok=True)
 
 paths = sorted(glob("/data/kai/forecasting/data/raw_urls/*.csv"))
