@@ -64,9 +64,8 @@ def chunk_documents(tokenizer, data, max_token_length=4096):
                       for i in range(0, len(data), document_per_chunk)]
         return chunk_data
 
-# "jnj nflx, goog, cost, lly, ma, aapl"
 def main(dir_path):
-    model_name = "meta-llama/Meta-Llama-3-8B-Instruct"
+    model_name = "meta-llama/Meta-Llama-3-70B-Instruct"
     tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     file_paths = sorted(os.listdir(dir_path))
