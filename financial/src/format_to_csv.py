@@ -1,12 +1,6 @@
 
 # Given the following stock prices for each day and the summary of the financial news, predict the next 10 prices.
 
-# Prepare Financial dataset in following format
-# {
-#     '100', 'summary...',
-#     '105', 'summary...'
-# }
-
 import pandas as pd
 import os
 from glob import glob
@@ -54,4 +48,4 @@ for ticker in all_tickers:
 
     save_formatted_path = os.path.join(save_formatted_dir, ticker + ".csv")
     formatted_df = pd.DataFrame.from_dict(data)
-    formatted_df.to_csv(save_formatted_path)
+    formatted_df.to_csv(save_formatted_path, index=False)

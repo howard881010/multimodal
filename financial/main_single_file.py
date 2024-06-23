@@ -27,7 +27,7 @@
 
 # online
 from transformers import AutoTokenizer
-from src.PROMPTS import Prompts
+from multimodal.financial.templates.PROMPTS import Prompts
 from src.vllm import batch_call_llm_chat, llm_chat, message_template
 from src.utils import load_text_from, log_time, save_text_to, get_logger
 import logging
