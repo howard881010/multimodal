@@ -10,3 +10,4 @@
 /finetune/outputs
 /Dataset
 /parquet_dir
+/last_run_prepared
