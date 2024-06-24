@@ -74,7 +74,7 @@ class LLMChatModel(ChatModel):
 
     def load_model(self, model_name):
         base_model = AutoModelForCausalLM.from_pretrained(model_name, device_map="auto")
-        return PeftModel.from_pretrained(base_model, "Howard881010/climate_numerical")
+        return PeftModel.from_pretrained(base_model, "Howard881010/finance-summary")
 
     def chat(self, prompt):
         new_prompt = self.tokenizer.apply_chat_template(
@@ -140,12 +140,9 @@ if __name__ == "__main__":
     # data["hist_values"] = data["hist_values"].apply(str)
     start = time.time()
 
-    chat = [
-        {"role": "user",
-            "content": f"""For the given 4 historical values: 1.00 1.00 4.00 4.00, predict the future 4 values without producing any additional text"""},
-        {"role": "assistant", "content": "The next 4 values are: 4.00 4.00 4.00 4.00"}]
-    content = chat + [{"role": "user",
-            "content": f"""For the given 4 historical values: 3.00 2.00 4.00 5.00, predict the future 4 values without producing any additional text"""}]
+    content = [{"role": "user",
+            "content": f"""The financial summaries for the last 1 days are day 1: Here is a comprehensive summary of Tesla's stock (TSLA): **Stock Performance:** Tesla's stock is up 50% year-to-date, outperforming the S&P 500's 15% gain. **Earnings Report:** Q2 2022 earnings report showed revenue of $16.93 billion, beating estimates of $16.54 billion, with net income of $2.27 billion and a gross margin of 25%. **Vehicle Deliveries:** Tesla's vehicle deliveries increased 27% year-over-year to 254,695 in Q2, driven by growth in China and Europe. The company aims to increase production capacity at its factories in Fremont, California, and Shanghai. **Market Outlook:** Analysts expect Tesla's revenue to grow 34% in 2022 and 24% in 2023. The company's market capitalization is around $900 billion, making it one of the largest companies in the US. **Notable News:** The opening of Tesla's Giga Berlin factory could potentially boost its market share in Europe, where the electric vehicle market is growing rapidly. The factory has a production capacity of 500,000 units per year and is expected to increase Tesla's presence in the region., and the stock prices of the last 1 days are day 1: 921.16
+            .Given the financial summaries from the last 1 days, generate financial summaries for the current day and the next 5 days"""}]
     prompt = [content]
     
 

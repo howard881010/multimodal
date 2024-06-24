@@ -4,11 +4,11 @@ model:
     command: >
       git checkout . &&
       git pull &&
-      python -m axolotl.cli.preprocess finetune/finance_summary.yml &&
-      accelerate launch -m axolotl.cli.train finetune/finance_summary.yml && 
-      s5cmd cp finetune/outputs/climate-numerical-finetune s3://multimodal_fine_tuning
+      python -m axolotl.cli.preprocess finetune/finance_numerical.yml &&
+      accelerate launch -m axolotl.cli.train finetune/finance_numerical.yml && 
+      s5cmd cp finetune/outputs/finance-numerical-finetune s3://multimodal_fine_tuning
     cpu_count: 8
-    gpu_count: 8
+    gpu_count: 6
     memory: 30
 dataset:
   yelp:
