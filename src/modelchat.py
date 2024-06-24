@@ -135,9 +135,9 @@ if __name__ == "__main__":
     np.random.seed(42)
     set_seed(42)
     # Constructing the prompt with an example
-    data = pd.read_csv("Data/Yelp/4_weeks/test_0.csv")
-    data["fut_values"] = data["fut_values"].apply(str)
-    data["hist_values"] = data["hist_values"].apply(str)
+    # data = pd.read_csv("Data/Yelp/4_weeks/test_0.csv")
+    # data["fut_values"] = data["fut_values"].apply(str)
+    # data["hist_values"] = data["hist_values"].apply(str)
     start = time.time()
 
     chat = [
