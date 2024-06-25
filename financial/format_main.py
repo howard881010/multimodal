@@ -12,6 +12,23 @@ summary_path = os.path.join(data_dir, 'summary')
 save_formatted_dir = os.path.join(data_dir, 'formatted')
 os.makedirs(save_formatted_dir, exist_ok=True)
 
+null_phrases = [
+    "no relevant information",
+    "no stock summaries provided",
+    "since there is no",
+    "no available information about",
+    "no summary was provided",
+    "no summaries provided"
+    "not available due to lack of information",
+    "please provide relevant information"
+]
+
+early_null_phrases = [
+    "unfortunately",
+    "no availabe information",
+    "relevant",
+]
+
 all_tickers = os.listdir(summary_path)
 for ticker in all_tickers:
     ticker_numerical_path = os.path.join(
@@ -28,7 +45,6 @@ for ticker in all_tickers:
     }
 
     missing_prices = []
-    missing_summaries = []
     for current_summary_path in tqdm(ticker_summary_paths, total=len(ticker_summary_paths)):
         # '/data/kai/forecasting/data/summary/AAPL/2022-03-01_summary.txt' --> 2022-03-01
         current_timestamp = current_summary_path.split('/')[-1].split('_')[0]
@@ -37,15 +53,15 @@ for ticker in all_tickers:
                                                 == current_timestamp]['close'].item()
             with open(current_summary_path, 'r') as file:
                 current_summary = file.read()
-                if current_summary == '':
-                    missing_summaries.append(current_timestamp)
-
-            data['timestamp'].append(current_timestamp)
-            data['price'].append(current_price)
-            data['summary'].append(current_summary)
+            if all([phrase not in current_summary.lower()[:150] for phrase in early_null_phrases]) and \
+                all([phrase not in current_summary.lower() for phrase in null_phrases]):
+                data['timestamp'].append(current_timestamp)
+                data['price'].append(current_price)
+                data['summary'].append(current_summary)
         except ValueError:
             missing_prices.append(current_timestamp)
 
     save_formatted_path = os.path.join(save_formatted_dir, ticker + ".csv")
     formatted_df = pd.DataFrame.from_dict(data)
-    formatted_df.to_csv(save_formatted_path, index=False)
+    if formatted_df.shape[0] > 300:
+        formatted_df.to_csv(save_formatted_path, index=False)
