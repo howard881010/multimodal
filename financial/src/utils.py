@@ -4,10 +4,12 @@ from tqdm import tqdm
 import time
 from datetime import datetime, timedelta
 from typing import Union
+from threading import Thread, Lock
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from queue import Queue
 import logging
 import os
-
+from urllib.parse import urlparse
 
 def download_single_url(url):
     try:
@@ -20,17 +22,43 @@ def download_single_url(url):
         return None
 
 
-def download_raw_texts_from_urls(current_urls, max_workers=10):
+def download_raw_texts_with_path_url(current_urls, save_paths, scraped_urls_path, max_workers=10):
     raw_texts = []
+    url_queue = Queue()
+    domain_locks = {}
+    
+    # Populate the queue
+    for url, path in zip(current_urls, save_paths):
+        url_queue.put((url, path))
+        
+    def worker():
+        while not url_queue.empty():
+            url, path = url_queue.get()
+            domain = urlparse(url).netloc
+            if domain not in domain_locks:
+                domain_locks[domain] = Lock()
+            with domain_locks[domain]:
+                result = download_single_url(url)
+                if result is not None:
+                    raw_texts.append(result)
+                    add_text_to(result, path)
+                    add_text_to(url, scraped_urls_path)
+                    if "page not found" in result.lower():
+                        print('----- denied -----')
+                        print(f"{'.'.join(path.split('/')[-2:])} --- {domain}")
+                        print(f"-- {result[:200]}")
+            url_queue.task_done()
 
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = {executor.submit(
-            download_single_url, url): url for url in current_urls}
-
-        for future in tqdm(as_completed(futures), total=len(current_urls)):
-            result = future.result()
-            if result is not None:
-                raw_texts.append(result)
+    # Start worker threads
+    threads = []
+    for _ in range(max_workers):
+        thread = Thread(target=worker)
+        thread.start()
+        threads.append(thread)
+    
+    # Wait for all threads to complete
+    for thread in threads:
+        thread.join()
 
     return raw_texts
 
@@ -50,6 +78,14 @@ def load_text_from(file_path: str):
         data = file.read().splitlines()
     return data
 
+def add_text_to(data: Union[str, list[str]], file_path: str):
+    with open(file_path, 'a') as file:
+        if isinstance(data, str):
+            file.write(data + "\n")
+        elif isinstance(data, list):
+            for line in data:
+                file.write(line + "\n")
+                file.write("<SEP>" + "\n")
 
 def log_time(start_time: float):
     elapsed_time = time.time()

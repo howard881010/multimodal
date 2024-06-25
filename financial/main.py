@@ -85,15 +85,15 @@ def main(dir_path):
         chunk_data = chunk_documents(tokenizer, raw_data)
 
         summaries = batch_call_llm_chat(prompts.SUMMARY_PROMPT, chunk_data)
-        valid_summaries = batch_call_llm_chat(prompts.IGNORE_PROMPT, summaries)
+        # valid_summaries = batch_call_llm_chat(prompts.IGNORE_PROMPT, summaries)
 
-        valid_idxs = [i for i, r in enumerate(
-            valid_summaries) if r != "<NONE>"]
-        valid_summaries = [summaries[i] for i in valid_idxs]
+        # valid_idxs = [i for i, r in enumerate(
+        #     valid_summaries) if r != "<NONE>"]
+        # valid_summaries = [summaries[i] for i in valid_idxs]
 
-        if len(valid_summaries) > 0:
+        if len(summaries) > 0:
             combined_summaries = chunk_documents(
-                tokenizer, "\n".join(valid_summaries))
+                tokenizer, "\n".join(summaries))
             if len(combined_summaries) > 1:
                 combined_summaries = batch_call_llm_chat(
                     prompts.COMBINE_PROMPT, combined_summaries)
