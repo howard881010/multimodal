@@ -16,6 +16,7 @@ import numpy as np
 def get_domain(url):
     return urlparse(url).netloc
 
+
 class Downloader:
     def __init__(self, df_paths, save_dir, max_workers=5):
         self.headers = {
@@ -38,7 +39,8 @@ class Downloader:
         try:
             r = requests.get(url, headers=self.headers)
             soup = BeautifulSoup(r.text, 'html.parser')
-            parsed_text = ' '.join(soup.text.replace('\n', " ").strip().split())
+            parsed_text = ' '.join(
+                soup.text.replace('\n', " ").strip().split())
             return parsed_text
         except Exception as e:
             print(f"Error downloading {url}: {e}")
@@ -47,12 +49,13 @@ class Downloader:
     def process_url(self, idx, ticker, url, df):
         if type(df.loc[idx, 'text']) != str:
             domain = get_domain(url)
-            
+
             with self.domain_lock:
                 last_request_time = self.domain_last_request.get(domain, 0)
                 current_time = time.time()
                 if current_time - last_request_time < self.domain_sleep_time:
-                    time.sleep(self.domain_sleep_time - (current_time - last_request_time))
+                    time.sleep(self.domain_sleep_time -
+                               (current_time - last_request_time))
                 self.domain_last_request[domain] = time.time()
 
             text = self.download_url(url)
@@ -61,8 +64,7 @@ class Downloader:
             file_path = os.path.join(self.save_dir, f"{ticker}.csv")
             with self.save_lock:
                 df.to_csv(file_path, index=False)
-            print('---------------')
-            print(ticker, url)
+            print(f'----{ticker}----{url}-------')
             print(text[:100])
         else:
             print('already downloaded', idx, ticker, url)
@@ -94,9 +96,11 @@ class Downloader:
     def download_tickers(self):
         for df_path in self.df_paths:
             self.download_ticker(df_path)
-        
-save_dir = "/home/mkim/SServer/financial/data/summary_v0.2"
-df_paths =  sorted(glob('/home/mkim/SServer/financial/data/raw_urls/*'))
+
+
+root_dir = "/data/kai/forecasting/data"
+save_dir = os.path.join(f'{root_dir}/summary_v0.2')
+df_paths = sorted(glob(os.path.join(f'{root_dir}/raw_urls/*')))
 
 downloader = Downloader(df_paths, save_dir)
 downloader.download_tickers()
