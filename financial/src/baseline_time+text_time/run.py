@@ -1,7 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import pandas as pd
 import os
-os.sys.path.append('/data/kai/forecasting/multimodal/financial')
 from src.vllm import llm_chat
 from templates.PROMPTS import ForecstBaselinePrompts
 from glob import glob

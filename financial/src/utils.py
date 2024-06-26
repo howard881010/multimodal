@@ -11,9 +11,14 @@ import logging
 import os
 from urllib.parse import urlparse
 
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+    'Accept-Language': 'en-US,en;q=0.5',
+    'Referer': 'https://www.google.com'
+}
 def download_single_url(url):
     try:
-        r = requests.get(url)
+        r = requests.get(url, headers=headers)
         soup = BeautifulSoup(r.text, 'html.parser')
         parsed_text = ' '.join(soup.text.replace('\n', " ").strip().split())
         return parsed_text

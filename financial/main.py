@@ -36,6 +36,28 @@ import os
 import argparse
 from tqdm import tqdm
 
+null_phrases = [
+    "no relevant information",
+    "no stock summaries provided",
+    "since there is no",
+    "no available information about",
+    "no summary was provided",
+    "no summaries provided"
+    "not available due to lack of information",
+    "please provide relevant information"
+]
+
+early_null_phrases = [
+    "unfortunately",
+    "no availabe information",
+    "relevant",
+]
+
+
+def is_valid_summary(current_summary: str):
+    return all([phrase not in current_summary.lower()[:150] for phrase in early_null_phrases]) and \
+        all([phrase not in current_summary.lower() for phrase in null_phrases])
+
 
 def chunk_documents(tokenizer, data, max_token_length=4096):
     # chunk list of documents
@@ -64,19 +86,24 @@ def chunk_documents(tokenizer, data, max_token_length=4096):
                       for i in range(0, len(data), document_per_chunk)]
         return chunk_data
 
+
 def main(dir_path):
     model_name = "meta-llama/Meta-Llama-3-70B-Instruct"
     tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     file_paths = sorted(os.listdir(dir_path))
-    file_paths = [f for f in file_paths if not os.path.exists(os.path.join(dir_path, f.replace("raw", "summary")))]
+    file_paths = [f for f in file_paths if not os.path.exists(
+        os.path.join(dir_path, f.replace("raw", "summary")))]
     for path in tqdm(file_paths, total=len(file_paths)):
         script_start_time = time.time()
 
-        save_path = os.path.join(dir_path, path.replace("raw", "summary"))
-        print(f"Running {save_path}")
+        chunk_path = os.path.join(
+            dir_path, path.replace("raw", "chunk_summary"))
+        final_path = os.path.join(
+            dir_path, path.replace("raw", "final_summary"))
+        print(f"Running {final_path}")
         logging.info("------------------------")
-        logging.info(save_path)
+        logging.info(final_path)
 
         raw_data = load_text_from(os.path.join(dir_path, path))
         raw_data = [d for d in raw_data if d != "<SEP>" and d != ""]
@@ -85,6 +112,7 @@ def main(dir_path):
         chunk_data = chunk_documents(tokenizer, raw_data)
 
         summaries = batch_call_llm_chat(prompts.SUMMARY_PROMPT, chunk_data)
+        save_text_to('\n'.join(summaries), chunk_path)
         # valid_summaries = batch_call_llm_chat(prompts.IGNORE_PROMPT, summaries)
 
         # valid_idxs = [i for i, r in enumerate(
@@ -106,14 +134,15 @@ def main(dir_path):
             final_summary = llm_chat(message_template(
                 prompts.FINAL_PROMPT, '\n'.join(chunked_summaries)))
 
-            save_text_to(final_summary, save_path)
+            if is_valid_summary(final_summary):
+                save_text_to(final_summary, final_path)
 
             logging.info("------------------------")
             logging.info(final_summary)
 
             log_time(script_start_time)
         else:
-            save_text_to("", save_path)
+            save_text_to("", final_path)
 
 
 if __name__ == "__main__":
