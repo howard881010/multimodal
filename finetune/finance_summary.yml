@@ -16,7 +16,7 @@ output_dir: ./finetune/outputs/finance-summary-finetune
 adapter: qlora
 lora_model_dir:
 
-sequence_len: 13400
+sequence_len: 12600
 sample_packing: false
 pad_to_sequence_len: true
 
@@ -65,3 +65,4 @@ weight_decay: 0.0
 fsdp:
 fsdp_config:
 special_tokens:
+seed: 42

@@ -7,7 +7,7 @@
 /src/Upload_random.ipynb
 /.env
 /.s3cfg
-/finetune/outputs
-/Dataset
-/parquet_dir
-/last_run_prepared
+/finetune/outputs/
+/Dataset/
+/parquet_dir/
+/last_run_prepared/

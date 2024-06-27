@@ -1,9 +1,11 @@
 project_name: multimodal
 model:
-  mistral7b:
+  finance-summary:
     command: >
       git checkout . &&
       git pull &&
+      sudo apt update &&
+      sudo apt install -y libaio-dev &&
       python -m axolotl.cli.preprocess finetune/finance_numerical.yml &&
       accelerate launch -m axolotl.cli.train finetune/finance_numerical.yml && 
       s5cmd cp finetune/outputs/finance-numerical-finetune s3://multimodal_fine_tuning
@@ -18,7 +20,7 @@ dataset:
     hparam:
       _fn: mimic.txt
 run:
-  model: [mistral7b]
+  model: [finance-summary]
   dataset: [yelp]
 # file:
 #   - ./axolotl/examples/llama-2/myconfig.yml
