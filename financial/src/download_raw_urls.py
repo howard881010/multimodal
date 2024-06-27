@@ -18,7 +18,7 @@ def get_domain(url):
 
 
 class Downloader:
-    def __init__(self, df_paths, save_dir, max_workers=5):
+    def __init__(self, df_paths, save_dir, blocked_urls=None, max_workers=5, sleep_time=5):
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
             'Accept-Language': 'en-US,en;q=0.5',
@@ -33,7 +33,8 @@ class Downloader:
         self.domain_last_request = {}
         self.domain_lock = Lock()
         self.save_lock = Lock()
-        self.domain_sleep_time = 5
+        self.sleep_time = sleep_time
+        self.blocked_urls = blocked_urls or []
 
     def download_url(self, url: str):
         try:
@@ -53,16 +54,18 @@ class Downloader:
             with self.domain_lock:
                 last_request_time = self.domain_last_request.get(domain, 0)
                 current_time = time.time()
-                if current_time - last_request_time < self.domain_sleep_time:
-                    time.sleep(self.domain_sleep_time -
+                if current_time - last_request_time < self.sleep_time:
+                    time.sleep(self.sleep_time -
                                (current_time - last_request_time))
                 self.domain_last_request[domain] = time.time()
 
-            text = self.download_url(url)
-            df.loc[idx, 'text'] = text
+            if domain in self.blocked_urls:
+                return
 
+            text = self.download_url(url)
             file_path = os.path.join(self.save_dir, f"{ticker}.csv")
             with self.save_lock:
+                df.loc[idx, 'text'] = text
                 df.to_csv(file_path, index=False)
             print(f'----{ticker}----{url}-------')
             print(text[:100])
@@ -102,5 +105,17 @@ root_dir = "/data/kai/forecasting/data"
 save_dir = os.path.join(f'{root_dir}/summary_v0.2')
 df_paths = sorted(glob(os.path.join(f'{root_dir}/raw_urls/*')))
 
-downloader = Downloader(df_paths, save_dir)
+idx = 0
+chunks = len(df_paths) // 3
+df_paths = df_paths[chunks*idx:chunks*(idx+1)]
+
+# harder to scrape
+blocked_urls = [
+    'www.wsj.com',
+    'www.thestreet.com',
+    # 'www.themoneycontrol.com',
+    # 'www.investors.com'
+]
+
+downloader = Downloader(df_paths, save_dir, max_workers=5, sleep_time=2)
 downloader.download_tickers()
