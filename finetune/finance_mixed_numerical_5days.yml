@@ -7,16 +7,17 @@ load_in_4bit: true
 strict: false
 
 datasets:
-  - path: Howard881010/financial-dataset-numerical
+  - path: Howard881010/financial-mixed-numerical-5days
     type: alpaca
+    train_on_split: train
 dataset_prepared_path:
 val_set_size: 0.05
-output_dir: ./finetune/outputs/finance-numerical-finetune
+output_dir: ./finetune/outputs/financial-mixed-numerical-5days
 
 adapter: qlora
 lora_model_dir:
 
-sequence_len: 13400
+sequence_len: 9600
 sample_packing: false
 pad_to_sequence_len: true
 
@@ -30,7 +31,7 @@ lora_fan_in_fan_out:
 wandb_project: finetune
 wandb_entity:
 wandb_watch:
-wandb_name: finance-summary-finetune
+wandb_name: financial-mixed-numerical-5days
 wandb_log_model:
 
 gradient_accumulation_steps: 2
@@ -51,7 +52,7 @@ early_stopping_patience:
 resume_from_checkpoint:
 local_rank:
 logging_steps: 1
-xformers_attention:
+xformers_attention: 
 flash_attention: true
 eval_sample_packing: False
 

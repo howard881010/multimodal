@@ -17,26 +17,19 @@ from batch_inference_chat import batch_inference_mistral, batch_inference_llama,
 
 def getLLMTIMEOutput(dataset, historical_window_size, filename, unit, model_name, model_chat, max_retries=4, backoff_factor=2):
     data = pd.read_csv(filename)
-    data["fut_values"] = data["fut_values"].apply(str)
-    data["hist_values"] = data["hist_values"].apply(str)
     data["idx"] = data.index
-
-    out_df = data.copy()
 
     log_path, out_path, res_path = open_record_directory(
         dataset, historical_window_size, unit, filename, model_name)
 
     logger.remove()
     logger.add(log_path, rotation="100 MB", mode="w")
+
     results = [{"pred_values": "nan", "attempt": 0} for _ in range(len(data))]
     attempts = 0
-    list_of_values = data.iloc[0]['fut_values'].split()
-    example_answer = ", ".join(list_of_values)
-    if dataset == "Yelp":
-        example_input = f"""Given {historical_window_size} historical Yelp ratings: {data.iloc[0]["hist_values"]}, output only the next {historical_window_size} Yelp ratings without additional text."""
-    elif dataset == "Mimic" or dataset == "Climate":
-        example_input = f"""Given {historical_window_size} historical values: {data.iloc[0]["hist_values"]}, output only the next {historical_window_size} values without additional text."""
     
+    example_input = f"{data.iloc[0]['input']}. {data.iloc[0]['instruction']}"
+    example_answer = data.iloc[0]['output']
     chat = [
         {"role": "user",
             "content": example_input},
@@ -54,7 +47,7 @@ def getLLMTIMEOutput(dataset, historical_window_size, filename, unit, model_name
 
     print("Error idx: ", error_idx)
     results = pd.DataFrame(results, columns=['pred_values', 'attempts'])
-    results["fut_values"] = out_df["fut_values"]
+    results["fut_values"] = data["fut_values"].apply(str)
     results.to_csv(res_path)
     return res_path
 
@@ -73,6 +66,9 @@ def getLLMTIMERMSE(dataset, historical_window_size, filename, unit, model_name):
         penalty = 1.3
     elif dataset == "Mimic" or dataset == "Climate":
         max_val = 1
+        penalty = 0.0
+    elif dataset == "Finance":
+        max_val = 10000
         penalty = 0.0
 
     for index, row in data.iterrows():
@@ -116,7 +112,7 @@ if __name__ == "__main__":
     if len(sys.argv) != 4:
         print("Usage: python models/lltime_test.py <dataset> <historical_window_size> <model_name>")
         sys.exit(1)
-    
+
     token = os.environ.get("HF_TOKEN")
 
     dataset = sys.argv[1]
@@ -134,11 +130,11 @@ if __name__ == "__main__":
         model_chat = GemmaChatModel("google/gemma-7b-it", token)
         runs_name = "gemma-7b-it"
 
-    wandb.init(project="llmforecast",
-               config={"name": runs_name,
-                       "window_size": historical_window_size,
-                       "dataset": dataset,
-                       "model": model_name, })
+    # wandb.init(project="llmforecast",
+    #            config={"name": runs_name,
+    #                    "window_size": historical_window_size,
+    #                    "dataset": dataset,
+    #                    "model": model_name, })
     
     start_time = time.time()
     rmses = []
@@ -147,7 +143,7 @@ if __name__ == "__main__":
 
     if dataset == "Yelp":
         unit = "weeks/"
-    elif dataset == "Mimic" or dataset == "Climate":
+    elif dataset == "Mimic" or dataset == "Climate" or dataset == "Finance":
         unit = "days/"
     else:
         print("No Such Dataset")
@@ -161,7 +157,7 @@ if __name__ == "__main__":
         pattern = "test_*.csv"
         for filepath in tqdm(glob.glob(os.path.join(folder_path, pattern))):
             filename = os.path.basename(filepath)
-            if "all" in filename:
+            if "all" not in filename:
                 continue
             else:
         # filepath = "Data/Yelp/4_weeks/test_1.csv"
@@ -178,10 +174,10 @@ if __name__ == "__main__":
     print("Mean Error Rate: " + str(np.mean(errs)))
     print("Mean NaN Rate: " + str(np.mean(nans)))
     print("Std-Dev RMSE: " + str(np.std(rmses)))
-    wandb.log({"rmse": np.mean(rmses)})
-    wandb.log({"error_rate": np.mean(errs)})
-    wandb.log({"nan_rate": np.mean(nans)})
-    wandb.log({"std-dev": np.std(rmses)})
+    # wandb.log({"rmse": np.mean(rmses)})
+    # wandb.log({"error_rate": np.mean(errs)})
+    # wandb.log({"nan_rate": np.mean(nans)})
+    # wandb.log({"std-dev": np.std(rmses)})
 
     end_time = time.time()
     print("Total Time: " + str(end_time - start_time))

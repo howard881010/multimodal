@@ -14,8 +14,9 @@ from peft import PeftModel
 
 
 class ChatModel:
-    def __init__(self, model_name):
+    def __init__(self, model_name, token):
         self.model_name = model_name
+        self.token = token
         self.tokenizer = self.load_tokenizer(model_name)
         self.tokenizer.pad_token = self.tokenizer.eos_token
 
@@ -67,14 +68,15 @@ class MistralChatModel(ChatModel):
 
 
 class LLMChatModel(ChatModel):
-    def __init__(self, model_name):
-        super().__init__(model_name)
-        self.model = self.load_model(model_name)
+    def __init__(self, model_name, token):
+        super().__init__(model_name, token)
+        self.model = self.load_model(model_name, token)
         self.device = next(self.model.parameters()).device
 
-    def load_model(self, model_name):
-        base_model = AutoModelForCausalLM.from_pretrained(model_name, device_map="auto")
-        return PeftModel.from_pretrained(base_model, "Howard881010/finance-summary")
+    def load_model(self, model_name, token):
+        base_model = AutoModelForCausalLM.from_pretrained(model_name, device_map="auto", token=token)
+        return base_model
+        # return PeftModel.from_pretrained(base_model, "Howard881010/financial-numerical-5days")
 
     def chat(self, prompt):
         new_prompt = self.tokenizer.apply_chat_template(
