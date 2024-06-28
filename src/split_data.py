@@ -10,10 +10,10 @@ def split_data(file_path, train_ratio=0.8, validation_ratio=0.1, test_ratio=0.1)
     val_size = validation_ratio / (test_ratio + validation_ratio)
     
     # Split the data into train and temporary datasets
-    train_data, temp_data = train_test_split(data, test_size=(1 - train_ratio), random_state=42)
+    train_data, temp_data = train_test_split(data, test_size=(1 - train_ratio), random_state=42, shuffle=False)
     
     # Split the temporary dataset into validation and test datasets
-    validation_data, test_data = train_test_split(temp_data, test_size=val_size, random_state=42)
+    validation_data, test_data = train_test_split(temp_data, test_size=val_size, random_state=42, shuffle=False)
     
     # Save the datasets
     
@@ -29,7 +29,7 @@ dir = 'Dataset/financial_llama3_70B_summary/formatted_v0.1'
 
 # Loop through each file and split the data
 for filename in os.listdir(dir):
-    if filename.endswith(".csv"):
+    if not filename.startswith("train") and not filename.startswith("test") and not filename.startswith("val"):
         path = os.path.join(dir, filename)
         split_data(path)  # Adjust the directory path as needed
     

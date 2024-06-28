@@ -1,0 +1,96 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    project: multimodal
+    user: howard
+  name: howard-multimodal-finance-summary-yelp-333c1
+  namespace: spatiotemporal-decision-making
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        project: multimodal
+        user: howard
+      namespace: spatiotemporal-decision-making
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - hcc-chase-shor-c4719.unl.edu
+              - key: nvidia.com/gpu.product
+                operator: In
+                values:
+                - NVIDIA-GeForce-RTX-3090
+                - NVIDIA-A10
+      containers:
+      - command:
+        - conda
+        - run
+        - -n
+        - multimodal
+        - /bin/bash
+        - -c
+        - 'echo IyEvYmluL2Jhc2gKbWtkaXIgLXAgY29uZmlnCnNzaC1rZXlzY2FuIGdpdGh1Yi5jb20gPj4gL3Jvb3QvLnNzaC9rbm93bl9ob3N0cwpzc2gta2V5c2NhbiAtdCBlY2RzYSAtcCAzMDYyMiAtSCBnaXRsYWItc3NoLm5ycC1uYXV0aWx1cy5pbyA+PiAvcm9vdC8uc3NoL2tub3duX2hvc3RzCmdpdCBwdWxsCmdpdCBzdWJtb2R1bGUgdXBkYXRlIC0taW5pdCAtLXJlY3Vyc2l2ZQplY2hvICJjb25kYSBhY3RpdmF0ZSBtdWx0aW1vZGFsOyBzb3VyY2Ugc3JjL3Rvb2xib3gvczNyZWdpb24uc2giID4+IH4vLmJhc2hyYwpleHBvcnQgUEFUSD0iL29wdC9jb25kYS9lbnZzL211bHRpbW9kYWwvYmluLzokUEFUSCIKY2htb2QgK3ggc3JjL3Rvb2xib3gvczNyZWdpb24uc2gKc291cmNlIHNyYy90b29sYm94L3MzcmVnaW9uLnNoCmVjaG8gJ0l5QlRNMTlDVlVOTFJWUmZUa0ZOUlQxdE1tWnZjbVZqWVhOMENpTWdRVmRUWDBGRFEwVlRVMTlMUlZsZlNVUTlSMk5QUW5wek4wUTJPVXBoYTJ0NlFrSklSRzBLSXlCQlYxTmZVMFZEVWtWVVgwRkRRMFZUVTE5TFJWazlRVFJ0ZW0xdFVucElWMkYzV1RsRE9YWTFhVlZOVVZscFYzQkZXV0p1UVZCV1pFZ3hTVkozU0FvaklGTXpYMFZPUkZCUFNVNVVYMVZTVEQxb2RIUndjem92TDNKdmMyVmtZWFJoTG5WamMyUXVaV1IxQ2toR1gxUlBTMFZPUFdobVgyTm9TVk5vVlhOc1RVaFlabTFHVFhoMWJrZFplV1JHZFVWd1JWRjNVV05xUkU0S1YwRk9SRUpmUVZCSlgwdEZXVDFzYjJOaGJDMW1NMk0yWXpBeFltTmhPR0psTURZMVpEUmhORFV4WVRFeE5XWTNNR0l3T1Roa1lqY3pOakEwQ2lNZ1YwRk9SRUpmUVZCSlgwdEZXVDA1TUdSak9HTTBNRGc1WXpJeE16WTRZall4Wmpaa01qQTJPV1F6T0RJeU5HUXlNelkwWTJZM0NrZEpWRjlWVTBWU1RrRk5SVDFvYjNkaGNtUTRPREV3TVRBS1IwbFVYMUJCVTFOWFQxSkVQV2RvY0Y5NVUwNXJOM0pRUzJoRGVHVXdlbTFpZDB4Nk1qQlphWFIxYUdkcVEzazBOVGh3VkZRS1YwRk9SRUpmUWtGVFJWOVZVa3c5YUhSMGNITTZMeTl5YjNObGQyRnVaR0l1ZFdOelpDNWxaSFVLUVZkVFgwRkRRMFZUVTE5TFJWbGZTVVE5T0RRMlRGSTFTRVF6TVRORFRUbE9UVFEyU2pNS1FWZFRYMU5GUTFKRlZGOUJRME5GVTFOZlMwVlpQVXhSVEd4UlIzRmFTRFZ1U1VOS1IxRlZPVUpNVW5aUFRFeHRTWFpOVGtGbmRWSlVaRzVVVlRBS1V6TmZSVTVFVUU5SlRsUmZWVkpNUFdoMGRIQnpPaTh2Y3pNdGQyVnpkQzV1Y25BdGJtRjFkR2xzZFhNdWFXOD0nIHwgYmFzZTY0IC1kIHwgdHIgLWQgJ1xyJyA+ICcuZW52JyAmJiBlY2hvID4+ICcuZW52JyAKZWNobyAnY0hKdmFtVmpkRjl1WVcxbE9pQnRkV3gwYVcxdlpHRnNDbTVoYldWemNHRmpaVG9nYzNCaGRHbHZkR1Z0Y0c5eVlXd3RaR1ZqYVhOcGIyNHRiV0ZyYVc1bkNuVnpaWEk2SUdodmQyRnlaQXB5WldkcGMzUnllVjlvYjNOME9pQm5hWFJzWVdJdGNtVm5hWE4wY25rdWJuSndMVzVoZFhScGJIVnpMbWx2Q25OemFGOW9iM04wT2lCbmFYUnNZV0l0YzNOb0xtNXljQzF1WVhWMGFXeDFjeTVwYndwemMyaGZjRzl5ZERvZ016QTJNaklLWTI5dVpHRmZhRzl0WlRvZ0wyOXdkQzlqYjI1a1lRcHBiV0ZuWlRvZ1oybDBiR0ZpTFhKbFoybHpkSEo1TG01eWNDMXVZWFYwYVd4MWN5NXBieTlvYjNkaGNtUXZiWFZzZEdsdGIyUmhiRHBzWVhSbGMzUUtaM0IxWDNkb2FYUmxiR2x6ZERvS0lDQXRJRTVXU1VSSlFTMUhaVVp2Y21ObExWSlVXQzB6TURrd0NpQWdMU0JPVmtsRVNVRXRRVEV3JyB8IGJhc2U2NCAtZCB8IHRyIC1kICdccicgPiAnY29uZmlnL2t1YmUueWFtbCcgJiYgZWNobyA+PiAnY29uZmlnL2t1YmUueWFtbCcgCmVjaG8gJ2NISnZhbVZqZEY5dVlXMWxPaUJ0ZFd4MGFXMXZaR0ZzQ20xdlpHVnNPZ29nSUdacGJtRnVZMlV0YzNWdGJXRnllVG9LSUNBZ0lHTnZiVzFoYm1RNklENEtJQ0FnSUNBZ1oybDBJR05vWldOcmIzVjBJQzRnSmlZS0lDQWdJQ0FnWjJsMElIQjFiR3dnSmlZS0lDQWdJQ0FnYzNWa2J5QmhjSFFnZFhCa1lYUmxJQ1ltQ2lBZ0lDQWdJSE4xWkc4Z1lYQjBJR2x1YzNSaGJHd2dMWGtnYkdsaVlXbHZMV1JsZGlBbUpnb2dJQ0FnSUNCd2VYUm9iMjRnTFcwZ1lYaHZiRzkwYkM1amJHa3VjSEpsY0hKdlkyVnpjeUJtYVc1bGRIVnVaUzltYVc1aGJtTmxYMjUxYldWeWFXTmhiQzU1Yld3Z0ppWUtJQ0FnSUNBZ1lXTmpaV3hsY21GMFpTQnNZWFZ1WTJnZ0xXMGdZWGh2Ykc5MGJDNWpiR2t1ZEhKaGFXNGdabWx1WlhSMWJtVXZabWx1WVc1alpWOXVkVzFsY21sallXd3VlVzFzSUNZbUlBb2dJQ0FnSUNCek5XTnRaQ0JqY0NCbWFXNWxkSFZ1WlM5dmRYUndkWFJ6TDJacGJtRnVZMlV0Ym5WdFpYSnBZMkZzTFdacGJtVjBkVzVsSUhNek9pOHZiWFZzZEdsdGIyUmhiRjltYVc1bFgzUjFibWx1WndvZ0lDQWdZM0IxWDJOdmRXNTBPaUE0Q2lBZ0lDQm5jSFZmWTI5MWJuUTZJRFlLSUNBZ0lHMWxiVzl5ZVRvZ016QUtaR0YwWVhObGREb0tJQ0I1Wld4d09nb2dJQ0FnYUhCaGNtRnRPZ29nSUNBZ0lDQmZabTQ2SUVodmQyRnlaRGc0TVRBeE1DOVpaV3h3TFdSaGRHRnpaWFFLSUNCdGFXMXBZem9LSUNBZ0lHaHdZWEpoYlRvS0lDQWdJQ0FnWDJadU9pQnRhVzFwWXk1MGVIUUtjblZ1T2dvZ0lHMXZaR1ZzT2lCYlptbHVZVzVqWlMxemRXMXRZWEo1WFFvZ0lHUmhkR0Z6WlhRNklGdDVaV3h3WFFvaklHWnBiR1U2Q2lNZ0lDQXRJQzR2WVhodmJHOTBiQzlsZUdGdGNHeGxjeTlzYkdGdFlTMHlMMjE1WTI5dVptbG5Mbmx0YkFwb2IzTjBibUZ0WlY5M2FHbDBaV3hwYzNRNkNpQWdMU0JvWTJNdFkyaGhjMlV0YzJodmNpMWpORGN4T1M1MWJtd3VaV1IxQ2c9PScgfCBiYXNlNjQgLWQgfCB0ciAtZCAnXHInID4gJ2NvbmZpZy9sYXVuY2gueWFtbCcgJiYgZWNobyA+PiAnY29uZmlnL2xhdW5jaC55YW1sJyAKZWNobyAnY0hKdmFtVmpkRjl1WVcxbE9pQnRkV3gwYVcxdlpHRnNDbTVoYldWemNHRmpaVG9nYzNCaGRHbHZkR1Z0Y0c5eVlXd3RaR1ZqYVhOcGIyNHRiV0ZyYVc1bkNuVnpaWEk2SUdodmQyRnlaQXB5WldkcGMzUnllVjlvYjNOME9pQm5hWFJzWVdJdGNtVm5hWE4wY25rdWJuSndMVzVoZFhScGJIVnpMbWx2Q25OemFGOW9iM04wT2lCbmFYUnNZV0l0YzNOb0xtNXljQzF1WVhWMGFXeDFjeTVwYndwemMyaGZjRzl5ZERvZ016QTJNaklLWTI5dVpHRmZhRzl0WlRvZ0wyOXdkQzlqYjI1a1lRcHBiV0ZuWlRvZ1oybDBiR0ZpTFhKbFoybHpkSEo1TG01eWNDMXVZWFYwYVd4MWN5NXBieTlvYjNkaGNtUXZiWFZzZEdsdGIyUmhiRHBzWVhSbGMzUUtaM0IxWDNkb2FYUmxiR2x6ZERvS0lDQXRJRTVXU1VSSlFTMUhaVVp2Y21ObExWSlVXQzB6TURrd0NpQWdMU0JPVmtsRVNVRXRRVEV3JyB8IGJhc2U2NCAtZCB8IHRyIC1kICdccicgPiAnY29uZmlnL2t1YmUueWFtbCcgJiYgZWNobyA+PiAnY29uZmlnL2t1YmUueWFtbCcg
+          | base64 -d > startup.sh && chmod +x startup.sh && source startup.sh; git
+          checkout . && git pull && sudo apt update && sudo apt install -y libaio-dev
+          && python -m axolotl.cli.preprocess finetune/finance_numerical.yml && accelerate
+          launch -m axolotl.cli.train finetune/finance_numerical.yml &&  s5cmd cp
+          finetune/outputs/finance-numerical-finetune s3://multimodal_fine_tuning
+
+          '
+        env:
+        - name: PYTHONUNBUFFERED
+          value: '1'
+        - name: PYTHONIOENCODING
+          value: UTF-8
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: HF_TOKEN
+          value: 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
+        - name: WANDB_API_KEY
+          value: local-f3c6c01bca8be065d4a451a115f70b098db73604
+        - name: GIT_USERNAME
+          value: howard881010
+        - name: GIT_PASSWORD
+          value: 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
+        - name: WANDB_BASE_URL
+          value: https://rosewandb.ucsd.edu
+        - name: AWS_ACCESS_KEY_ID
+          value: 846LR5HD313CM9NM46J3
+        - name: AWS_SECRET_ACCESS_KEY
+          value: LQLlQGqZH5nICJGQU9BLRvOLLmIvMNAguRTdnTU0
+        - name: S3_ENDPOINT_URL
+          value: http://rook-ceph-rgw-nautiluss3.rook
+        - name: PYTHONPATH
+          value: src
+        image: gitlab-registry.nrp-nautilus.io/howard/multimodal:latest
+        name: gpu-container
+        resources:
+          limits:
+            cpu: '9.6'
+            memory: 36.0G
+            nvidia.com/gpu: '6'
+          requests:
+            cpu: '8'
+            memory: 30G
+            nvidia.com/gpu: '6'
+        volumeMounts:
+        - mountPath: /dev/shm
+          name: dshm
+      imagePullSecrets:
+      - name: multimodal-read-registry
+      restartPolicy: Never
+      tolerations: []
+      volumes:
+      - emptyDir:
+          medium: Memory
+        name: dshm
