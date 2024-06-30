@@ -1,0 +1,97 @@
+{
+  "type": "object",
+  "properties": {
+    "key_numbers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "An arbitrary string key for key numbers."
+          },
+          "value": {
+            "type": "string",
+            "description": "A value associated with the key."
+          }
+        },
+        "required": [
+          "key",
+          "value"
+        ]
+      }
+    },
+    "growth_trends": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "overall_market_outlook": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "An arbitrary string key for overall market outlook."
+          },
+          "value": {
+            "type": "number",
+            "description": "A number value associated with the key."
+          }
+        },
+        "required": [
+          "key",
+          "value"
+        ]
+      }
+    },
+    "major_stock_movements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "An arbitrary string key for major stock movements."
+          },
+          "value": {
+            "type": "number",
+            "description": "A number value associated with the key."
+          }
+        },
+        "required": [
+          "key",
+          "value"
+        ]
+      }
+    },
+    "key_macroeconomics": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "description": ""
+      }
+    },
+    "notable_company_specific_news": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "summary": {
+      "type": "string",
+      "description": "Overall summary"
+    }
+  },
+  "required": [
+    "key_numbers",
+    "growth_trends",
+    "overall_market_outlook",
+    "major_stock_movements",
+    "key_macroeconomics",
+    "notable_company_specific_news",
+    "summary"
+  ]
+}

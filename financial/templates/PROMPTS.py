@@ -3,8 +3,8 @@
 # assistant is model's response
 
 class Prompts:
-    def __init__(self, ticker: str):
-
+    def __init__(self, ticker: str=None):
+        # VLLM prompts
         self.SUMMARY_PROMPT = \
             f"""You are a helpful assistant that filters and summarizes stock news specifically for the company with ticker symbol {ticker}. 
 
@@ -39,7 +39,17 @@ If there is no relevant information, the website is blocked, or there is an erro
 4. Avoid making up any information.
 5. Provide a concise summary without using introductory phrases like 'Here is a summary of ___' or similar. Focus directly on the key points.
 """
-
+        # JSON Guided Prompts
+        self.JSON_SUMMARY_PROMPT = \
+"""You are a helpful assistant for converting raw text of a stock news website into relevant text information.
+1. Include key_numbers, growth_trends, overall_market_outlook, major_stock_movements, significant_economic_indicators, notable_company_specific_news, and a final summary.
+2. Provide as much information as you can by always adding relevant units or details.
+3. Avoid making up any information.
+"""
+        self.COMBINE_JSON_PROMPT = \
+"""
+Combine the list of json into one json format.
+"""
 
 class ForecstBaselinePrompts:
     def __init__(self, window: int = 5):
@@ -47,3 +57,12 @@ class ForecstBaselinePrompts:
         self.SYSTEM_PROMPT = \
             f"""You are an expert financial forecaster. Given each day's price and summary, predict the next {window} days prices. Provide {window} numerical values only, seperated by commas and no other text.
 """
+        
+
+blocked_words = [
+    "thestreet.comPlease enable JS and disable any ad blocker",
+    "wsj.comPlease enable JS and disable any ad blocker",
+    "Access Denied Access Denied You don't have permission to access",
+    "Access to this page has been denied",
+    "Sorry! Temporarily Unavailable Sorry, this page is temporarily unavailable for technical reasons."
+]

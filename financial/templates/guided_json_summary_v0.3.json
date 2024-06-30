@@ -1,0 +1,385 @@
+{
+  "type": "object",
+  "properties": {
+    "key_numbers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string",
+            "description": "A descriptive string key for a specific key number, such as 'Revenue' or 'Profit'."
+          },
+          "value": {
+            "type": ["integer", "string"],
+            "description": "The numerical value associated with the key with units"
+          }
+        },
+        "required": [
+          "metric",
+          "value"
+        ]
+      },
+      "description": "A collection of key numerical values mentioned in the article."
+    },
+    "growth_trends": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "A descriptive string key for a specific growth trend, such as 'Quarterly Growth' or 'Annual Growth'."
+          },
+          "value": {
+            "type": "number",
+            "description": "The numerical value associated with the growth trend."
+          }
+        },
+        "required": [
+          "key",
+          "value"
+        ]
+      },
+      "description": "A collection of growth trend values mentioned in the article."
+    },
+    "overall_market_outlook": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "A descriptive string key for a specific aspect of the overall market outlook, such as 'Market Sentiment' or 'Future Projections'."
+          },
+          "value": {
+            "type": "number",
+            "description": "The numerical value associated with the market outlook."
+          }
+        },
+        "required": [
+          "key",
+          "value"
+        ]
+      },
+      "description": "A collection of values related to the overall market outlook mentioned in the article."
+    },
+    "major_stock_movements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "A descriptive string key for a specific stock movement, such as 'Stock A Rise' or 'Stock B Fall'."
+          },
+          "value": {
+            "type": "number",
+            "description": "The numerical value associated with the stock movement."
+          }
+        },
+        "required": [
+          "key",
+          "value"
+        ]
+      },
+      "description": "A collection of major stock movements mentioned in the article."
+    },
+    "significant_economic_indicators": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "description": "A list of significant economic indicators mentioned in the article, such as 'Inflation Rate' or 'Unemployment Rate'."
+      },
+      "description": "A collection of significant economic indicators mentioned in the article."
+    },
+    "notable_company_specific_news": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "description": "A list of notable company-specific news items mentioned in the article, such as 'Company A's new product launch' or 'Company B's CEO resignation'."
+      },
+      "description": "A collection of notable company-specific news items mentioned in the article."
+    },
+    "geopolitical_events": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "description": "A list of major geopolitical events impacting financial markets."
+      },
+      "description": "A collection of geopolitical events mentioned in the article."
+    },
+    "industry_trends": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "description": "A list of trends specific to different industries."
+      },
+      "description": "A collection of industry trends mentioned in the article."
+    },
+    "regulatory_changes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "description": "A list of significant regulatory changes impacting financial markets."
+      },
+      "description": "A collection of regulatory changes mentioned in the article."
+    },
+    "market_sentiment": {
+      "type": "string",
+      "description": "Overall sentiment or mood of investors and markets."
+    },
+    "commodity_prices": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "commodity": {
+            "type": "string",
+            "description": "The name of the commodity, such as 'Oil' or 'Gold'."
+          },
+          "price": {
+            "type": "number",
+            "description": "The price of the commodity."
+          }
+        },
+        "required": [
+          "commodity",
+          "price"
+        ]
+      },
+      "description": "A collection of key commodity prices mentioned in the article."
+    },
+    "currency_exchange_rates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "currency_pair": {
+            "type": "string",
+            "description": "The currency pair, such as 'USD/EUR' or 'USD/JPY'."
+          },
+          "rate": {
+            "type": "number",
+            "description": "The exchange rate for the currency pair."
+          }
+        },
+        "required": [
+          "currency_pair",
+          "rate"
+        ]
+      },
+      "description": "A collection of major currency exchange rates mentioned in the article."
+    },
+    "interest_rates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "rate_name": {
+            "type": "string",
+            "description": "The name of the interest rate, such as 'Federal Reserve Rate' or 'ECB Rate'."
+          },
+          "rate_value": {
+            "type": "number",
+            "description": "The value of the interest rate."
+          }
+        },
+        "required": [
+          "rate_name",
+          "rate_value"
+        ]
+      },
+      "description": "A collection of prevailing interest rates mentioned in the article."
+    },
+    "corporate_earnings_reports": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "company_name": {
+            "type": "string",
+            "description": "The name of the company."
+          },
+          "report_summary": {
+            "type": "string",
+            "description": "A summary of the earnings report."
+          }
+        },
+        "required": [
+          "company_name",
+          "report_summary"
+        ]
+      },
+      "description": "A collection of corporate earnings reports mentioned in the article."
+    },
+    "mergers_and_acquisitions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "companies_involved": {
+            "type": "string",
+            "description": "The names of the companies involved in the merger or acquisition."
+          },
+          "details": {
+            "type": "string",
+            "description": "Details of the merger or acquisition."
+          }
+        },
+        "required": [
+          "companies_involved",
+          "details"
+        ]
+      },
+      "description": "A collection of notable mergers and acquisitions mentioned in the article."
+    },
+    "technological_advancements": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "description": "A list of key technological advancements affecting financial markets."
+      },
+      "description": "A collection of technological advancements mentioned in the article."
+    },
+    "consumer_confidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "indicator": {
+            "type": "string",
+            "description": "The name of the consumer confidence indicator, such as 'Consumer Confidence Index' or 'Retail Sales Data'."
+          },
+          "value": {
+            "type": "number",
+            "description": "The value of the consumer confidence indicator."
+          }
+        },
+        "required": [
+          "indicator",
+          "value"
+        ]
+      },
+      "description": "A collection of consumer confidence indicators mentioned in the article."
+    },
+    "market_indices": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "index_name": {
+            "type": "string",
+            "description": "The name of the market index, such as 'S&P 500' or 'Dow Jones Industrial Average'."
+          },
+          "index_value": {
+            "type": "number",
+            "description": "The value of the market index."
+          }
+        },
+        "required": [
+          "index_name",
+          "index_value"
+        ]
+      },
+      "description": "A collection of market indices mentioned in the article."
+    },
+    "debt_and_credit_ratings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "entity": {
+            "type": "string",
+            "description": "The name of the entity, such as 'Country' or 'Company'."
+          },
+          "rating": {
+            "type": "string",
+            "description": "The credit rating given to the entity."
+          }
+        },
+        "required": [
+          "entity",
+          "rating"
+        ]
+      },
+      "description": "A collection of debt and credit ratings mentioned in the article."
+    },
+    "employment_data": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "indicator": {
+            "type": "string",
+            "description": "The name of the employment indicator, such as 'Unemployment Rate' or 'Job Creation Numbers'."
+          },
+          "value": {
+            "type": "number",
+            "description": "The value of the employment indicator."
+          }
+        },
+        "required": [
+          "indicator",
+          "value"
+        ]
+      },
+      "description": "A collection of employment data mentioned in the article."
+    },
+    "inflation_rates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "indicator": {
+            "type": "string",
+            "description": "The name of the inflation indicator, such as 'Consumer Price Index (CPI)' or 'Producer Price Index (PPI)'."
+          },
+          "value": {
+            "type": "number",
+            "description": "The value of the inflation indicator."
+          }
+        },
+        "required": [
+          "indicator",
+          "value"
+        ]
+      },
+      "description": "A collection of inflation rates mentioned in the article."
+    },
+    "venture_capital_and_startups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "company_name": {
+            "type": "string",
+            "description": "The name of the startup or company receiving venture capital."
+          },
+          "details": {
+            "type": "string",
+            "description": "Details of the venture capital investment or startup activity."
+          }
+        },
+        "required": [
+          "company_name",
+          "details"
+        ]
+      },
+      "description": "A collection of venture capital investments and startup activities mentioned in the article."
+    },
+    "summary": {
+      "type": "string",
+      "description": "A brief overall summary of the article."
+    }
+  },
+  "required": [
+    "key_numbers",
+    "growth_trends",
+    "overall_market_outlook",
+    "major_stock_movements",
+    "significant_economic_indicators",
+    "notable_company_specific_news",
+    "summary"
+  ]
+}

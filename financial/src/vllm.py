@@ -13,10 +13,13 @@ client = OpenAI(
 )
 
 
-def llm_chat(messages: list[dict], model="meta-llama/Meta-Llama-3-70B-Instruct"):
+def llm_chat(messages: list[dict], model="meta-llama/Meta-Llama-3-70B-Instruct", guided_json=None):
     chat_response = client.chat.completions.create(
         model=model,
-        messages=messages
+        messages=messages,
+        extra_body={
+            "guided_json": guided_json
+        }
     )
     return chat_response.choices[0].message.content
 

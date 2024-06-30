@@ -105,14 +105,12 @@ root_dir = "/data/kai/forecasting/data"
 save_dir = os.path.join(f'{root_dir}/summary_v0.2')
 df_paths = sorted(glob(os.path.join(f'{root_dir}/raw_urls/*')))
 
-idx = 0
-chunks = len(df_paths) // 3
-df_paths = df_paths[chunks*idx:chunks*(idx+1)]
+# df_paths = ["/data/kai/forecasting/data/raw_urls/v_text.csv"]
 
 # harder to scrape
 blocked_urls = [
-    'www.wsj.com',
-    'www.thestreet.com',
+    # 'www.wsj.com',
+    # 'www.thestreet.com',
     # 'www.themoneycontrol.com',
     # 'www.investors.com'
 ]
