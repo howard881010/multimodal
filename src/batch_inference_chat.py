@@ -55,7 +55,7 @@ def batch_inference_llama(
     dataset,
     chat_template=None
 ):
-    batches = list(create_batched(data, 32))
+    batches = list(create_batched(data, 8))
     err_idx = []
     #  model_chat.apply_chat_template(chat_template)
 
@@ -69,7 +69,7 @@ def batch_inference_llama(
             response = output_text.split('[/INST]')[-1]
 
             logger.info("Content for row: " + str(cur_idx[index]) +
-                        " Attempt: " + str(attempts + 1) + " Content: " + prompt[index][2]['content'])
+                        " Attempt: " + str(attempts + 1) + " Content: " + prompt[index][0]['content'])
             logger.info("Response for row: " + str(cur_idx[index]) + " Attempt: " + str(
                 attempts + 1) + " Content: " + response)
 
@@ -139,6 +139,7 @@ def create_batch_prompt(data, historical_window_size, chat_template=None, datase
         elif dataset == 'Finance':
             row_content = f"{row['input']}. {row['instruction']}"
         content = chat_template + [{"role": "user", "content": row_content}]
+        content = [{"role": "user", "content": row_content}]
 
         prompt.append(content)
         cur_idx.append(row['idx'])

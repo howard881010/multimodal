@@ -149,7 +149,7 @@ if __name__ == "__main__":
         print("No Such Dataset")
         sys.exit(1)
 
-    folder_path = f"Data/{dataset}/{historical_window_size}_{unit}"
+    folder_path = f"Data/{dataset}/{historical_window_size}_{unit}/mixed_numerical"
     if not os.path.exists(folder_path):
         print(f"The folder '{folder_path}' does not exist")
         sys.exit(1)

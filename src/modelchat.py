@@ -76,7 +76,7 @@ class LLMChatModel(ChatModel):
     def load_model(self, model_name, token):
         base_model = AutoModelForCausalLM.from_pretrained(model_name, device_map="auto", token=token)
         return base_model
-        # return PeftModel.from_pretrained(base_model, "Howard881010/financial-numerical-5days")
+        # return PeftModel.from_pretrained(base_model, "Howard881010/financial-mixed-numerical-5days")
 
     def chat(self, prompt):
         new_prompt = self.tokenizer.apply_chat_template(

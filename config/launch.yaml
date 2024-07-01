@@ -8,7 +8,7 @@ model:
       sudo apt install -y libaio-dev &&
       python -m axolotl.cli.preprocess finetune/finance_mixed_numerical_5days.yml &&
       accelerate launch -m axolotl.cli.train finetune/finance_mixed_numerical_5days.yml && 
-      s5cmd cp finetune/outputs/finance-numerical-finetune s3://multimodal_fine_tuning
+      s5cmd cp finetune/outputs/financial-mixed-summary-5days s3://multimodal_fine_tuning
     cpu_count: 8
     gpu_count: 6
     memory: 40
