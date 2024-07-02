@@ -6,7 +6,7 @@ run_script() {
   python summarize_chunk.py --ticker "$1" &
 }
 
-directory="/data/kai/forecasting/data/raw_v0.2"
+directory="/data/kai/forecasting/data/raw_v0.2_filtered"
 tickers=($(ls $directory))
 
 for ticker_with_extension in "${tickers[@]}";

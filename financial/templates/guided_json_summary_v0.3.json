@@ -11,7 +11,7 @@
             "description": "A descriptive string key for a specific key number, such as 'Revenue' or 'Profit'."
           },
           "value": {
-            "type": ["integer", "string"],
+            "type": ["string"],
             "description": "The numerical value associated with the key with units"
           }
         },
@@ -32,8 +32,8 @@
             "description": "A descriptive string key for a specific growth trend, such as 'Quarterly Growth' or 'Annual Growth'."
           },
           "value": {
-            "type": "number",
-            "description": "The numerical value associated with the growth trend."
+            "type": "string",
+            "description": "The numerical value associated with the growth trend with units."
           }
         },
         "required": [
@@ -53,7 +53,7 @@
             "description": "A descriptive string key for a specific aspect of the overall market outlook, such as 'Market Sentiment' or 'Future Projections'."
           },
           "value": {
-            "type": "number",
+            "type": "string",
             "description": "The numerical value associated with the market outlook."
           }
         },
@@ -74,7 +74,7 @@
             "description": "A descriptive string key for a specific stock movement, such as 'Stock A Rise' or 'Stock B Fall'."
           },
           "value": {
-            "type": "number",
+            "type": "string",
             "description": "The numerical value associated with the stock movement."
           }
         },
@@ -139,7 +139,7 @@
             "description": "The name of the commodity, such as 'Oil' or 'Gold'."
           },
           "price": {
-            "type": "number",
+            "type": "string",
             "description": "The price of the commodity."
           }
         },
@@ -160,7 +160,7 @@
             "description": "The currency pair, such as 'USD/EUR' or 'USD/JPY'."
           },
           "rate": {
-            "type": "number",
+            "type": "string",
             "description": "The exchange rate for the currency pair."
           }
         },
@@ -181,7 +181,7 @@
             "description": "The name of the interest rate, such as 'Federal Reserve Rate' or 'ECB Rate'."
           },
           "rate_value": {
-            "type": "number",
+            "type": "string",
             "description": "The value of the interest rate."
           }
         },
@@ -252,7 +252,7 @@
             "description": "The name of the consumer confidence indicator, such as 'Consumer Confidence Index' or 'Retail Sales Data'."
           },
           "value": {
-            "type": "number",
+            "type": "string",
             "description": "The value of the consumer confidence indicator."
           }
         },
@@ -273,7 +273,7 @@
             "description": "The name of the market index, such as 'S&P 500' or 'Dow Jones Industrial Average'."
           },
           "index_value": {
-            "type": "number",
+            "type": "string",
             "description": "The value of the market index."
           }
         },
@@ -315,7 +315,7 @@
             "description": "The name of the employment indicator, such as 'Unemployment Rate' or 'Job Creation Numbers'."
           },
           "value": {
-            "type": "number",
+            "type": "string",
             "description": "The value of the employment indicator."
           }
         },
@@ -336,7 +336,7 @@
             "description": "The name of the inflation indicator, such as 'Consumer Price Index (CPI)' or 'Producer Price Index (PPI)'."
           },
           "value": {
-            "type": "number",
+            "type": "string",
             "description": "The value of the inflation indicator."
           }
         },

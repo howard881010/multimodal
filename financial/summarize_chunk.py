@@ -14,7 +14,7 @@ import argparse
 
 def process_document(prompt, doc, guided_json=None):
     messages = message_template(prompt, doc)
-    response = llm_chat(messages, guided_json=guided_json)
+    response = llm_chat(messages, model=model_name, guided_json=guided_json)
     data = json.loads(response)
     return data
 
@@ -47,9 +47,16 @@ def worker(queue):
         if data is None:
             break
         row_idx, doc_idx, timestamp, document = data
+        print(ticker, timestamp, row_idx, doc_idx, document[:100])
 
         with document_lock:
-            document_df = pd.read_csv(document_path)
+            document_path = os.path.join(document_dir, f"{ticker}/{timestamp}.csv")
+            try:
+                document_df = pd.read_csv(document_path)
+            except:
+                document_df = pd.DataFrame(
+                    columns=["row_idx", "doc_idx", "timestamp", "summary"])
+                document_df.to_csv(document_path, index=False)
 
         if len(document_df[(document_df['row_idx'] == row_idx) &
                            (document_df['doc_idx'] == doc_idx) &
@@ -63,6 +70,8 @@ def worker(queue):
                 document_df = pd.concat(
                     [document_df, new_row], ignore_index=True)
                 document_df.to_csv(document_path, index=False)
+        else:
+            print('Skipping: ', ticker, timestamp, row_idx, doc_idx, document[:100])
         queue.task_done()
 
 
@@ -73,36 +82,29 @@ if __name__ == "__main__":
                         help='Stock ticker symbol')
     args = parser.parse_args()
 
-    # intialize prompts and tokenizer
-    prompts = Prompts()
-    model_name = "meta-llama/Meta-Llama-3-70B-Instruct"
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-
     # initialize guided json
     guided_json = load_json('templates/guided_json_summary_v0.3.json')
 
     # initialize raw df
     ticker = args.ticker
-    ticker_path = f"/data/kai/forecasting/data/raw_v0.2/{ticker}.csv"
+    ticker_path = f"/data/kai/forecasting/data/raw_v0.2_filtered/{ticker}.csv"
     df = pd.read_csv(ticker_path)
 
     # initialize document df
     document_dir = "/data/kai/forecasting/data/document_v0.2"
-    os.makedirs(document_dir, exist_ok=True)
-    document_path = os.path.join(document_dir, f"{ticker}.csv")
+    os.makedirs(os.path.join(document_dir, ticker), exist_ok=True)
 
-    if not os.path.exists(document_path):
-        document_df = pd.DataFrame(
-            columns=["row_idx", "doc_idx", "timestamp", "summary"])
-        document_df.to_csv(document_path, index=False)
-    else:
-        document_df = pd.read_csv(document_path)
+    # intialize prompts and tokenizer
+    prompts = Prompts(ticker)
+    # model_name = "meta-llama/Meta-Llama-3-70B-Instruct"
+    model_name = "casperhansen/llama-3-70b-instruct-awq"
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     document_queue = Queue(maxsize=10)
     document_lock = Lock()
 
     # start document worker
-    doc_workers = 10
+    doc_workers = 100
     doc_threads = []
     for i in range(doc_workers):
         thread = Thread(target=worker, args=(document_queue,))
@@ -111,7 +113,7 @@ if __name__ == "__main__":
 
     # Add documents to the queue
     for row_idx, row in tqdm(df.iterrows(), total=df.shape[0]):
-        if any(p.lower() in row['text'].strip().lower() for p in blocked_words):
+        if type(row['text']) == float or any(p.lower() in row['text'].strip().lower() for p in blocked_words):
             continue
 
         documents = chunk_documents(tokenizer, row['text'], 2048, overlap=512)
