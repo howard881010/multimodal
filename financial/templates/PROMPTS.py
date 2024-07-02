@@ -42,13 +42,19 @@ If there is no relevant information, the website is blocked, or there is an erro
         # JSON Guided Prompts
         self.JSON_SUMMARY_PROMPT = \
             f"""You are a helpful assistant for converting raw text of a stock news website into relevant text information specifically for the company with ticker symbol {ticker}.
+
 1. Include key_numbers, growth_trends, overall_market_outlook, major_stock_movements, significant_economic_indicators, notable_company_specific_news, and a final summary.
 2. Provide as much information as you can by always adding relevant units or details.
 3. Avoid making up any information.
 """
         self.COMBINE_JSON_PROMPT = \
-            """
-Combine the list of json into one json format.
+            f"""For the list of stock news of {ticker} in JSON format, combine them into one json format.
+
+1. Combine the list of key_numbers, growth_trends, overall_market_outlook, major_stock_movements, significant_economic_indicators, notable_company_specific_news, and a final summary.
+2. Reorder the text as needed.
+2. Remove repetitive details and always add relevant units or details
+3. Avoid making up any information and repeating information.
+4. Provide a concise summary without using introductory phrases like 'Here is a summary of ___' or similar. Focus directly on the key points.
 """
 
 

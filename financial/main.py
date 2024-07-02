@@ -1,8 +1,8 @@
 # first spin up the vLLM server. takes a while
 
 # export CUDA_VISIBLE_DEVICES='0,1'
-# python -m vllm.entrypoints.openai.api_server --model meta-llama/Meta-Llama-3-70B-Instruct --tensor-parallel-size=2 --disable-log-requests
-# python -m vllm.entrypoints.openai.api_server --model casperhansen/llama-3-70b-instruct-awq --tensor-parallel-size=2 --disable-log-requests
+# python -m vllm.entrypoints.openai.api_server --model meta-llama/Meta-Llama-3-70B-Instruct --tensor-parallel-size=2 --disable-log-requests --enforce-eager
+# python -m vllm.entrypoints.openai.api_server --model casperhansen/llama-3-70b-instruct-awq --tensor-parallel-size=2 --disable-log-requests --enforce-eager
 # python -m outlines.serve.serve --model meta-llama/Meta-Llama-3-70B-Instruct --tensor-parallel-size=2 --disable-log-requests
 
 # offline inference
