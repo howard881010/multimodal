@@ -18,6 +18,11 @@ import numpy as np
 # parse raw JSON
 
 
+import numpy as np
+
+# parse raw JSON
+
+
 def collapse_metrics(json_summaries):
     if type(json_summaries) == np.ndarray:
         data = [{k: v for k, v in ast.literal_eval(
@@ -94,24 +99,52 @@ def combine_results(results):
     return results_dict
 
 
-def get_current_summary_length(results):
-    return len(combine_results(results)["summary"])
-
-
-def combine_chunk(chunk):
+def llm_combine_chunk(chunk):
     output = llm_chat(message_template(
         prompts.COMBINE_JSON_PROMPT, chunk), model=model_name, guided_json=guided_json)
     cleaned_output = collapse_metrics(output)
     return cleaned_output
 
 
-def llm_combine_summaries(summaries):
+def batch_llm_combine_summaries(summaries):
     summary_chunks = chunk_summaries(tokenizer, summaries)
-    with ThreadPoolExecutor(max_workers=50) as executor:
-        futures = [executor.submit(combine_chunk, chunk)
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        futures = [executor.submit(llm_combine_chunk, chunk)
                    for chunk in summary_chunks]
         results = [future.result() for future in as_completed(futures)]
     return results
+
+
+def main(path: str):
+    timestamp = path.split('/')[-1].split('.csv')[0]
+    save_path = os.path.join(save_dir, timestamp + ".json")
+
+    if os.path.exists(save_path):
+        print(save_path, "already exists")
+        return
+    json_summaries = pd.read_csv(path)['summary'].values
+    cleaned_results = collapse_metrics(json_summaries)
+    # list[{k: v}, {k: {k:v}}]
+
+    print("First combination task...", save_path)
+    json_results = batch_llm_combine_summaries(cleaned_results)
+    formatted_results = collapse_metrics(collapse_results(
+        json_results))  # this is like cleaned_results
+
+    def get_current_summary_length(results):
+        return len(combine_results(results)["summary"])
+
+    combine_count = 0
+    while get_current_summary_length(formatted_results) > 1:
+        combine_count += 1
+        print(
+            f"Combining summaries {combine_count} ... length summaries: {get_current_summary_length(formatted_results)}", save_path)
+        json_results = batch_llm_combine_summaries(formatted_results)
+        formatted_results = collapse_metrics(collapse_results(
+            json_results))  # this is like cleaned_results
+
+    with open(save_path, 'w') as json_file:
+        json.dump(json_results[0][0], json_file, indent=4)
 
 
 summary_path = "/data/kai/forecasting/data/summary_v0.2"
@@ -130,37 +163,6 @@ guided_json = json.load(open(
     "/data/kai/forecasting/multimodal/financial/templates/guided_json_summary_v0.3.json", 'r'))
 
 
-for path in paths:
-    timestamp = path.split('/')[-1].split('.csv')[0]
-    save_path = os.path.join(save_dir, timestamp + ".json")
-
-    if os.path.exists(save_path):
-        continue
-
-    json_summaries = pd.read_csv(
-        "/data/kai/forecasting/data/document_v0.2/AMD/2022-05-04.csv")['summary'].values
-    # json_summaries = pd.read_csv("/data/kai/forecasting/data/document_v0.2/AMD/2022-03-04.csv")['summary'].values
-    cleaned_results = collapse_metrics(json_summaries)  # list[{k: v}, {k: {k:v}}]
-
-    print("First combination task...")
-    json_results = llm_combine_summaries(cleaned_results)
-    formatted_results = collapse_metrics(collapse_results(
-        json_results))  # this is like cleaned_results
-
-
-    def get_current_summary_length(results):
-        return len(combine_results(results)["summary"])
-
-
-    combine_count = 0
-    while get_current_summary_length(formatted_results) > 1:
-        combine_count += 1
-        print(
-            f"Combining summaries {combine_count} ... length summaries: {get_current_summary_length(formatted_results)}")
-        json_results = llm_combine_summaries(formatted_results)
-        formatted_results = collapse_metrics(collapse_results(
-            json_results))  # this is like cleaned_results
-
-    with open(save_path, 'w') as json_file:
-        json.dump(json_results, json_file, indent=4)
-    
+with ThreadPoolExecutor(max_workers=20) as executor:
+    futures = [executor.submit(main, path) for path in paths]
+    results = [future.result() for future in as_completed(futures)]
