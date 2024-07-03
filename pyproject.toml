@@ -25,6 +25,7 @@ ninja = "^1.11.1.1"
 s5cmd = "^0.2.0"
 peft = "^0.11.1"
 flash-attention = "^1.0.0"
+darts = "^0.30.0"
 
 
 
