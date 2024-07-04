@@ -3,17 +3,22 @@ from openai import OpenAI
 import threading
 import queue
 import logging
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
 # Set OpenAI's API key and API base to use vLLM's API server.
 
 client = None
 openai_api_key = "EMPTY"
 openai_api_base = "http://localhost:8000/v1"
 
+
 def llm_chat(messages: list[dict], model="meta-llama/Meta-Llama-3-70B-Instruct", guided_json=None):
     if model == "llama3-70b":
         client = OpenAI(
-
+            api_key=os.environ["NAUTILUS_KEY"],
+            base_url=os.environ["NAUTILUS_URL"]
         )
     elif model == "meta-llama/Meta-Llama-3-70B-Instruct":
         client = OpenAI(
