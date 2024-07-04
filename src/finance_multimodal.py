@@ -5,22 +5,28 @@ import numpy as np
 import wandb
 import time
 from loguru import logger
-from utils import open_record_directory, open_result_directory, rmse
+from utils import open_record_directory, open_result_directory, rmse, nmae
 from modelchat import LLMChatModel, MistralChatModel, GemmaChatModel
 from transformers import set_seed
 from tqdm import tqdm
 import glob
 from num2words import num2words
 from batch_inference_chat import batch_inference_mistral, batch_inference_llama, batch_inference_gemma
+import re
 
 
 
-def getLLMTIMEOutput(dataset, historical_window_size, filename, unit, model_name, model_chat, max_retries=4, backoff_factor=2):
+def getLLMTIMEOutput(dataset, filename, unit, model_name, model_chat, sub_dir, historical_window_size):
     data = pd.read_csv(filename)
     data["idx"] = data.index
+    for idx, row in data.iterrows():
+        numbers = re.findall(r"\d+\.\d+", row['output'])
+        str_res = ' '.join([str(num) for num in numbers])
+        data.at[idx, 'fut_values'] = str_res
+    # print(data['fut_values'])
 
-    log_path, out_path, res_path = open_record_directory(
-        dataset, historical_window_size, unit, filename, model_name)
+    log_path, res_path = open_record_directory(
+        dataset=dataset, sub_dir=sub_dir, unit=unit, filename=filename, model_name=model_name, historical_window_size=historical_window_size)
 
     logger.remove()
     logger.add(log_path, rotation="100 MB", mode="w")
@@ -28,13 +34,14 @@ def getLLMTIMEOutput(dataset, historical_window_size, filename, unit, model_name
     results = [{"pred_values": "nan", "attempt": 0} for _ in range(len(data))]
     attempts = 0
     
-    example_input = f"{data.iloc[0]['input']}. {data.iloc[0]['instruction']}"
-    example_answer = data.iloc[0]['output']
-    chat = [
-        {"role": "user",
-            "content": example_input},
-        {"role": "assistant", "content": example_answer}]
-    
+    # example_input = f"{data.iloc[0]['input']}. {data.iloc[0]['instruction']}"
+    # example_answer = data.iloc[0]['output']
+    # chat = [
+    #     {"role": "user",
+    #         "content": example_input},
+    #     {"role": "assistant", "content": example_answer}]
+    # chat = [{"role": "system", "content": "You are an expert financial forecaster who can help me predict shard prices and summary"}]
+    chat = None
     if model_name == 'mistral7b':
         error_idx = batch_inference_mistral(
             results, model_chat, data, attempts, logger, historical_window_size, dataset, chat_template=chat)
@@ -52,7 +59,7 @@ def getLLMTIMEOutput(dataset, historical_window_size, filename, unit, model_name
     return res_path
 
 
-def getLLMTIMERMSE(dataset, historical_window_size, filename, unit, model_name):
+def getLLMTIMERMSE(dataset, filename, unit, model_name, sub_dir, historical_window_size=1):
     data = pd.read_csv(filename)
     data["fut_values"] = data["fut_values"].apply(str)
     data["pred_values"] = data["pred_values"].apply(str)
@@ -61,13 +68,7 @@ def getLLMTIMERMSE(dataset, historical_window_size, filename, unit, model_name):
     pred_values = []
     err = 0
     nan = 0
-    if dataset == "Yelp":
-        max_val = 5
-        penalty = 1.3
-    elif dataset == "Mimic" or dataset == "Climate":
-        max_val = 1
-        penalty = 0.0
-    elif dataset == "Finance":
+    if dataset == "Finance":
         max_val = 10000
         penalty = 0.0
 
@@ -80,28 +81,26 @@ def getLLMTIMERMSE(dataset, historical_window_size, filename, unit, model_name):
                 err += 1
             if np.isnan(val):
                 nan += 1
-        if (
-            len(fut_vals) != historical_window_size
-            or len(pred_vals) != historical_window_size
-        ):
-            gt_values.extend([np.nan] * historical_window_size)
-            pred_values.extend([np.nan] * historical_window_size)
+        if (np.nan in pred_vals):
+            gt_values.append([np.nan] * historical_window_size)
+            pred_values.append([np.nan] * historical_window_size)
         else:
-            gt_values.extend(fut_vals)
-            pred_values.extend(pred_vals)
+            gt_values.append(fut_vals)
+            pred_values.append(pred_vals)
 
-    test_rmse_loss = rmse(np.array(gt_values), np.array(pred_values), penalty)
+    test_rmse_loss = rmse(np.array(pred_values), np.array(gt_values), penalty)
+    test_nmae_loss = nmae(np.array(pred_values), np.array(gt_values), penalty)
     err_rate = err / len(data) / historical_window_size
     nan_rate = nan / len(data)
 
     out_path = open_result_directory(
-        dataset, historical_window_size, unit, filename, model_name)
+        dataset=dataset, sub_dir=sub_dir, unit=unit, filename=filename, model_name=model_name, historical_window_size=historical_window_size)
     
-    results = [{"test_rmse_loss": test_rmse_loss, "err_rate": err_rate, "nan_rate": nan_rate}]
-    results = pd.DataFrame(results, columns=['test_rmse_loss', 'err_rate', 'nan_rate'])
+    results = [{"test_rmse_loss": test_rmse_loss, "err_rate": err_rate, "nan_rate": nan_rate, "test_nmae_loss": test_nmae_loss}]
+    results = pd.DataFrame(results, columns=['test_rmse_loss', 'err_rate', 'nan_rate', 'test_nmae_loss'])
     results.to_csv(out_path)
 
-    return test_rmse_loss, err_rate, nan_rate
+    return test_rmse_loss, err_rate, nan_rate, test_nmae_loss
 
 
 if __name__ == "__main__":
@@ -109,15 +108,23 @@ if __name__ == "__main__":
     np.random.seed(42)
     set_seed(42)
 
-    if len(sys.argv) != 4:
-        print("Usage: python models/lltime_test.py <dataset> <historical_window_size> <model_name>")
+    if len(sys.argv) != 5:
+        print("Usage: python models/lltime_test.py <dataset> <historical_window_size> <model_name> <case>")
         sys.exit(1)
 
     token = os.environ.get("HF_TOKEN")
 
     dataset = sys.argv[1]
     historical_window_size = int(sys.argv[2])
+    case = int(sys.argv[4])
     model_name = sys.argv[3]
+
+    if case == 1:
+        sub_dir = "numerical"
+    elif case == 2:
+        sub_dir = "mixed-numerical"
+    elif case == 3:
+        sub_dir = "mixed-summary"
 
     if model_name == "llama7b":
         model_chat = LLMChatModel("meta-llama/Llama-2-7b-chat-hf", token)
@@ -140,16 +147,17 @@ if __name__ == "__main__":
     rmses = []
     errs = []
     nans = []
+    nmaes = []
 
     if dataset == "Yelp":
-        unit = "weeks/"
+        unit = "week/"
     elif dataset == "Mimic" or dataset == "Climate" or dataset == "Finance":
-        unit = "days/"
+        unit = "day/"
     else:
         print("No Such Dataset")
         sys.exit(1)
 
-    folder_path = f"Data/{dataset}/{historical_window_size}_{unit}/mixed_numerical"
+    folder_path = f"Data/{dataset}/{historical_window_size}_{unit}/{sub_dir}"
     if not os.path.exists(folder_path):
         print(f"The folder '{folder_path}' does not exist")
         sys.exit(1)
@@ -162,18 +170,20 @@ if __name__ == "__main__":
             else:
         # filepath = "Data/Yelp/4_weeks/test_1.csv"
                 out_filename = getLLMTIMEOutput(
-                    dataset, historical_window_size, filepath, unit, model_name, model_chat)
-                out_rmse, out_err, out_nan = getLLMTIMERMSE(
-                    dataset, historical_window_size, out_filename, unit, model_name
+                    dataset, filepath, unit, model_name, model_chat, sub_dir, historical_window_size)
+                out_rmse, out_err, out_nan, out_nmae = getLLMTIMERMSE(
+                    dataset, out_filename, unit, model_name, sub_dir, historical_window_size
                 )
                 if out_rmse != 0 and str(out_rmse) != "nan":
                     rmses.append(out_rmse)
                 errs.append(out_err)
                 nans.append(out_nan)
+                nmaes.append(out_nmae)
     print("Mean RMSE: " + str(np.mean(rmses)))
     print("Mean Error Rate: " + str(np.mean(errs)))
     print("Mean NaN Rate: " + str(np.mean(nans)))
     print("Std-Dev RMSE: " + str(np.std(rmses)))
+    print("Mean nmae: " + str(np.mean(nmaes)))
     # wandb.log({"rmse": np.mean(rmses)})
     # wandb.log({"error_rate": np.mean(errs)})
     # wandb.log({"nan_rate": np.mean(nans)})

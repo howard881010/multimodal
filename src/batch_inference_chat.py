@@ -130,16 +130,16 @@ def create_batch_prompt(data, historical_window_size, chat_template=None, datase
     cur_idx = []
 
     for index, row in data.iterrows():
-        list_value = row['hist_values'].split()
-        row_content = ", ".join(list_value)
-        if dataset == 'Yelp':
-            row_content = f"""Given {historical_window_size} historical Yelp ratings: {row_content}, output only the next {historical_window_size} Yelp ratings without additional text."""
-        elif dataset == 'Mimic' or dataset == 'Climate':
-            row_content = f"""Given {historical_window_size} historical values: {row_content}, output only the next {historical_window_size} values without additional text."""
-        elif dataset == 'Finance':
-            row_content = f"{row['input']}. {row['instruction']}"
-        content = chat_template + [{"role": "user", "content": row_content}]
-        content = [{"role": "user", "content": row_content}]
+        # list_value = row['hist_values'].split()
+        # row_content = ", ".join(list_value)
+        # if dataset == 'Yelp':
+        #     row_content = f"""Given {historical_window_size} historical Yelp ratings: {row_content}, output only the next {historical_window_size} Yelp ratings without additional text."""
+        # elif dataset == 'Mimic' or dataset == 'Climate':
+        #     row_content = f"""Given {historical_window_size} historical values: {row_content}, output only the next {historical_window_size} values without additional text."""
+        # if dataset == 'Finance':
+        #     row_content = f"{row['input']}. {row['instruction']}"
+        content = [{"role": "system", "content": row['instruction']}, {"role": "user", "content": row['input']}]
+        # content = [{"role": "user", "content": row_content}]
 
         prompt.append(content)
         cur_idx.append(row['idx'])

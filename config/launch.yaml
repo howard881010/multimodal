@@ -10,7 +10,7 @@ model:
       accelerate launch -m axolotl.cli.train finetune/finance_mixed_numerical_5days.yml && 
       s5cmd cp finetune/outputs/financial-mixed-summary-5days s3://multimodal_fine_tuning
     cpu_count: 8
-    gpu_count: 6
+    gpu_count: 1
     memory: 40
 dataset:
   yelp:
@@ -24,5 +24,8 @@ run:
   dataset: [yelp]
 # file:
 #   - ./axolotl/examples/llama-2/myconfig.yml
-hostname_whitelist:
-  - hcc-chase-shor-c4715.unl.edu
+# hostname_whitelist:
+#   - hcc-chase-shor-c4715.unl.edu
+prefix: rtxa6000
+special_gpu: rtxa6000
+gpu_count: 1
