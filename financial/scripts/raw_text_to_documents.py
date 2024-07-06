@@ -36,6 +36,11 @@ class SummaryPipeline():
         self.queue = Queue(maxsize=self.config['queue'])
         self.lock = Lock()
 
+        self.save_path = os.path.join(self.config['root_dir'],
+                                      self.config['save_dir'],
+                                      self.ticker)
+        os.makedirs(self.save_path, exist_ok=True)
+
     def initialize_df(self):
         document_path = f"{self.config['root_dir']}/{self.config['data_dir']}/{self.config['ticker']}.csv"
         df = pd.read_csv(document_path)
@@ -78,10 +83,7 @@ class SummaryPipeline():
 
         # initialize summary chunk save path
         with self.lock:
-            document_path = os.path.join(self.config['root_dir'],
-                                         self.config['save_dir'],
-                                         self.ticker,
-                                         timestamp + ".csv")
+            document_path = os.path.join(self.save_path, timestamp + ".csv")
             try:
                 document_df = pd.read_csv(document_path)
             except:
@@ -89,16 +91,18 @@ class SummaryPipeline():
                     columns=["row_idx", "doc_idx", "timestamp", "summary"])
                 document_df.to_csv(document_path, index=False)
 
+        # skip already processed document
         if len(document_df[(document_df['row_idx'] == row_idx) &
                            (document_df['doc_idx'] == doc_idx) &
                            (document_df['timestamp'] == timestamp)]) == 0:
-            self.log(
-                f"{self.ticker}, {timestamp}, {row_idx}, {doc_idx}, {document[:100]}")
 
             result = self.engine.run(
                 self.prompts.json_summary_prompt, document, self.json_schema)
             new_row = pd.DataFrame({"row_idx": [row_idx], "doc_idx": [
                                     doc_idx], "timestamp": timestamp, "summary": [str(result)]})
+
+            self.log(
+                f"{self.ticker}, {timestamp}, {row_idx}, {doc_idx}, {str(result)[:100]}")
 
             # save summary chunk
             with self.lock:
