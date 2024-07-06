@@ -1,4 +1,18 @@
+# Launch vLLM in Nautilus
+To launch vLLM in nautilus, modify .env's API_KEY and BASE_URL
 
+```bash
+InternalServerError: <html><body><h1>503 Service Unavailable</h1>
+No server is available to handle this request.
+</body></html>
+```
+*Currently port issue with vLLM. Can't connect to port 8000.
+
+1. kubectl apply -f pvc.yaml: Create persistant volume claim for storage:
+2. kubectl apply -f llama_deployment.yaml: Deploy vLLM image
+3. kubectl apply -f ingress.yaml: Configure network and ports
+
+# Scripts
 Go to multimodal/financial directory and run in following order with appropriate arguments.
 Modify .env's API_KEY and BASE_URL for vLLM inference.
 
