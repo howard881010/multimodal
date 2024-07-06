@@ -75,8 +75,8 @@ class LLMChatModel(ChatModel):
 
     def load_model(self, model_name, token):
         base_model = AutoModelForCausalLM.from_pretrained(model_name, device_map="auto", token=token)
-        return base_model
-        # return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/finance-mixed-numerical")
+        # return base_model
+        return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/finance-mixed-numerical")
 
     def chat(self, prompt):
         new_prompt = self.tokenizer.apply_chat_template(
@@ -142,9 +142,7 @@ if __name__ == "__main__":
     # data["hist_values"] = data["hist_values"].apply(str)
     start = time.time()
 
-    content = [{"role": "user",
-            "content": f"""The financial summaries for the last trading day are day 1: Amazon.com Inc. (AMZN) stock rises 1.5% to $3,234.00, reaching a new all-time high, with a market capitalization of $1.63 trillion, making it the second-largest publicly traded US company. In the past 12 months, AMZN shares have gained 73%, outperforming the S&P 500's 41% increase. Earnings per share (EPS) for Q3 2021 are expected to be $7.16, a 44.6% increase from Q3 2020. The e-commerce giant has been benefiting from the ongoing shift to online shopping, with its cloud computing division, Amazon Web Services (AWS), driving growth. However, the company's retail dominance faces potential competition from TikTok's e-commerce play, which may impact its market share., and the stock prices of the last 1 days are day 1: 148.84
-            Given the financial summaries and stock prices from the last trading day, generate financial summaries for the current trading day"""}]
+    content = [{"role": "system", "content": "Given the financial report and the share price for the current day, please predict the shared price for next day in "}, {"role": "user", "content": ""}]
     prompt = [content]
     
 

@@ -13,6 +13,7 @@ import glob
 from num2words import num2words
 from batch_inference_chat import batch_inference_mistral, batch_inference_llama, batch_inference_gemma
 import re
+import json
 
 
 
@@ -20,9 +21,7 @@ def getLLMTIMEOutput(dataset, filename, unit, model_name, model_chat, sub_dir, h
     data = pd.read_csv(filename)
     data["idx"] = data.index
     for idx, row in data.iterrows():
-        numbers = re.findall(r"\d+\.\d+", row['output'])
-        str_res = ' '.join([str(num) for num in numbers])
-        data.at[idx, 'fut_values'] = str_res
+        data.at[idx, 'fut_values'] = json.loads(row['output'])["share_price"]
     # print(data['fut_values'])
 
     log_path, res_path = open_record_directory(
@@ -33,24 +32,34 @@ def getLLMTIMEOutput(dataset, filename, unit, model_name, model_chat, sub_dir, h
 
     results = [{"pred_values": "nan", "attempt": 0} for _ in range(len(data))]
     attempts = 0
-    
-    # example_input = f"{data.iloc[0]['input']}. {data.iloc[0]['instruction']}"
-    # example_answer = data.iloc[0]['output']
-    # chat = [
-    #     {"role": "user",
-    #         "content": example_input},
-    #     {"role": "assistant", "content": example_answer}]
-    # chat = [{"role": "system", "content": "You are an expert financial forecaster who can help me predict shard prices and summary"}]
     chat = None
-    if model_name == 'mistral7b':
-        error_idx = batch_inference_mistral(
-            results, model_chat, data, attempts, logger, historical_window_size, dataset, chat_template=chat)
-    elif model_name == 'llama7b':
-        error_idx = batch_inference_llama(
-            results, model_chat, data, attempts, logger, historical_window_size, dataset, chat_template=chat)
-    elif model_name == 'gemma7b':
-        error_idx = batch_inference_gemma(
-            results, model_chat, data, attempts, logger, historical_window_size, dataset, chat_template=chat)
+    error_idx = batch_inference_llama(
+        results, model_chat, data, attempts, logger, historical_window_size, dataset, chat_template=chat)
+
+    print("Error idx: ", error_idx)
+    results = pd.DataFrame(results, columns=['pred_values', 'attempts'])
+    results["fut_values"] = data["fut_values"].apply(str)
+    results.to_csv(res_path)
+    return res_path
+
+def getSummaryOutput(dataset, filename, unit, model_name, model_chat, sub_dir, historical_window_size):
+    data = pd.read_csv(filename)
+    for idx, row in data.iterrows():
+        data.at[idx, 'fut_summary'] = json.loads(row['output'])["summary"]
+        data.at[idx, 'fut_values'] = json.loads(row['output'])["share_price"]
+    # print(data['fut_values'])
+
+    log_path, res_path = open_record_directory(
+        dataset=dataset, sub_dir=sub_dir, unit=unit, filename=filename, model_name=model_name, historical_window_size=historical_window_size)
+
+    logger.remove()
+    logger.add(log_path, rotation="100 MB", mode="w")
+
+    results = [{"pred_values": "nan", "attempt": 0} for _ in range(len(data))]
+    attempts = 0
+    chat = None
+    error_idx = batch_inference_llama(
+        results, model_chat, data, attempts, logger, historical_window_size, dataset, chat_template=chat)
 
     print("Error idx: ", error_idx)
     results = pd.DataFrame(results, columns=['pred_values', 'attempts'])
@@ -102,7 +111,6 @@ def getLLMTIMERMSE(dataset, filename, unit, model_name, sub_dir, historical_wind
 
     return test_rmse_loss, err_rate, nan_rate, test_nmae_loss
 
-
 if __name__ == "__main__":
     # add seed
     np.random.seed(42)
@@ -137,11 +145,11 @@ if __name__ == "__main__":
         model_chat = GemmaChatModel("google/gemma-7b-it", token)
         runs_name = "gemma-7b-it"
 
-    # wandb.init(project="llmforecast",
-    #            config={"name": runs_name,
-    #                    "window_size": historical_window_size,
-    #                    "dataset": dataset,
-    #                    "model": model_name, })
+    wandb.init(project="Inference",
+               config={"name": runs_name,
+                       "window_size": historical_window_size,
+                       "dataset": dataset,
+                       "model": model_name, })
     
     start_time = time.time()
     rmses = []
@@ -168,12 +176,15 @@ if __name__ == "__main__":
             if "all" not in filename:
                 continue
             else:
+                if case <= 2:
         # filepath = "Data/Yelp/4_weeks/test_1.csv"
-                out_filename = getLLMTIMEOutput(
-                    dataset, filepath, unit, model_name, model_chat, sub_dir, historical_window_size)
-                out_rmse, out_err, out_nan, out_nmae = getLLMTIMERMSE(
-                    dataset, out_filename, unit, model_name, sub_dir, historical_window_size
-                )
+                    out_filename = getLLMTIMEOutput(
+                        dataset, filepath, unit, model_name, model_chat, sub_dir, historical_window_size)
+                    out_rmse, out_err, out_nan, out_nmae = getLLMTIMERMSE(
+                        dataset, out_filename, unit, model_name, sub_dir, historical_window_size
+                    )
+                # elif case == 3:
+                    
                 if out_rmse != 0 and str(out_rmse) != "nan":
                     rmses.append(out_rmse)
                 errs.append(out_err)
@@ -184,10 +195,11 @@ if __name__ == "__main__":
     print("Mean NaN Rate: " + str(np.mean(nans)))
     print("Std-Dev RMSE: " + str(np.std(rmses)))
     print("Mean nmae: " + str(np.mean(nmaes)))
-    # wandb.log({"rmse": np.mean(rmses)})
-    # wandb.log({"error_rate": np.mean(errs)})
-    # wandb.log({"nan_rate": np.mean(nans)})
-    # wandb.log({"std-dev": np.std(rmses)})
+    wandb.log({"rmse": np.mean(rmses)})
+    wandb.log({"error_rate": np.mean(errs)})
+    wandb.log({"nan_rate": np.mean(nans)})
+    wandb.log({"std-dev": np.std(rmses)})
+    wandb.log({"nmae": np.mean(nmaes)})
 
     end_time = time.time()
     print("Total Time: " + str(end_time - start_time))

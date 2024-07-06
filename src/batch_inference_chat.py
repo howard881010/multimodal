@@ -69,7 +69,7 @@ def batch_inference_llama(
             response = output_text.split('[/INST]')[-1]
 
             logger.info("Content for row: " + str(cur_idx[index]) +
-                        " Attempt: " + str(attempts + 1) + " Content: " + prompt[index][0]['content'])
+                        " Attempt: " + str(attempts + 1) + " Content: " + prompt[index][0]['content'] + prompt[index][1]['content'])
             logger.info("Response for row: " + str(cur_idx[index]) + " Attempt: " + str(
                 attempts + 1) + " Content: " + response)
 
