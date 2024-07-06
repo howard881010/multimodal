@@ -8,7 +8,7 @@ import os
 
 from src.utils import load_json, get_logger, get_config
 from src.engine import Engine
-from src.summary_pipeline import DataParser
+from multimodal.financial.src.summary_parser import DataParser
 from templates.prompts import Prompts
 
 
