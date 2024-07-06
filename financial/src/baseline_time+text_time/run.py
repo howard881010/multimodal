@@ -1,8 +1,8 @@
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import pandas as pd
 import os
-from src.vllm import llm_chat
-from templates.PROMPTS import ForecstBaselinePrompts
+from multimodal.financial.src.engine import llm_chat
+from multimodal.financial.templates.prompts import ForecstBaselinePrompts
 from glob import glob
 from tqdm import tqdm
 

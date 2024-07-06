@@ -2,7 +2,8 @@
 
 # export CUDA_VISIBLE_DEVICES='0,1'
 # python -m vllm.entrypoints.openai.api_server --model meta-llama/Meta-Llama-3-70B-Instruct --tensor-parallel-size=2 --disable-log-requests --enforce-eager
-# python -m vllm.entrypoints.openai.api_server --model casperhansen/llama-3-70b-instruct-awq --tensor-parallel-size=2 --disable-log-requests --enforce-eager
+# python -m vllm.entrypoints.openai.api_server --model casperhansen/llama-3-70b-instruct-awq --tensor-parallel-size=4 --disable-log-requests --enforce-eager
+# python -m vllm.entrypoints.openai.api_server --model casperhansen/llama-3-70b-instruct-awq --tensor-parallel-size=4
 # python -m outlines.serve.serve --model meta-llama/Meta-Llama-3-70B-Instruct --tensor-parallel-size=2 --disable-log-requests
 
 # offline inference
@@ -29,8 +30,8 @@
 
 # online
 from transformers import AutoTokenizer
-from multimodal.financial.templates.PROMPTS import Prompts
-from src.vllm import batch_call_llm_chat, llm_chat, message_template
+from multimodal.financial.templates.prompts import Prompts
+from multimodal.financial.src.engine import batch_call_llm_chat, llm_chat, message_template
 from src.utils import load_text_from, log_time, save_text_to, get_logger
 import logging
 import time

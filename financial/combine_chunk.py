@@ -3,8 +3,8 @@ from glob import glob
 import json
 from collections import defaultdict
 import ast
-from src.vllm import llm_chat, message_template, call_llm_chat
-from templates.PROMPTS import Prompts
+from multimodal.financial.src.engine import llm_chat, message_template, call_llm_chat
+from multimodal.financial.templates.prompts import Prompts
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from queue import Queue

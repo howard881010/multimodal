@@ -11,6 +11,8 @@ import logging
 import os
 from urllib.parse import urlparse
 import json
+import yaml
+
 
 headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
@@ -119,6 +121,11 @@ def get_logger(filepath="log.txt"):
     logging.getLogger("openai").setLevel(logging.ERROR)
     logging.getLogger("httpx").setLevel(logging.ERROR)
     return logger
+
+def load_yaml(config_file):
+    with open(config_file, 'r') as file:
+        config = yaml.safe_load(file)
+    return config
 
 def load_json(file_path):
     """

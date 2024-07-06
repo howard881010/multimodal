@@ -1,0 +1,11 @@
+root_dir: /data/kai/forecasting
+data_dir: data/raw_v0.2_filtered
+json_schema_dir: multimodal/financial/templates/guided_json_summary_v0.3.json
+save_dir: data/document_v0.2
+
+workers: 100
+queue: 50
+max_chunk: 2048
+overlap: 512
+
+model: "llama3-70b"

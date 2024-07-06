@@ -3,7 +3,7 @@
 # run python -m baseline_time_text_time_text/run.py
 import os
 os.sys.path.append("..")
-from src.vllm import llm_chat, message_template
+from multimodal.financial.src.engine import llm_chat, message_template
 import time
 from openai import OpenAI
 from glob import glob
@@ -106,6 +106,7 @@ with ThreadPoolExecutor(max_workers=1) as executor:
     futures = [executor.submit(test_text_time, path) for path in paths]
     results = [future.result() for future in as_completed(futures)]
 
+sorted_results = sorted(results, key=lambda x: x['timestamp'])
 
 with open(os.path.join(data_dir, "predction_v0.2/text_time_text_time.json"), 'w') as f:
     json.dump(results, f)

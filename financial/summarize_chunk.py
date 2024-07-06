@@ -3,12 +3,12 @@ from threading import Thread, Lock
 from queue import Queue
 import os
 from tqdm import tqdm
-from src.vllm import llm_chat, message_template
+from multimodal.financial.src.engine import llm_chat, message_template
 from src.utils import load_json, chunk_documents
 import json
 from transformers import AutoTokenizer
 import json
-from templates.PROMPTS import Prompts, blocked_words
+from multimodal.financial.templates.prompts import Prompts, blocked_words
 import argparse
 
 
@@ -96,8 +96,8 @@ if __name__ == "__main__":
 
     # intialize prompts and tokenizer
     prompts = Prompts(ticker)
-    # model_name = "meta-llama/Meta-Llama-3-70B-Instruct"
-    model_name = "casperhansen/llama-3-70b-instruct-awq"
+    model_name = "meta-llama/Meta-Llama-3-70B-Instruct"
+    # model_name = "casperhansen/llama-3-70b-instruct-awq"
     tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     document_queue = Queue(maxsize=10)
