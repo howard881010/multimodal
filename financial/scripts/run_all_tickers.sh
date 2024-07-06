@@ -3,7 +3,7 @@
 max_parallel=3
 
 run_script() {
-  python summarize_chunk.py --ticker "$1" &
+  python summary.py --ticker "$1" --config_path="/data/kai/forecasting/multimodal/financial/config/summary_v0.2.yaml" &
 }
 
 directory="/data/kai/forecasting/data/raw_v0.2_filtered"

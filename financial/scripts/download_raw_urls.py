@@ -1,20 +1,14 @@
 from glob import glob
-from urllib.parse import urlparse
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
-from threading import Thread, Lock
+from threading import Lock
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from queue import Queue
 import os
 from tqdm import tqdm
 import time
 import numpy as np
-
-
-# utils
-def get_domain(url):
-    return urlparse(url).netloc
+from src.utils import get_domain
 
 
 class Downloader:

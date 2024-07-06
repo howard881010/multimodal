@@ -3,24 +3,14 @@ from glob import glob
 import json
 from collections import defaultdict
 import ast
-from multimodal.financial.src.engine import llm_chat, message_template, call_llm_chat
-from multimodal.financial.templates.prompts import Prompts
+from src.engine import llm_chat, message_template, call_llm_chat
+from templates.prompts import Prompts
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from queue import Queue
-from threading import Thread
 # check size of summary value
 from transformers import AutoTokenizer
-import time
 
 import numpy as np
-
-# parse raw JSON
-
-
-import numpy as np
-
-# parse raw JSON
 
 
 def collapse_metrics(json_summaries):

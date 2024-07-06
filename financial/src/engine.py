@@ -1,29 +1,24 @@
 from openai import OpenAI
-
-import threading
-import queue
-import logging
-from dotenv import load_dotenv
-import os
 import json
-
-# Set OpenAI's API key and API base to use vLLM's API server.
 
 
 class Engine():
-    def __init__(self, model="meta-llama/Meta-Llama-3-70B-Instruct", api_key="EMPTY", base_url="http://localhost:8000/v1"):
-        load_dotenv()
+    def __init__(self,
+                 model="meta-llama/Meta-Llama-3-70B-Instruct",
+                 api_key="EMPTY",
+                 base_url="http://localhost:8000/v1"):
         self.model = model
         self.api_key = api_key
         self.base_url = base_url
         self.client = OpenAI(
-                api_key=self.api_key,
-                base_url=self.base_url,
-            )
+            api_key=self.api_key,
+            base_url=self.base_url,
+        )
 
     def run(self, prompt, doc, guided_json=None):
         messages = self.message_template(prompt, doc)
-        response = self.llm_chat(messages, model=self.model, guided_json=guided_json)
+        response = self.llm_chat(
+            messages, guided_json=guided_json)
         if guided_json is not None:
             data = json.loads(response)
             return data
@@ -48,6 +43,7 @@ class Engine():
                 "guided_json": guided_json
             }
         )
+        # return chat_response
         return chat_response.choices[0].message.content
 
 

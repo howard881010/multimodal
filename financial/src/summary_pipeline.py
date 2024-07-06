@@ -1,17 +1,14 @@
 from collections import defaultdict
 import json
-from src.utils import load_json
+from utils.utils import load_json
 from transformers import AutoTokenizer
 from typing import Union
 
 
 class DataParser():
-    def __init__(self, model="meta-llama/Meta-Llama-3-70B-Instruct", json_schema_path=None):
+    def __init__(self, model="meta-llama/Meta-Llama-3-70B-Instruct", json_schema=None):
         self.tokenizer = AutoTokenizer.from_pretrained(model)
-        if json_schema_path is not None:
-            self.json_schema = load_json(json_schema_path)
-        else:
-            self.json_schema = None
+        self.json_schema = json_schema
 
     def combine_results(self, results: list[dict]):
         """

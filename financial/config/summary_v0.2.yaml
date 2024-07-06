@@ -1,11 +1,18 @@
 root_dir: /data/kai/forecasting
-data_dir: data/raw_v0.2_filtered
+data_dir: data/raw/raw_v0.2_filtered
 json_schema_dir: multimodal/financial/templates/guided_json_summary_v0.3.json
 save_dir: data/document_v0.2
+log_dir: multimodal/financial/logs
 
-workers: 100
-queue: 50
-max_chunk: 2048
-overlap: 512
+workers: 20
+queue: 80
+max_chunk_token: 2048
+overlap_token: 512
 
 model: "llama3-70b"
+blocked_words:
+  - "thestreet.comPlease enable JS and disable any ad blocker"
+  - "wsj.comPlease enable JS and disable any ad blocker"
+  - "Access Denied Access Denied You don't have permission to access"
+  - "Access to this page has been denied"
+  - "Sorry! Temporarily Unavailable Sorry, this page is temporarily unavailable for technical reasons."

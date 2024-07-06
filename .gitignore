@@ -9,3 +9,5 @@
 /finetune/outputs
 **/__pycache__/
 financial/logs/
+financial_old/
+financial/.env
