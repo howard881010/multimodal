@@ -3,13 +3,13 @@ from queue import Queue
 from threading import Thread, Lock
 import pandas as pd
 from tqdm import tqdm
+from dotenv import load_dotenv
+import os
 
 from src.utils import load_json, get_logger, get_config
 from src.engine import Engine
 from src.summary_pipeline import DataParser
 from templates.prompts import Prompts
-import os
-from dotenv import load_dotenv
 
 
 class SummaryPipeline():
@@ -28,6 +28,8 @@ class SummaryPipeline():
         # allow tokenizer to load correct model
         if self.config['model'] == 'llama3-70b':
             model = "meta-llama/Meta-Llama-3-70B-Instruct"
+        else:
+            model = self.config['model']
         self.utils = DataParser(model, self.json_schema)
 
         self.df = self.initialize_df()

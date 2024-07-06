@@ -1,0 +1,75 @@
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   annotations:
+#     kubernetes.io/ingress.class: haproxy
+#   name: llama3-70b-ingress
+# spec:
+#   rules:
+#   - host: abcd.nrp-nautilus.io
+#     http:
+#       paths:
+#       - path: /
+#         pathType: ImplementationSpecfic
+#         backend:
+#           service:
+#             name: llama3-70b-service
+#             port:
+#               # number: 80
+#               name: http
+#   tls:
+#   - hosts:
+#     - abcd.nrp-nautilus.io
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: llama3-70b-service
+#   labels:
+#     k8s-app: vllm
+# spec:
+#   selector:
+#     k8s-app: vllm
+#   ports:
+#   - name: http
+#     protocol: TCP
+#     port: 8000
+#   # - port: 80
+#   #   protocol: TCP
+#   #   targetPort: 8000
+#   type: ClusterIP
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: haproxy
+  name: llama3-70b-ingress
+spec:
+  rules:
+  - host: aadd.nrp-nautilus.io
+    http:
+      paths:
+      - backend:
+          service:
+            name: llama3-70b-service
+            port:
+              name: http
+        path: /
+        pathType: ImplementationSpecific
+  tls:
+  - hosts:
+    - aadd.nrp-nautilus.io
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: llama3-70b-service
+  labels:
+    app: vllm
+spec:
+  selector:
+    app: vllm
+  ports:
+  - name: http
+    protocol: TCP
+    port: 8000

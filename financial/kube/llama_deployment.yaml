@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llama3-70b-deployment
+  labels:
+    app: vllm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vllm
+  template:
+    metadata:
+      labels:
+        app: vllm
+    spec:
+      containers:
+      - image: vllm/vllm-openai:latest
+        ports:
+        - containerPort: 8000
+        name: gpu-container
+        resources:
+          limits:
+            cpu: 10
+            memory: 40G
+            nvidia.com/a100: "4"
+          requests:
+            cpu: 5
+            memory: 20G
+            nvidia.com/a100: "4"
+        command:
+        - /bin/bash
+        - -c
+        - |
+          sleep 3600 && python3 -m vllm.entrypoints.openai.api_server \
+          --model meta-llama/Meta-Llama-3-70B-instruct \
+          --served-model-name=llama3-70b \
+          --api-key 67c21f73-9d1c-40f7-8a2f-adf2c9274f46 --trust-remote-code \
+          --gpu-memory-utilization=0.9 \
+          --tensor-parallel-size=4 \
+          --port=8000
+        env:
+        - name: HUGGING_FACE_HUB_TOKEN
+          value: "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"
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        - name: PYTHONIOENCODING
+          value: UTF-8
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: PYTHONPATH
+          value: src
+        volumeMounts:
+        - name: huggingface-cache
+          mountPath: /root/.cache/huggingface
+        - name: huggingface-cache
+          mountPath: /var/lib/docker
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: nvidia.com/gpu.product
+                operator: In
+                values:
+                - NVIDIA-A100-SXM4-80GB
+      volumes:
+      - name: huggingface-cache
+        persistentVolumeClaim:
+          claimName: llama3-70b-pvc

@@ -1,6 +1,4 @@
 from collections import defaultdict
-import json
-from utils.utils import load_json
 from transformers import AutoTokenizer
 from typing import Union
 

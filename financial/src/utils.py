@@ -1,12 +1,5 @@
-import requests
-from bs4 import BeautifulSoup
-from tqdm import tqdm
 import time
 from datetime import datetime, timedelta
-from typing import Union
-from threading import Thread, Lock
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from queue import Queue
 import logging
 import os
 from urllib.parse import urlparse
