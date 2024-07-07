@@ -11,6 +11,7 @@ No server is available to handle this request.
 1. kubectl apply -f pvc.yaml: Create persistant volume claim for storage:
 2. kubectl apply -f llama_deployment.yaml: Deploy vLLM image
 3. kubectl apply -f ingress.yaml: Configure network and ports
+4.  kubectl exec -it -f llama_deployment.yaml -- /bin/bash: launch interactive shell to debug
 
 # Scripts
 Go to multimodal/financial directory and run in following order with appropriate arguments.

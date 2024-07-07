@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: llama3-70b-deployment
+  name: minimal-deployment
   labels:
-    app: vllm-app
+    app: minimal-app-1
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: vllm-app
+      app: minimal-app-1
   template:
     metadata:
       labels:
-        app: vllm-app
+        app: minimal-app-1
     spec:
       containers:
       - image: vllm/vllm-openai:latest
@@ -21,25 +21,21 @@ spec:
         name: gpu-container
         resources:
           limits:
-            cpu: 6
+            cpu: 10
             memory: 40G
-            nvidia.com/a100: "8"
+            # nvidia.com/a100: "4"
+            nvidia.com/gpu: "4"
           requests:
             cpu: 5
             memory: 20G
-            nvidia.com/a100: "8"
+            nvidia.com/gpu: "4"
         command:
         - /bin/bash
         - -c
         - |
           python3 -m vllm.entrypoints.openai.api_server \
-          --model meta-llama/Meta-Llama-3-70B-instruct \
-          --served-model-name=llama3-70b \
-          --api-key 67c21f73-9d1c-40f7-8a2f-adf2c9274f46 --trust-remote-code \
-          --gpu-memory-utilization=0.9 \
-          --tensor-parallel-size=8 \
-          --host="0.0.0.0" \
-          --port=8000
+            --model casperhansen/llama-3-70b-instruct-awq \
+             --dtype auto --api-key ewjiofh2nd3och291n2ui2saf22f
         env:
         - name: HUGGING_FACE_HUB_TOKEN
           value: "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"
@@ -54,9 +50,10 @@ spec:
         - name: PYTHONPATH
           value: src
         volumeMounts:
-        - name: huggingface-cache
+        # todo don't have same name
+        - name: model-cache
           mountPath: /root/.cache/huggingface
-        - name: huggingface-cache
+        - name: model-cache
           mountPath: /var/lib/docker
       # affinity:
       #   nodeAffinity:
@@ -67,11 +64,11 @@ spec:
       #           operator: In
       #           values:
       #           - NVIDIA-A100-SXM4-80GB
-      #         - key: kubernetes.io/hostname
-      #           operator: NotIn
-      #           values:
-      #           - node-1-3.sdsc.optiputer.net
+      # - key: kubernetes.io/hostname
+      #   operator: NotIn
+      #   values:
+      #   # - hostname_blacklist
       volumes:
-      - name: huggingface-cache
+      - name: model-cache
         persistentVolumeClaim:
-          claimName: llama3-70b-pvc
+          claimName: vllm-kai-pvc

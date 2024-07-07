@@ -1,33 +1,33 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: llama3-70b-ingress
+  name: minimal-ingress
 spec:
   ingressClassName: haproxy
   rules:
-  - host: financial.nrp-nautilus.io
+  - host: minimal.nrp-nautilus.io
     http:
       paths:
       - backend:
           service:
-            name: llama3-70b-service
+            name: minimal-service
             port:
               name: http
         path: /
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - financial.nrp-nautilus.io
+    - minimal.nrp-nautilus.io
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: llama3-70b-service
+  name: minimal-service
   labels:
-    app: vllm-app
+    app: minimal-app-1
 spec:
   selector:
-    app: vllm-app
+    app: minimal-app-1
   ports:
   - name: http
     protocol: TCP

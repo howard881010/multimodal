@@ -5,7 +5,7 @@ metadata:
   name: llama3-70b-pvc
 spec:
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
   resources:
     requests:
       storage: 1000Gi  # Adjust the size as needed
