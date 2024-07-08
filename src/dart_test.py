@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 from darts.models import NLinearModel
 from darts import TimeSeries
-from pytorch_lightning import Trainer
 import glob
 import os
 from tqdm import tqdm
@@ -77,27 +76,32 @@ def bert_model_inference(summaries):
     return pooled_outputs
 
 
-def nlinear_darts(train_input, train_output, test_input, historcial_window_size,text_embedding=None):
+def nlinear_darts(train_input, train_output, test_input, historcial_window_size,train_embedding=None, test_embedding=None):
 
     # Convert to TimeSeries object required by Darts
     train_series = TimeSeries.from_values(train_input)
     train_output_series = TimeSeries.from_values(train_output)
-    if text_embedding is not None:
-        past_covariates = TimeSeries.from_values(text_embedding)
+    if train_embedding is not None:
+        train_past_covariates = TimeSeries.from_values(train_embedding)
+        test_past_covariates = TimeSeries.from_values(test_embedding)
     else:
-        past_covariates = None
+        train_past_covariates = None
+        test_past_covariates = None
     
     # Define and train the NLinearModel model
     model_NLinearModel = NLinearModel(input_chunk_length=historcial_window_size, output_chunk_length=historcial_window_size, n_epochs=100, pl_trainer_kwargs={"accelerator": "gpu", "devices": 1}, )
-    model_NLinearModel.fit(train_series, past_covariates=past_covariates, future_covariates=train_output_series)
+    model_NLinearModel.fit(train_series, past_covariates=train_past_covariates, future_covariates=train_output_series)
 
     pred_value = []
+    test = np.array([])
     # Make predictions
     for i in range(len(test_input)):
-        test = np.array([test_input[i]])
+        test = np.append(test, test_input[i])
         test_series = TimeSeries.from_values(test)
-        predictions = model_NLinearModel.predict(n=historcial_window_size, series=test_series).all_values().flatten().tolist()
+        print("input: ", test_series)
+        predictions = model_NLinearModel.predict(n=historcial_window_size, series=test_series, past_covariates=test_past_covariates).all_values().flatten().tolist()
         str_res = ' '.join([str(round(num,2)) for num in predictions])
+        print("Prediction: " + str_res)
         pred_value.append(str_res)
     print(pred_value)
     
@@ -111,6 +115,7 @@ def getLLMTIMEOutput(dataset, filename, unit, sub_dir, historical_window_size):
     test_input_arr = []
     test_output_arr = []
     train_summary_arr = []
+    test_summary_arr = []
     for idx, row in data.iterrows():
         train_input_arr.append(json.loads(row['input'])["share_price"])
         train_output_arr.append(json.loads(row['output'])["share_price"])
@@ -119,13 +124,18 @@ def getLLMTIMEOutput(dataset, filename, unit, sub_dir, historical_window_size):
         report = json.dumps(report)
         train_summary_arr.append(report)
 
-    text_embedding = bert_model_inference(train_summary_arr)
+    train_embedding = bert_model_inference(train_summary_arr)
 
-    filename = filename.replace('train', 'test')
+    filename = filename.replace('train', 'validation')
     data = pd.read_csv(filename)
     for idx, row in data.iterrows():
         test_input_arr.append(json.loads(row['input'])["share_price"])
         test_output_arr.append(json.loads(row['output'])["share_price"])
+        report = json.loads(row['input'])
+        del report['share_price']
+        report = json.dumps(report)
+        test_summary_arr.append(report)
+    test_embedding = bert_model_inference(test_summary_arr)
     
     train_input_arr = np.array(train_input_arr)
     train_output_arr = np.array(train_output_arr)
@@ -138,7 +148,7 @@ def getLLMTIMEOutput(dataset, filename, unit, sub_dir, historical_window_size):
     logger.remove()
     logger.add(log_path, rotation="100 MB", mode="w")
 
-    pred_value = nlinear_darts(train_input_arr, train_output_arr, test_input_arr, historical_window_size, text_embedding)
+    pred_value = nlinear_darts(train_input_arr, train_output_arr, test_input_arr, historical_window_size, train_embedding, test_embedding)
     results = [{"pred_values": pred_value[i], "fut_values": test_output_arr[i]} for i in range(len(data))]
     results = pd.DataFrame(results, columns=['pred_values', 'fut_values'])
     results.to_csv(res_path)
@@ -166,11 +176,13 @@ if __name__ == "__main__":
         sub_dir = "numerical"
     elif case == 2:
         sub_dir = "mixed-numerical"
-    # wandb.init(project="llmforecast",
-    #            config={"name": runs_name,
-    #                    "window_size": historical_window_size,
-    #                    "dataset": dataset,
-    #                    "model": model_name, })
+
+    wandb.init(project="Inference",
+               config={"name": "nlinear",
+                       "window_size": historical_window_size,
+                       "dataset": dataset,
+                       "model": model_name,
+                       "case": sub_dir})
     
     start_time = time.time()
     rmses = []
@@ -211,10 +223,11 @@ if __name__ == "__main__":
     print("Mean NaN Rate: " + str(np.mean(nans)))
     print("Std-Dev RMSE: " + str(np.std(rmses)))
     print("Mean nmae: " + str(np.mean(nmaes)))
-    # wandb.log({"rmse": np.mean(rmses)})
-    # wandb.log({"error_rate": np.mean(errs)})
-    # wandb.log({"nan_rate": np.mean(nans)})
-    # wandb.log({"std-dev": np.std(rmses)})
+    wandb.log({"rmse": np.mean(rmses)})
+    wandb.log({"error_rate": np.mean(errs)})
+    wandb.log({"nan_rate": np.mean(nans)})
+    wandb.log({"std-dev": np.std(rmses)})
+    wandb.log({"nmae": np.mean(nmaes)})
 
     end_time = time.time()
     print("Total Time: " + str(end_time - start_time))
