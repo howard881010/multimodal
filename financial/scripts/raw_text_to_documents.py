@@ -17,7 +17,7 @@ class SummaryPipeline():
         self.config = config
 
         api_key = os.getenv('API_KEY', 'EMPTY')
-        base_url = os.getenv('BASE_URL', 'https://localhost:8000/v1')
+        base_url = os.getenv('BASE_URL', 'http://localhost:8000/v1')
 
         self.ticker = self.config['ticker']
         self.prompts = Prompts(self.ticker)

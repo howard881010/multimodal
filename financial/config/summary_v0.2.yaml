@@ -10,7 +10,7 @@ max_chunk_token: 2048
 overlap_token: 512
 
 # model: "llama3-70b"
-model: "meta-llama/Meta-Llama-3-70B-instruct"
+model: "meta-llama/Meta-Llama-3-70B-Instruct"
 
 blocked_words:
 - "thestreet.comPlease enable JS and disable any ad blocker"
