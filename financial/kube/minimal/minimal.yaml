@@ -34,7 +34,6 @@ spec:
         - -c
         - |
           python3 -m vllm.entrypoints.openai.api_server \
-            --model casperhansen/llama-3-70b-instruct-awq \
              --dtype auto --api-key ewjiofh2nd3och291n2ui2saf22f
         env:
         - name: HUGGING_FACE_HUB_TOKEN

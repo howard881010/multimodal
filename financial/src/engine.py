@@ -14,11 +14,9 @@ class Engine():
                  api_key="EMPTY",
                  base_url="http://localhost:8000/v1"):
         self.model = model
-        self.api_key = api_key
-        self.base_url = base_url
         self.client = OpenAI(
-            api_key=self.api_key,
-            base_url=self.base_url,
+            api_key=api_key,
+            base_url=base_url,
         )
 
     def run(self, prompt, doc, guided_json=None):

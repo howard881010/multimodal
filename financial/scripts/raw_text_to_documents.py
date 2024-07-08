@@ -8,7 +8,7 @@ import os
 
 from src.utils import load_json, get_logger, get_config
 from src.engine import Engine
-from multimodal.financial.src.summary_parser import DataParser
+from src.summary_parser import DataParser
 from templates.prompts import Prompts
 
 
@@ -17,7 +17,7 @@ class SummaryPipeline():
         self.config = config
 
         api_key = os.getenv('API_KEY', 'EMPTY')
-        base_url = os.getenv('BASE_URL', 'http://localhost:8000/v1')
+        base_url = os.getenv('BASE_URL', 'https://localhost:8000/v1')
 
         self.ticker = self.config['ticker']
         self.prompts = Prompts(self.ticker)
@@ -25,12 +25,7 @@ class SummaryPipeline():
         self.json_schema = load_json(os.path.join(
             self.config['root_dir'], self.config['json_schema_dir']))
 
-        # allow tokenizer to load correct model
-        if self.config['model'] == 'llama3-70b':
-            model = "meta-llama/Meta-Llama-3-70B-Instruct"
-        else:
-            model = self.config['model']
-        self.utils = DataParser(model, self.json_schema)
+        self.utils = DataParser(self.config['model'], self.json_schema)
 
         self.df = self.initialize_df()
         self.queue = Queue(maxsize=self.config['queue'])
@@ -74,6 +69,8 @@ class SummaryPipeline():
                 result = self.worker(item)
                 if result is not None:
                     results.append(result)
+            except Exception as e:
+                logger.warning(str(e))
             finally:
                 self.queue.task_done()
         return results
@@ -102,7 +99,7 @@ class SummaryPipeline():
                                     doc_idx], "timestamp": timestamp, "summary": [str(result)]})
 
             self.log(
-                f"{self.ticker}, {timestamp}, {row_idx}, {doc_idx}, {str(result)[:100]}")
+                f"{self.ticker}, {timestamp}, {row_idx}, {doc_idx}, {str(result['summary'])[:100]}")
 
             # save summary chunk
             with self.lock:
