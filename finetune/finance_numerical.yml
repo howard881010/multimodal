@@ -6,6 +6,7 @@ load_in_8bit: false
 load_in_4bit: true
 strict: false
 
+chat_template: chatml
 datasets:
   - path: Howard881010/finance-numerical
     type: alpaca
@@ -36,7 +37,7 @@ wandb_log_model:
 
 gradient_accumulation_steps: 2
 micro_batch_size: 1
-num_epochs: 4
+num_epochs: 10
 optimizer: paged_adamw_32bit
 lr_scheduler: cosine
 learning_rate: 0.0002
@@ -57,7 +58,7 @@ flash_attention: true
 eval_sample_packing: False
 
 warmup_steps: 10
-evals_per_epoch: 4
+evals_per_epoch: 10
 eval_table_size:
 saves_per_epoch: 1
 debug:

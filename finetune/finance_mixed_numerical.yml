@@ -1,11 +1,12 @@
-base_model: meta-llama/Llama-2-7b-chat-hf
-model_type: LlamaForCausalLM
-tokenizer_type: LlamaTokenizer
+base_model: meta-llama/Meta-Llama-3-8B-Instruct
+model_type: AutoModelForCausalLM
+tokenizer_type: AutoTokenizer
 
 load_in_8bit: false
 load_in_4bit: true
 strict: false
 
+chat_template: chatml
 datasets:
   - path: Howard881010/finance-mixed-numerical
     type: alpaca
@@ -34,9 +35,9 @@ wandb_watch:
 wandb_name: finance-mixed-numerical
 wandb_log_model:
 
-gradient_accumulation_steps: 2
+gradient_accumulation_steps: 1
 micro_batch_size: 1
-num_epochs: 4
+num_epochs: 10
 optimizer: paged_adamw_32bit
 lr_scheduler: cosine
 learning_rate: 0.0002
@@ -66,4 +67,9 @@ weight_decay: 0.0
 fsdp:
 fsdp_config:
 special_tokens:
+  pad_token: "[PAD]"
+# For finetune
 seed: 42
+lora_modules_to_save:
+  - embed_tokens
+  - lm_head
