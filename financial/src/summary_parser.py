@@ -11,11 +11,13 @@ class DataParser():
         self.json_schema = json_schema
 
     # raw_text_to_documents
-    def combine_results(self, results: list[dict]):
+    # splits raw text to smaller documents
+    def combine_results(self, results: Union[str, list[dict]]):
         """
         Combines summary of dictionaries to one dictionary.
         Input:
-            list of dictionaries: dict_1, dict_2
+            list of dictionaries: dict_1, dict_2 
+            or string list of dicts
         Output:
             dict{
                 "var_1": [dict_var_1, dict_var_2]
@@ -26,6 +28,8 @@ class DataParser():
         results_dict = defaultdict(list)
 
         for result in results:
+            if type(result) == str:
+                result = ast.literal_eval(result)
             for key in result:
                 if isinstance(result[key], list):
                     results_dict[key].extend(result[key])
@@ -149,18 +153,3 @@ class DataParser():
             result += r
         return result
 
-    def combine_results(self, results):
-        results_dict = defaultdict(list)
-
-        for result in results:
-            if type(result) == str:
-                json_data = ast.literal_eval(result)
-            else:
-                json_data = result
-            for key in json_data:
-                # For lists of dictionaries (like 'key_numbers')
-                if isinstance(json_data[key], list):
-                    results_dict[key].extend(json_data[key])
-                else:
-                    results_dict[key].append(json_data[key])
-        return results_dict

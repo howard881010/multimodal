@@ -31,10 +31,10 @@ class SummaryPipeline():
         self.queue = Queue(maxsize=self.config['queue'])
         self.lock = Lock()
 
-        self.save_path = os.path.join(self.config['root_dir'],
+        self.save_dir = os.path.join(self.config['root_dir'],
                                       self.config['save_dir'],
                                       self.ticker)
-        os.makedirs(self.save_path, exist_ok=True)
+        os.makedirs(self.save_dir, exist_ok=True)
 
     def initialize_df(self):
         document_path = f"{self.config['root_dir']}/{self.config['data_dir']}/{self.config['ticker']}.csv"
@@ -59,6 +59,10 @@ class SummaryPipeline():
             for doc_idx, doc in enumerate(documents):
                 self.queue.put((row_idx, doc_idx, row['timestamp'], doc))
 
+        self.queue.join()
+        for thread in doc_threads:
+            thread.join()
+
     def worker_wrapper(self):
         results = []
         while True:
@@ -80,7 +84,7 @@ class SummaryPipeline():
 
         # initialize summary chunk save path
         with self.lock:
-            document_path = os.path.join(self.save_path, timestamp + ".csv")
+            document_path = os.path.join(self.save_dir, timestamp + ".csv")
             try:
                 document_df = pd.read_csv(document_path)
             except:

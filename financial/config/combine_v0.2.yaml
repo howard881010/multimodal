@@ -1,0 +1,13 @@
+root_dir: /data/kai/forecasting
+data_dir: data/documents/document_v0.2 # /ticker
+json_schema_dir: multimodal/financial/templates/guided_json_summary_v0.3.json
+save_dir: data/summary/summary_v0.2
+log_dir: multimodal/financial/logs # /ticker_combine.txt
+
+max_samples: 20
+workers: 16
+max_chunk_token: 4096
+overlap_token: 512
+
+# model: "llama3-70b"
+model: "meta-llama/Meta-Llama-3-70B-Instruct"
