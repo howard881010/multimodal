@@ -38,15 +38,21 @@ def get_logger(filepath="log.txt"):
     os.makedirs('/'.join(filepath.split("/")[:-1]), exist_ok=True)
     logging.basicConfig(
         filename=filepath,  # Set the filename for the log file
-        # Set the logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
         level=logging.INFO,
-        # Set the format for log messages
         format='%(asctime)s - %(levelname)s - %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'  # Set the format for the date in log messages
     )
     logger = logging.getLogger("FinancialSummary")
     logging.getLogger("openai").setLevel(logging.ERROR)
     logging.getLogger("httpx").setLevel(logging.ERROR)
+
+    # Add a StreamHandler to log to the console
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    console_handler.setFormatter(formatter)
+    logger.addHandler(console_handler)
+
     return logger
 
 

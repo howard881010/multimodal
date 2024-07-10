@@ -37,7 +37,7 @@ class CombinePipeline():
         os.makedirs(self.save_dir, exist_ok=True)
 
     def run(self):
-        with ThreadPoolExecutor(max_workers=4) as executor:
+        with ThreadPoolExecutor(max_workers=12) as executor:
             futures = [executor.submit(self.main, path)
                        for path in self.summary_paths]
             results = [future.result() for future in as_completed(futures)]
@@ -61,14 +61,15 @@ class CombinePipeline():
 
             combine_count = 1
             logger.info(
-                f"Combining summaries {combine_count} with len {len(cleaned_summaries)} ---", save_path)
+                f"Combining summaries {combine_count} with len {len(cleaned_summaries)} --- {save_path}")
             json_results, formatted_results = self.run_results(
                 cleaned_summaries)
+            logger.info(f"{timestamp} - {json_results}")
 
-            while len(self.utils.combine_results(formatted_results)) > 1:
+            while len(self.utils.combine_results(formatted_results)["summary"]) > 1:
                 combine_count += 1
                 logger.info(
-                    f"Combining summaries {combine_count} ---", save_path)
+                    f"Combining summaries {combine_count} --- {save_path}")
                 json_results, formatted_results = self.run_results(
                     formatted_results)
 
@@ -81,9 +82,8 @@ class CombinePipeline():
     def run_results(self, results):
         # json results can have empty values like in original documents summary
         # formatted results is the input for the LLM
-        json_results = self.batch_llm_combine_summaries(results)
-        collapsed_results = self.utils.collapse_results(json_results)
-        formatted_results = self.utils.collapse_metrics(collapsed_results)
+        json_results = self.batch_llm_combine_summaries(results) # list of dicts
+        formatted_results = self.utils.collapse_metrics(json_results) # list of dicts
         return json_results, formatted_results
 
     def batch_llm_combine_summaries(self, summaries):
@@ -97,8 +97,7 @@ class CombinePipeline():
     def llm_combine_chunk(self, document):
         output = self.engine.run(
             self.prompts.combine_json_prompt, document, self.json_schema)
-        cleaned_output = self.utils.collapse_metrics(output)
-        return cleaned_output
+        return output
 
 
 if __name__ == "__main__":

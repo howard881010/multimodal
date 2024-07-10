@@ -33,7 +33,7 @@ spec:
         - -c
         - |
           python3 -m vllm.entrypoints.openai.api_server \
-          --model meta-llama/Meta-Llama-3-70B-Instruct \
+          --model casperhansen/llama-3-70b-instruct-awq \
           --api-key 67c21f73-9d1c-40f7-8a2f-adf2c9274f46 --trust-remote-code \
           --gpu-memory-utilization=0.9 \
           --tensor-parallel-size=4
