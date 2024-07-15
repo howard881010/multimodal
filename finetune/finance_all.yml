@@ -1,6 +1,6 @@
 base_model: meta-llama/Llama-2-7b-hf
-model_type: LlamaForCausalLM
-tokenizer_type: LlamaTokenizer
+model_type: AutoModelForCausalLM
+tokenizer_type: AutoTokenizer
 
 load_in_8bit: false
 load_in_4bit: true
@@ -8,17 +8,17 @@ strict: false
 
 chat_template: chatml
 datasets:
-  - path: Howard881010/finance-numerical
+  - path: Howard881010/finance-all
     type: alpaca
     train_on_split: train
 dataset_prepared_path:
 val_set_size: 0.05
-output_dir: ./finetune/outputs/finance-numerical
+output_dir: ./finetune/outputs/finance-all
 
 adapter: qlora
 lora_model_dir:
 
-sequence_len: 200
+sequence_len: 6550
 sample_packing: false
 pad_to_sequence_len: true
 
@@ -32,12 +32,12 @@ lora_fan_in_fan_out:
 wandb_project: finetune
 wandb_entity:
 wandb_watch:
-wandb_name: finance-numerical
+wandb_name: finance-all
 wandb_log_model:
 
 gradient_accumulation_steps: 2
 micro_batch_size: 1
-num_epochs: 4
+num_epochs: 10
 optimizer: paged_adamw_32bit
 lr_scheduler: cosine
 learning_rate: 0.0002
@@ -53,7 +53,7 @@ early_stopping_patience:
 resume_from_checkpoint:
 local_rank:
 logging_steps: 1
-xformers_attention:
+xformers_attention: 
 flash_attention: true
 eval_sample_packing: False
 
@@ -66,5 +66,5 @@ deepspeed:
 weight_decay: 0.0
 fsdp:
 fsdp_config:
-special_tokens:
+# For finetune
 seed: 42

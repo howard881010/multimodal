@@ -6,12 +6,12 @@ model:
       git pull &&
       sudo apt update &&
       sudo apt install -y libaio-dev &&
-      python -m axolotl.cli.preprocess finetune/finance_mixed_numerical_5days.yml &&
-      accelerate launch -m axolotl.cli.train finetune/finance_mixed_numerical_5days.yml && 
-      s5cmd cp finetune/outputs/financial-mixed-summary-5days s3://multimodal_fine_tuning
-    cpu_count: 8
-    gpu_count: 1
-    memory: 40
+      python -m axolotl.cli.preprocess finetune/finance_mixed_numerical.yml &&
+      accelerate launch -m axolotl.cli.train finetune/finance_mixed_numerical.yml && 
+      s5cmd cp finetune/outputs/finance-mixed-numerical s3://multimodal_fine_tuning
+    cpu_count: 10
+    gpu_count: 4
+    memory: 50
 dataset:
   yelp:
     hparam:
@@ -26,6 +26,6 @@ run:
 #   - ./axolotl/examples/llama-2/myconfig.yml
 # hostname_whitelist:
 #   - hcc-chase-shor-c4715.unl.edu
-prefix: rtxa6000
-special_gpu: rtxa6000
-gpu_count: 1
+prefix: a100
+special_gpu: a100
+gpu_count: 3

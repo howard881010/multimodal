@@ -21,13 +21,11 @@ def open_record_directory(dataset, unit, filename, model_name, sub_dir, historic
         "_".join((filename.split("/")[-1].split("_"))[1:])
     log_filename = model_name + "_log_" + \
         "_".join((filename.split("/")[-1].split("_"))[1:])
-    if historical_window_size != 1:
-        sub_dir = str(historical_window_size) + "_" + unit + sub_dir
 
-    os.makedirs(f"Logs/{dataset}/{sub_dir}", exist_ok=True)
-    os.makedirs(f"Predictions_and_attempts/{dataset}/{sub_dir}", exist_ok=True)
-    log_path = f"Logs/{dataset}/{sub_dir}/{log_filename}"
-    res_path = f"Predictions_and_attempts/{dataset}/{sub_dir}/{out_filename}"
+    os.makedirs(f"Logs/{dataset}/{historical_window_size}_{unit}/{sub_dir}", exist_ok=True)
+    os.makedirs(f"Predictions_and_attempts/{dataset}/{historical_window_size}_{unit}/{sub_dir}", exist_ok=True)
+    log_path = f"Logs/{dataset}/{historical_window_size}_{unit}/{sub_dir}/{log_filename}"
+    res_path = f"Predictions_and_attempts/{dataset}/{historical_window_size}_{unit}/{sub_dir}/{out_filename}"
 
     return log_path, res_path
 
@@ -35,11 +33,9 @@ def open_record_directory(dataset, unit, filename, model_name, sub_dir, historic
 def open_result_directory(dataset, sub_dir, unit, filename, model_name, historical_window_size):
     out_filename = model_name + "_rmse_" + \
         "_".join((filename.split("/")[-1].split("_"))[2:])
-    if historical_window_size != 1:
-        sub_dir = str(historical_window_size) + "_" + unit + sub_dir
 
-    os.makedirs(f"Results/{dataset}/{sub_dir}", exist_ok=True)
-    out_path = f"Results/{dataset}/{sub_dir}/{out_filename}"
+    os.makedirs(f"Results/{dataset}/{historical_window_size}_{unit}/{sub_dir}", exist_ok=True)
+    out_path = f"Results/{dataset}/{historical_window_size}_{unit}/{sub_dir}/{out_filename}"
 
     return out_path
 

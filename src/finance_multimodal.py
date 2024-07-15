@@ -11,9 +11,14 @@ from transformers import set_seed
 from tqdm import tqdm
 import glob
 from num2words import num2words
-from batch_inference_chat import batch_inference_mistral, batch_inference_llama, batch_inference_gemma
+from batch_inference_chat import batch_inference_mistral, batch_inference_llama, batch_inference_gemma, batch_inference_llama_summary
 import re
 import json
+from nltk.translate.meteor_score import meteor_score
+import nltk
+nltk.download('wordnet')
+nltk.download('omw-1.4')
+
 
 
 
@@ -30,20 +35,20 @@ def getLLMTIMEOutput(dataset, filename, unit, model_name, model_chat, sub_dir, h
     logger.remove()
     logger.add(log_path, rotation="100 MB", mode="w")
 
-    results = [{"pred_values": "nan", "attempt": 0} for _ in range(len(data))]
-    attempts = 0
+    results = [{"pred_values": "nan"} for _ in range(len(data))]
     chat = None
     error_idx = batch_inference_llama(
-        results, model_chat, data, attempts, logger, historical_window_size, dataset, chat_template=chat)
+        results, model_chat, data, logger, historical_window_size, dataset, chat_template=chat)
 
     print("Error idx: ", error_idx)
-    results = pd.DataFrame(results, columns=['pred_values', 'attempts'])
+    results = pd.DataFrame(results, columns=['pred_values'])
     results["fut_values"] = data["fut_values"].apply(str)
     results.to_csv(res_path)
     return res_path
 
 def getSummaryOutput(dataset, filename, unit, model_name, model_chat, sub_dir, historical_window_size):
     data = pd.read_csv(filename)
+    data["idx"] = data.index
     for idx, row in data.iterrows():
         data.at[idx, 'fut_summary'] = json.loads(row['output'])["summary"]
         data.at[idx, 'fut_values'] = json.loads(row['output'])["share_price"]
@@ -55,11 +60,10 @@ def getSummaryOutput(dataset, filename, unit, model_name, model_chat, sub_dir, h
     logger.remove()
     logger.add(log_path, rotation="100 MB", mode="w")
 
-    results = [{"pred_values": "nan", "attempt": 0} for _ in range(len(data))]
-    attempts = 0
+    results = [{"pred_values": "nan", "pred_summary": "nan"} for _ in range(len(data))]
     chat = None
-    error_idx = batch_inference_llama(
-        results, model_chat, data, attempts, logger, historical_window_size, dataset, chat_template=chat)
+    error_idx = batch_inference_llama_summary(
+        results, model_chat, data, logger, historical_window_size, dataset, chat_template=chat)
 
     print("Error idx: ", error_idx)
     results = pd.DataFrame(results, columns=['pred_values', 'attempts'])
@@ -111,6 +115,20 @@ def getLLMTIMERMSE(dataset, filename, unit, model_name, sub_dir, historical_wind
 
     return test_rmse_loss, err_rate, nan_rate, test_nmae_loss
 
+def getSummaryScore(dataset, filename, unit, model_name, sub_dir, historical_window_size=1):
+    df = pd.read_csv(filename)
+    def compute_meteor(pred, fut):
+        return meteor_score([fut], pred)
+
+# Apply the function to each row and store the result in a new column
+    df['meteor_score'] = df.apply(lambda row: compute_meteor(row['pred_summary'], row['fut_summary']), axis=1)
+
+    # Display the dataframe with the METEOR scores
+    print(df)
+
+
+
+
 if __name__ == "__main__":
     # add seed
     np.random.seed(42)
@@ -149,7 +167,8 @@ if __name__ == "__main__":
                config={"name": runs_name,
                        "window_size": historical_window_size,
                        "dataset": dataset,
-                       "model": model_name, })
+                       "model": model_name,
+                       "case": sub_dir, })
     
     start_time = time.time()
     rmses = []
@@ -170,7 +189,7 @@ if __name__ == "__main__":
         print(f"The folder '{folder_path}' does not exist")
         sys.exit(1)
     else:
-        pattern = "test_*.csv"
+        pattern = "validation_*.csv"
         for filepath in tqdm(glob.glob(os.path.join(folder_path, pattern))):
             filename = os.path.basename(filepath)
             if "all" not in filename:
@@ -183,7 +202,13 @@ if __name__ == "__main__":
                     out_rmse, out_err, out_nan, out_nmae = getLLMTIMERMSE(
                         dataset, out_filename, unit, model_name, sub_dir, historical_window_size
                     )
-                # elif case == 3:
+                elif case == 3:
+                    out_filename = getSummaryOutput(
+                        dataset, filepath, unit, model_name, model_chat, sub_dir, historical_window_size
+                    )
+                    out_rmse, out_err, out_nan, out_nmae = getLLMTIMERMSE(
+                        dataset, out_filename, unit, model_name, sub_dir, historical_window_size
+                    )
                     
                 if out_rmse != 0 and str(out_rmse) != "nan":
                     rmses.append(out_rmse)

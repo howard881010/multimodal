@@ -1,4 +1,4 @@
-base_model: meta-llama/Meta-Llama-3-8B-Instruct
+base_model: meta-llama/Llama-2-7b-hf
 model_type: AutoModelForCausalLM
 tokenizer_type: AutoTokenizer
 
@@ -36,7 +36,7 @@ wandb_name: finance-mixed-numerical
 wandb_log_model:
 
 gradient_accumulation_steps: 1
-micro_batch_size: 1
+micro_batch_size: 2
 num_epochs: 10
 optimizer: paged_adamw_32bit
 lr_scheduler: cosine
@@ -66,10 +66,5 @@ deepspeed:
 weight_decay: 0.0
 fsdp:
 fsdp_config:
-special_tokens:
-  pad_token: "[PAD]"
 # For finetune
 seed: 42
-lora_modules_to_save:
-  - embed_tokens
-  - lm_head
