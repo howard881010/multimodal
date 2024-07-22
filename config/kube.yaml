@@ -10,4 +10,4 @@ gpu_whitelist:
   - NVIDIA-GeForce-RTX-3090
   - NVIDIA-A10
 hostname_whitelist:
-  - rci-nrp-gpu-07.sdsu.edu
+  - hcc-prp-c5038.unl.edu

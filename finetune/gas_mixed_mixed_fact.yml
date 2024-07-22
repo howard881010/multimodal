@@ -8,17 +8,17 @@ strict: false
 
 chat_template: chatml
 datasets:
-  - path: Howard881010/gas-1_week-mixed-mixed-fact
+  - path: Howard881010/gas-mixed-mixed-fact
     type: alpaca
     train_on_split: train
 dataset_prepared_path:
 val_set_size: 0.05
-output_dir: ./finetune/outputs/gas-1_week-mixed-mixed-fact
+output_dir: ./finetune/outputs/gas-mixed-mixed-fact
 
 adapter: qlora
 lora_model_dir:
 
-sequence_len: 1000
+sequence_len: 1500
 sample_packing: false
 pad_to_sequence_len: true
 
@@ -32,7 +32,7 @@ lora_fan_in_fan_out:
 wandb_project: finetune
 wandb_entity:
 wandb_watch:
-wandb_name: gas-1_week-mixed-mixed-fact
+wandb_name: gas-mixed-mixed-fact
 wandb_log_model:
 
 gradient_accumulation_steps: 2
