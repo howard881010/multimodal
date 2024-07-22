@@ -29,6 +29,7 @@ darts = "^0.30.0"
 rouge-score = "^0.1.2"
 nltk = "^3.8.1"
 scikit-learn = "^1.5.1"
+sentence-transformers = "^3.0.1"
 
 
 

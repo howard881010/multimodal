@@ -55,7 +55,7 @@ def batch_inference_llama(
     dataset,
     chat_template=None
 ):
-    batches = list(create_batched(data, 32))
+    batches = list(create_batched(data, 64))
     err_idx = []
     #  model_chat.apply_chat_template(chat_template)
 
@@ -85,14 +85,14 @@ def batch_inference_llama(
 
 def batch_inference_llama_summary(
     results,
-    model_chat: LLMChatModel,
+    model_chat,
     data,
     logger,
     historical_window_size,
     dataset,
     chat_template=None
 ):
-    batches = list(create_batched(data, 8))
+    batches = list(create_batched(data, 32))
     err_idx = []
 
     for batch in batches:
@@ -103,6 +103,7 @@ def batch_inference_llama_summary(
 
         for index, output_text in enumerate(output_texts):
             response = output_text.split('[/INST]')[-1]
+            # response = output_text.split("\n")[-1]
 
             logger.info("Content for row: " + str(cur_idx[index]) + " Content: " + prompt[index][-1]['content'])
             logger.info("Response for row: " + str(cur_idx[index]) +  " Content: " + response)
@@ -111,15 +112,11 @@ def batch_inference_llama_summary(
             end_brace_index = response.rfind('}')
             json_response = response[first_brace_index:end_brace_index+1]
             try:
-                summary = json.loads(json_response)
-                # for key, value in response.items():
-                #     summary = value.get('summary', None)
-                #     if summary:
+                json_format = json.loads(json_response)
                 results[cur_idx[index]] = (
-                    {"pred_summary": summary})
+                    {"pred_summary": json_response})
             except (json.JSONDecodeError, TypeError, KeyError) as e:
                 err_idx.append(cur_idx[index])
-                summary = None
                 print(f"An error occurred: {e}")
 
     return err_idx

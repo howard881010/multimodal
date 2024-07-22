@@ -38,10 +38,11 @@ class MistralChatModel(ChatModel):
         self.device = next(self.model.parameters()).device
 
     def load_model(self, model_name, token):
-        model = AutoModelForCausalLM.from_pretrained(
+        base_model = AutoModelForCausalLM.from_pretrained(
             model_name, token=token, device_map="auto")
-    
-        return model
+        # return base_model
+        # return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/gas-2_week-text-text-fact")
+        return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/gas-2_week-mixed-mixed-fact")
 
     def chat(self, prompt):
         new_prompt = self.tokenizer.apply_chat_template(
@@ -55,7 +56,7 @@ class MistralChatModel(ChatModel):
         # Generate text using the model
         with autocast():
             generated_ids = self.model.generate(
-                **model_inputs, max_new_tokens=100)
+                **model_inputs, max_new_tokens=2000)
 
         # Decode generated ids to text
         output_text = self.tokenizer.batch_decode(
@@ -75,7 +76,7 @@ class LLMChatModel(ChatModel):
     def load_model(self, model_name, token):
         base_model = AutoModelForCausalLM.from_pretrained(model_name, device_map="auto", token=token)
         return base_model
-        # return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/finance-mixed-summary")
+        # return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/gas-1_day-text-text")
 
     def chat(self, prompt):
         new_prompt = self.tokenizer.apply_chat_template(

@@ -24,7 +24,6 @@ import json
 
 
 def bert_model_inference(summaries):
-
     # Set float32 matmul precision to utilize Tensor Cores
     torch.set_float32_matmul_precision('high')  # You can also use 'medium' for less precision but potentially higher performance
 
