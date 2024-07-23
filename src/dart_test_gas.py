@@ -41,7 +41,7 @@ def nlinear_darts(train_input, test_input, historcial_window_size, train_embeddi
     for i in range(len(test_input)):
         # test = np.append(test, test_input[i])
         print(test_input[i])
-        test_series = TimeSeries.from_values(test_input[i])
+        test_series = TimeSeries.from_values(np.array(test_input[i]))
         predictions = model_NLinearModel.predict(n=historcial_window_size, series=test_series, past_covariates=test_past_covariates).all_values().flatten().tolist()
         str_res = ' '.join([str(round(num,3)) for num in predictions])
         pred_value.append(str_res)
@@ -56,16 +56,15 @@ def getLLMTIMEOutput(dataset, filename, unit, sub_dir, historical_window_size):
 
     filename = filename.replace('train', 'validation')
     data = pd.read_csv(filename)
-    test_input_arr = np.array([])
-    test_output_arr = np.array([])
+    test_input_arr = []
+    test_output_arr = []
     for idx, row in data.iterrows():
         input_json = json.loads(row['input'])
         output_json = json.loads(row['output'])
-        test_input_arr = np.append(test_input_arr, [[ele['gas_price'] for ele in input_json.values()]])
-        test_output_arr = np.append(test_output_arr, [[ele['gas_price'] for ele in output_json.values()]])
+        test_input_arr.append([ele['gas_price'] for ele in input_json.values()])
+        test_output_arr.append(' '.join([str(ele['gas_price']) for ele in output_json.values()]))
         # test_summary_arr = [json.loads(row['input']).values()['summary'] for idx, row in data.iterrows()]
     
-    p
     # train_embedding = bert_model_inference(train_summary_arr)
     # test_embedding = bert_model_inference(test_summary_arr)
     train_embedding = None
@@ -125,7 +124,7 @@ if __name__ == "__main__":
     model_name = sys.argv[3]
 
     if case == 1:
-        sub_dir = "mixed-mixed"
+        sub_dir = "mixed-mixed-fact"
 
     wandb.init(project="Inference",
                config={"name": "nlinear",
@@ -159,7 +158,7 @@ if __name__ == "__main__":
                     rmses.append(out_rmse)
     print("Mean RMSE: " + str(np.mean(rmses)))
     print("Std-Dev RMSE: " + str(np.std(rmses)))
-    wandb.log({"rmse": np.mean(rmses)})
+    wandb.log({"RMSE Scores": np.mean(rmses)})
     wandb.log({"std-dev": np.std(rmses)})
 
     end_time = time.time()

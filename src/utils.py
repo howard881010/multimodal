@@ -5,33 +5,33 @@ import torch
 from transformers import BertTokenizer, BertModel
 
 
-def is_valid_sequence(sequence, historical_window_size):
+def is_valid_sequence(sequence, window_size):
     numbers = re.findall(r"\d+\.\d+", sequence)
     try:
         # Attempt to convert the sequence to floats and check its length
-        return len(numbers) == historical_window_size
+        return len(numbers) == window_size
     except ValueError:
         # If conversion fails or length is incorrect, return False
         return False
     
-def open_record_directory(dataset, unit, filename, model_name, sub_dir, historical_window_size):
+def open_record_directory(dataset, unit, filename, model_name, sub_dir, window_size):
 
     out_filename = model_name + "_output_" + filename.split("/")[-1]
     log_filename = model_name + "_log_" + filename.split("/")[-1]
-    os.makedirs(f"Logs/{dataset}/{historical_window_size}_{unit}/{sub_dir}", exist_ok=True)
-    os.makedirs(f"Predictions_and_attempts/{dataset}/{historical_window_size}_{unit}/{sub_dir}", exist_ok=True)
-    log_path = f"Logs/{dataset}/{historical_window_size}_{unit}/{sub_dir}/{log_filename}"
-    res_path = f"Predictions_and_attempts/{dataset}/{historical_window_size}_{unit}/{sub_dir}/{out_filename}"
+    os.makedirs(f"Logs/{dataset}/{window_size}_{unit}/{sub_dir}", exist_ok=True)
+    os.makedirs(f"Predictions_and_attempts/{dataset}/{window_size}_{unit}/{sub_dir}", exist_ok=True)
+    log_path = f"Logs/{dataset}/{window_size}_{unit}/{sub_dir}/{log_filename}"
+    res_path = f"Predictions_and_attempts/{dataset}/{window_size}_{unit}/{sub_dir}/{out_filename}"
 
     return log_path, res_path
 
 
-def open_result_directory(dataset, sub_dir, unit, filename, model_name, historical_window_size):
+def open_result_directory(dataset, sub_dir, unit, filename, model_name, window_size):
     out_filename = model_name + "_rmse_" + \
         "_".join((filename.split("/")[-1].split("_"))[2:])
 
-    os.makedirs(f"Results/{dataset}/{historical_window_size}_{unit}/{sub_dir}", exist_ok=True)
-    out_path = f"Results/{dataset}/{historical_window_size}_{unit}/{sub_dir}/{out_filename}"
+    os.makedirs(f"Results/{dataset}/{window_size}_{unit}/{sub_dir}", exist_ok=True)
+    out_path = f"Results/{dataset}/{window_size}_{unit}/{sub_dir}/{out_filename}"
 
     return out_path
 
@@ -39,7 +39,7 @@ def open_result_directory(dataset, sub_dir, unit, filename, model_name, historic
 def rmse(y_pred, y_true):
     y_pred = np.reshape(y_pred, -1)
     y_true = np.reshape(y_true, -1)
-    return np.sqrt(np.square(y_pred - y_true).mean())
+    return np.sqrt(np.mean(np.square(y_pred - y_true)))
 
 def nmae(y_pred, y_true, penalty):
     nmaes = []
@@ -128,5 +128,9 @@ def bert_model_inference(summaries):
     pooled_outputs = np.vstack(pooled_outputs)  # Shape: (num_samples, 768)
 
     return pooled_outputs
+
+def add_idx(example, idx):
+    example['idx'] = idx
+    return example
 
 

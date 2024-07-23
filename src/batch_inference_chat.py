@@ -92,7 +92,7 @@ def batch_inference_llama_summary(
     dataset,
     chat_template=None
 ):
-    batches = list(create_batched(data, 32))
+    batches = list(create_batched(data, 16))
     err_idx = []
 
     for batch in batches:
@@ -166,14 +166,6 @@ def create_batch_prompt(data, historical_window_size, chat_template=None, datase
     cur_idx = []
 
     for index, row in data.iterrows():
-        # list_value = row['hist_values'].split()
-        # row_content = ", ".join(list_value)
-        # if dataset == 'Yelp':
-        #     row_content = f"""Given {historical_window_size} historical Yelp ratings: {row_content}, output only the next {historical_window_size} Yelp ratings without additional text."""
-        # elif dataset == 'Mimic' or dataset == 'Climate':
-        #     row_content = f"""Given {historical_window_size} historical values: {row_content}, output only the next {historical_window_size} values without additional text."""
-        # if dataset == 'Finance':
-        #     row_content = f"{row['input']}. {row['instruction']}"
         if chat_template is not None:
             content = chat_template + [{"role": "user", "content": row['input']}]
         else:
