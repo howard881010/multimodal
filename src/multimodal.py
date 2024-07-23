@@ -20,7 +20,7 @@ def getSummaryOutput(dataset, unit, model_name, model_chat, sub_dir, window_size
     data['idx'] = data.index
 
     log_path, res_path = open_record_directory(
-        dataset=dataset, sub_dir=sub_dir, unit=unit, filename=f"{model_name}_{split}", model_name=model_name, window_size=window_size)
+        dataset=dataset, sub_dir=sub_dir, unit=unit, filename=split, model_name=model_name, window_size=window_size)
 
     logger.remove()
     logger.add(log_path, rotation="100 MB", mode="w")

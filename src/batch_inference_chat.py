@@ -3,6 +3,7 @@ from num2words import num2words
 from modelchat import MistralChatModel, LLMChatModel, GemmaChatModel
 import re
 import json
+import tqdm
 
 
 def batch_inference_mistral(
@@ -95,7 +96,7 @@ def batch_inference_llama_summary(
     batches = list(create_batched(data, 16))
     err_idx = []
 
-    for batch in batches:
+    for batch in tqdm(batches):
         prompt, cur_idx = create_batch_prompt(
             batch, historical_window_size, chat_template, dataset)
 

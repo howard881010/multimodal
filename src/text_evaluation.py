@@ -9,6 +9,7 @@ import json
 from utils import rmse
 import nltk
 nltk.download('punkt')
+nltk.download('wordnet')
 
 def getMeteorScore(filename):
     df = pd.read_csv(filename)
