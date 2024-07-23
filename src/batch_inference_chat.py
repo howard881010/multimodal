@@ -3,7 +3,7 @@ from num2words import num2words
 from modelchat import MistralChatModel, LLMChatModel, GemmaChatModel
 import re
 import json
-import tqdm
+from tqdm import tqdm
 
 
 def batch_inference_mistral(
