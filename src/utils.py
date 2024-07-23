@@ -16,8 +16,8 @@ def is_valid_sequence(sequence, window_size):
     
 def open_record_directory(dataset, unit, filename, model_name, sub_dir, window_size):
 
-    out_filename = model_name + "_output_" + filename.split("/")[-1]
-    log_filename = model_name + "_log_" + filename.split("/")[-1]
+    out_filename = model_name + "_output_" + filename.split("/")[-1] + ".csv"
+    log_filename = model_name + "_log_" + filename.split("/")[-1] + ".csv"
     os.makedirs(f"Logs/{dataset}/{window_size}_{unit}/{sub_dir}", exist_ok=True)
     os.makedirs(f"Predictions_and_attempts/{dataset}/{window_size}_{unit}/{sub_dir}", exist_ok=True)
     log_path = f"Logs/{dataset}/{window_size}_{unit}/{sub_dir}/{log_filename}"

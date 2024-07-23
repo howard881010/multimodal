@@ -7,6 +7,8 @@ from sentence_transformers.util import cos_sim
 from rouge_score import rouge_scorer
 import json
 from utils import rmse
+import nltk
+nltk.download('punkt')
 
 def getMeteorScore(filename):
     df = pd.read_csv(filename)

@@ -10,4 +10,4 @@ gpu_whitelist:
   - NVIDIA-GeForce-RTX-3090
   - NVIDIA-A10
 hostname_whitelist:
-  - hcc-prp-c5038.unl.edu
+  - node-2-2.sdsc.optiputer.net

@@ -26,6 +26,6 @@ run:
 #   - ./axolotl/examples/llama-2/myconfig.yml
 # hostname_whitelist:
 #   - hcc-chase-shor-c4715.unl.edu
-prefix: rtxa6000
-special_gpu: rtxa6000
+prefix: a100
+special_gpu: a100
 gpu_count: 4
