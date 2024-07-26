@@ -56,7 +56,7 @@ class MistralChatModel(ChatModel):
         # Generate text using the model
         with autocast():
             generated_ids = self.model.generate(
-                **model_inputs, max_new_tokens=2000)
+                **model_inputs, max_new_tokens=2048)
 
         # Decode generated ids to text
         output_text = self.tokenizer.batch_decode(

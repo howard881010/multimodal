@@ -46,7 +46,7 @@ def getTextScore(dataset, filename, unit, sub_dir, case, window_size, num_name):
     if case == 2:
         rmse_loss = getRMSEScore(filename, num_name)
     else:
-        rmse_loss = 0
+        rmse_loss = np.nan
 
     path = create_result_file(
         dir = f"Results/{dataset}/{window_size}_{unit}/{sub_dir}",
@@ -88,8 +88,8 @@ if __name__ == "__main__":
             sub_dir = "mixed-mixed/zeroshot"
     
     if model_name == "mistral7b":
-        model_chat = MistralChatModel("mistralai/Mistral-7B-Instruct-v0.1", token)
-        runs_name = "Mistral-7B-Instruct-v0.1"
+        model_chat = MistralChatModel("mistralai/Mistral-7B-Instruct-v0.2", token)
+        runs_name = "Mistral-7B-Instruct-v0.2"
     elif model_name == "llama7b":
         model_chat = LLMChatModel("meta-llama/Meta-Llama-3-8B-Instruct", token)
         runs_name = "Llama-2-7b-chat-hf"
@@ -123,7 +123,7 @@ if __name__ == "__main__":
         out_filename = getSummaryOutput(
             dataset, unit, model_name, model_chat, sub_dir, window_size, "validation"
         )
-        # out_filename = "/home/ubuntu/multimodal/Predictions_and_attempts/Gas/2_week/mixed-mixed-fact/zeroshot/mistral7b_output_validation_all.csv"
+        # out_filename = "/home/ubuntu/multimodal/Predictions_and_attempts/climate/1_day/mixed-mixed/zeroshot/mistral7b_output_validation.csv"
 
         meteor_score, nan_rate, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss = getTextScore(
             dataset, out_filename, unit, sub_dir, case, window_size, num_name

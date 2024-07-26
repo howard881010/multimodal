@@ -6,10 +6,15 @@ model:
       git pull &&
       sudo apt update &&
       sudo apt install -y libaio-dev &&
-      
+      python src/multimodal.py climate 1 mistral7b 2 finetune &&
+      python src/multimodal.py climate 2 mistral7b 2 finetune &&
+      python src/multimodal.py climate 3 mistral7b 2 finetune &&
+      python src/multimodal.py climate 1 mistral7b 1 finetune &&
+      python src/multimodal.py climate 2 mistral7b 1 finetune &&
+      python src/multimodal.py climate 3 mistral7b 1 finetune 
     cpu_count: 10
     gpu_count: 4
-    memory: 100
+    memory: 200
 dataset:
   yelp:
     hparam:
@@ -26,4 +31,3 @@ run:
 #   - hcc-chase-shor-c4715.unl.edu
 prefix: a100
 special_gpu: a100
-gpu_count: 4

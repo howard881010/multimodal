@@ -85,13 +85,19 @@ def getRMSEScore(filename, key_name):
         try:
             fut_res = json.loads(row['fut_summary'])
             pred_res = json.loads(row['pred_summary'])
-            fut_num = [ele[key_name] for ele in fut_res.values()]
-            pred_num = [ele[key_name] for ele in pred_res.values()]
-            if len(fut_num) == len(pred_num):
+            fut_num_dict_list = [ele[key_name] for ele in fut_res.values()]
+            pred_num_dict_list = [ele[key_name] for ele in pred_res.values()]
+            pred_num = [list(pred_num_dict.values()) for pred_num_dict in pred_num_dict_list]
+            fut_num = [list(fut_num_dict.values()) for fut_num_dict in fut_num_dict_list]
+            pred_num = np.array(pred_num).flatten().tolist()
+            fut_num = np.array(fut_num).flatten().tolist()
+
+            if len(fut_num) == len(pred_num) and all(isinstance(element, float) for element in pred_num):
                 fut_values.append(fut_num)
                 pred_values.append(pred_num)
         except (json.JSONDecodeError, TypeError, KeyError) as e:
                 print(f"An error occurred: {e}, row: {idx}")
+                
     rmse_loss = rmse(np.array(fut_values), np.array(pred_values))
     
     return rmse_loss

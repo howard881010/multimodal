@@ -118,7 +118,7 @@ def batch_inference_llama_summary(
                     {"pred_summary": json_response})
             except (json.JSONDecodeError, TypeError, KeyError) as e:
                 err_idx.append(cur_idx[index])
-                print(f"An error occurred: {e}")
+                print(f"An error occurred: {e} for row: {cur_idx[index]}")
 
     return err_idx
 

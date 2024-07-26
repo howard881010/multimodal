@@ -10,4 +10,5 @@ gpu_whitelist:
   - NVIDIA-GeForce-RTX-3090
   - NVIDIA-A10
 hostname_whitelist:
-  - node-2-2.sdsc.optiputer.net
+  - node-2-1.sdsc.optiputer.net
+  # - sphinx.sdstate.edu
