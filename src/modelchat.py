@@ -41,7 +41,7 @@ class MistralChatModel(ChatModel):
         base_model = AutoModelForCausalLM.from_pretrained(
             model_name, token=token, device_map="auto")
         # return base_model
-        return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/climate-cal")
+        return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/gas-west")
         # return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/gas-mixed-mixed-fact")
 
     def chat(self, prompt):
