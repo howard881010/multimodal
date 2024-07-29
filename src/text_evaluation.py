@@ -14,7 +14,7 @@ nltk.download('wordnet')
 def getMeteorScore(filename, num_key_name):
     df = pd.read_csv(filename)
     nan_rate = (df['pred_summary'] == "Not available").sum() / len(df)
-    df.replace("Not available", np.nan, inplace=True)
+    df.replace("Wrong output format", np.nan, inplace=True)
     df_clean = df.dropna()
 
     # delete the number key in fut_summary and pred_summary
