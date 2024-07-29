@@ -114,9 +114,9 @@ if __name__ == "__main__":
     if case == 1 or case == 2:
         hf_dataset = f"Howard881010/{dataset}-{window_size}_{unit}-{sub_dir.split('/')[0]}"
 
-        # out_filename = getSummaryOutput(
-        #     dataset, unit, model_name, model_chat, sub_dir, window_size, "validation", hf_dataset
-        # )
+        out_filename = getSummaryOutput(
+            dataset, unit, model_name, model_chat, sub_dir, window_size, "validation", hf_dataset
+        )
         meteor_score, nan_rate, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, binary_precision = getTextScore(case, num_key_name, "validation", hf_dataset)
     
     print("Meteor Scores: ", meteor_score)
