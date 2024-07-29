@@ -57,6 +57,7 @@ def getTextScore(case, num_key_name, split,hf_dataset):
         binary_precision = getBinaryPrecision(data, num_key_name)
     else:
         rmse_loss = np.nan
+        binary_precision = np.nan
 
     return meteor_score, nan_rate, cosine_similarity_score, rouge1, rouge2, rougeL, rmse_loss, binary_precision
 
@@ -76,6 +77,7 @@ if __name__ == "__main__":
     case = int(sys.argv[4])
     model_name = sys.argv[3]
     finetune = sys.argv[5]
+    postfix = "cal" if dataset == "climate" else "west"
 
     if case == 1:
         if finetune == "finetune":
