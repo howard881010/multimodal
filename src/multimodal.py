@@ -44,7 +44,7 @@ def getSummaryOutput(dataset, unit, model_name, model_chat, sub_dir, window_size
     return res_path
 
 
-def getTextScore(dataset, filename, unit, sub_dir, case, window_size, num_key_name, split,hf_dataset):
+def getTextScore(case, num_key_name, split,hf_dataset):
     data_all = load_dataset(hf_dataset)
     data = pd.DataFrame(data_all[split])
 
@@ -57,15 +57,6 @@ def getTextScore(dataset, filename, unit, sub_dir, case, window_size, num_key_na
         binary_precision = getBinaryPrecision(data, num_key_name)
     else:
         rmse_loss = np.nan
-
-    path = create_result_file(
-        dir = f"Results/{dataset}/{window_size}_{unit}/{sub_dir}",
-        filename = (filename.split("/")[-1]).replace("output", "text_score"),
-    )
-    
-    results = [{"meteor_score": meteor_score, "nan_rate": nan_rate, "cosine_similarity": cosine_similarity_score, "rouge1": rouge1, "rouge2": rouge2, "rougeL": rougeL, "rmse": rmse_loss, "binary_precision": binary_precision}]
-    results = pd.DataFrame(results)
-    results.to_csv(path)
 
     return meteor_score, nan_rate, cosine_similarity_score, rouge1, rouge2, rougeL, rmse_loss, binary_precision
 
@@ -85,18 +76,17 @@ if __name__ == "__main__":
     case = int(sys.argv[4])
     model_name = sys.argv[3]
     finetune = sys.argv[5]
-    postfix = "cal" if dataset == "climate" else "west"
 
     if case == 1:
         if finetune == "finetune":
-            sub_dir = f"text-text-{postfix}/finetune"
+            sub_dir = f"text-text/finetune"
         elif finetune == "zeroshot":
-            sub_dir = f"text-text-{postfix}/zeroshot"
+            sub_dir = f"text-text/zeroshot"
     elif case == 2:
         if finetune == "finetune":
-            sub_dir = f"mixed-mixed-{postfix}/finetune"
+            sub_dir = f"mixed-mixed/finetune"
         elif finetune == "zeroshot":
-            sub_dir = f"mixed-mixed-{postfix}/zeroshot"
+            sub_dir = f"mixed-mixed/zeroshot"
     
     model_chat = MistralChatModel("mistralai/Mistral-7B-Instruct-v0.2", token, dataset)
     runs_name = "Mistral-7B-Instruct-v0.2"
@@ -122,14 +112,10 @@ if __name__ == "__main__":
     if case == 1 or case == 2:
         hf_dataset = f"Howard881010/{dataset}-{window_size}_{unit}-{sub_dir.split('/')[0]}"
 
-        out_filename = getSummaryOutput(
-            dataset, unit, model_name, model_chat, sub_dir, window_size, "validation", hf_dataset
-        )
-        # out_filename = "/home/ubuntu/multimodal/Predictions_and_attempts/climate/1_day/mixed-mixed/finetune/mistral7b_output_validation.csv"
-
-        meteor_score, nan_rate, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, binary_precision = getTextScore(
-            dataset, out_filename, unit, sub_dir, case, window_size, num_key_name, "validation", hf_dataset
-        )
+        # out_filename = getSummaryOutput(
+        #     dataset, unit, model_name, model_chat, sub_dir, window_size, "validation", hf_dataset
+        # )
+        meteor_score, nan_rate, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, binary_precision = getTextScore(case, num_key_name, "validation", hf_dataset)
     
     print("Meteor Scores: ", meteor_score)
     print("Nan Rate: ", nan_rate)
@@ -139,14 +125,14 @@ if __name__ == "__main__":
     print("RougeL Scores: ", rougeL)
     print("RMSE Scores: ", rmse_loss)
     print("Binary Precision: ", binary_precision)
-    wandb.log({"meteor_score": meteor_score})
-    wandb.log({"nan_rate": nan_rate})
-    wandb.log({"cos_sim_score": cos_sim_score})
-    wandb.log({"rouge1": rouge1})
-    wandb.log({"rouge2": rouge2})
-    wandb.log({"rougeL": rougeL})
-    wandb.log({"rmse": rmse_loss})
-    wandb.log({"binary_precision": binary_precision})
+    wandb.log({"Meteor Scores": meteor_score})
+    wandb.log({"Nan Rate": nan_rate})
+    wandb.log({"Cos Sim Scores": cos_sim_score})
+    wandb.log({"Rouge1 Scores": rouge1})
+    wandb.log({"Rouge2 Scores": rouge2})
+    wandb.log({"RougeL Scores": rougeL})
+    wandb.log({"RMSE Scores": rmse_loss})
+    wandb.log({"Binary Precision": binary_precision})
 
 
     end_time = time.time()
