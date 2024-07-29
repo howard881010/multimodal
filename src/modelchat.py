@@ -43,9 +43,9 @@ class MistralChatModel(ChatModel):
             model_name, token=token, device_map="auto")
         # return base_model
         if dataset == "climate":
-            return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/climate")
+            return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/climate-cal")
         elif dataset == "gas":
-            return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/gas")
+            return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/gas-west")
         # return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/gas-mixed-mixed-fact")
 
     def chat(self, prompt):

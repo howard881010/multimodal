@@ -5,18 +5,17 @@ import numpy as np
 import wandb
 import time
 from loguru import logger
-from utils import open_record_directory, create_result_file, add_new_column
-from modelchat import LLMChatModel, MistralChatModel
+from utils import open_record_directory, create_result_file
+from modelchat import MistralChatModel
 from transformers import set_seed
 from batch_inference_chat import batch_inference_llama_summary
 from text_evaluation import getMeteorScore, getCosineSimilarity, getROUGEScore, getRMSEScore
 from datasets import load_dataset, DatasetDict, Dataset
 
-def getSummaryOutput(dataset, unit, model_name, model_chat, sub_dir, window_size, split):
-    hf_dataset = load_dataset(f"Howard881010/{dataset}-{window_size}_{unit}-{sub_dir.split('/')[0]}")
+def getSummaryOutput(dataset, unit, model_name, model_chat, sub_dir, window_size, split, hf_dataset):
+    dataset = load_dataset(hf_dataset)
 
-# Add idx column to each split
-    data = pd.DataFrame(hf_dataset[split])
+    data = pd.DataFrame(dataset[split])
     data['idx'] = data.index
 
     log_path, res_path = open_record_directory(
@@ -26,37 +25,34 @@ def getSummaryOutput(dataset, unit, model_name, model_chat, sub_dir, window_size
     logger.add(log_path, rotation="100 MB", mode="w")
 
     results = [{"pred_summary": "Wrong output format"} for _ in range(len(data))]
-    # chat = [{"role": "system", "content": data.iloc[0]['instruction']}, {"role": "user", "content": data.iloc[0]['input']}, {"role": "assistant", "content": data.iloc[0]['output']}]
-    chat = None
-    error_idx = batch_inference_llama_summary(
-        results, model_chat, data, logger, window_size, dataset, chat_template=chat)
+    error_idx = batch_inference_llama_summary(results, model_chat, data, logger)
 
     print("Error idx: ", error_idx)
     results = pd.DataFrame(results, columns=['pred_summary'])
-    # results['pred_summary'] = data['input'].apply(str)
     results['fut_summary'] = data['output'].apply(str)
     results.to_csv(res_path)
-    # results = pd.read_csv("/home/ubuntu/multimodal/Predictions_and_attempts/climate/1_day/text-text-cal/finetune/mistral7b_output_validation.csv")
-    # updated_validation_data = data.map(lambda x: add_new_column(x, results))
     data['pred_output'] = results['pred_summary']
     updated_data = Dataset.from_pandas(data[['input', 'output', 'instruction','pred_output']])
     updated_dataset = DatasetDict({
-        'train': hf_dataset['train'],  # Assuming train split remains unchanged
-        'test': hf_dataset['test'],
+        'train': dataset['train'], 
+        'test': dataset['test'],
         'validation': updated_data
     })
 
-    updated_dataset.push_to_hub(f"Howard881010/{dataset}-{window_size}_{unit}-{sub_dir.split('/')[0]}")
+    updated_dataset.push_to_hub(hf_dataset)
 
     return res_path
 
 
-def getTextScore(dataset, filename, unit, sub_dir, case, window_size, num_key_name):
-    meteor_score, nan_rate = getMeteorScore(filename, num_key_name)
-    cosine_similarity_score = getCosineSimilarity(filename)
-    rouge1, rouge2, rougeL = getROUGEScore(filename)
+def getTextScore(dataset, filename, unit, sub_dir, case, window_size, num_key_name, split,hf_dataset):
+    dataset = load_dataset(hf_dataset)
+    data = pd.DataFrame(dataset[split])
+
+    meteor_score, nan_rate = getMeteorScore(data, num_key_name)
+    cosine_similarity_score = getCosineSimilarity(data)
+    rouge1, rouge2, rougeL = getROUGEScore(data)
     if case == 2:
-        rmse_loss = getRMSEScore(filename, num_key_name)
+        rmse_loss = getRMSEScore(data, num_key_name)
     else:
         rmse_loss = np.nan
 
@@ -87,17 +83,18 @@ if __name__ == "__main__":
     case = int(sys.argv[4])
     model_name = sys.argv[3]
     finetune = sys.argv[5]
+    postfix = "cal" if dataset == "climate" else "west"
 
     if case == 1:
         if finetune == "finetune":
-            sub_dir = "text-text/finetune"
+            sub_dir = f"text-text-{postfix}/finetune"
         elif finetune == "zeroshot":
-            sub_dir = "text-text/zeroshot"
+            sub_dir = f"text-text-{postfix}/zeroshot"
     elif case == 2:
         if finetune == "finetune":
-            sub_dir = "mixed-mixed/finetune"
+            sub_dir = f"mixed-mixed-{postfix}/finetune"
         elif finetune == "zeroshot":
-            sub_dir = "mixed-mixed/zeroshot"
+            sub_dir = f"mixed-mixed-{postfix}/zeroshot"
     
     model_chat = MistralChatModel("mistralai/Mistral-7B-Instruct-v0.2", token, dataset)
     runs_name = "Mistral-7B-Instruct-v0.2"
@@ -128,13 +125,15 @@ if __name__ == "__main__":
     rmse_scores = []
 
     if case == 1 or case == 2:
+        hf_dataset = f"Howard881010/{dataset}-{window_size}_{unit}-{sub_dir.split('/')[0]}"
+
         out_filename = getSummaryOutput(
-            dataset, unit, model_name, model_chat, sub_dir, window_size, "validation"
+            dataset, unit, model_name, model_chat, sub_dir, window_size, "validation", hf_dataset
         )
-        # out_filename = "/home/ubuntu/multimodal/Predictions_and_attempts/climate/1_day/mixed-mixed/zeroshot/mistral7b_output_validation.csv"
+        # out_filename = "/home/ubuntu/multimodal/Predictions_and_attempts/climate/1_day/mixed-mixed/finetune/mistral7b_output_validation.csv"
 
         meteor_score, nan_rate, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss = getTextScore(
-            dataset, out_filename, unit, sub_dir, case, window_size, num_key_name
+            dataset, out_filename, unit, sub_dir, case, window_size, num_key_name, "validation", hf_dataset
         )
         meteor_scores.append(meteor_score)
         nans.append(nan_rate)

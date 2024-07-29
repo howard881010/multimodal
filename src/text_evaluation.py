@@ -11,37 +11,35 @@ import nltk
 nltk.download('punkt')
 nltk.download('wordnet')
 
-def getMeteorScore(filename, num_key_name):
-    df = pd.read_csv(filename)
-    nan_rate = (df['pred_summary'] == "Not available").sum() / len(df)
+def getMeteorScore(df, num_key_name):
+    nan_rate = (df['pred_output'] == "Not available").sum() / len(df)
     df.replace("Wrong output format", np.nan, inplace=True)
     df_clean = df.dropna()
 
-    # delete the number key in fut_summary and pred_summary
+    # delete the number key in output and pred_output
     for idx, row in df_clean.iterrows():
-        fut_res = json.loads(row['fut_summary'])
-        pred_res = json.loads(row['pred_summary'])
+        fut_res = json.loads(row['output'])
+        pred_res = json.loads(row['pred_output'])
         for key in fut_res.keys():
             if num_key_name in fut_res[key].keys():
                 del fut_res[key][num_key_name]
-                df_clean.at[idx, 'fut_summary'] = json.dumps(fut_res)
+                df_clean.at[idx, 'output'] = json.dumps(fut_res)
         for key in pred_res.keys():
             if num_key_name in pred_res[key].keys():
                 del pred_res[key][num_key_name]
-                df_clean.at[idx, 'pred_summary'] = json.dumps(pred_res)
+                df_clean.at[idx, 'pred_output'] = json.dumps(pred_res)
                 
-    scores = [meteor([word_tokenize(x['fut_summary'])], word_tokenize(x['pred_summary'])) for idx, x in df_clean.iterrows()]
+    scores = [meteor([word_tokenize(x['output'])], word_tokenize(x['pred_output'])) for idx, x in df_clean.iterrows()]
     mean_score=np.mean(scores)
     
     return mean_score, nan_rate
 
-def getCosineSimilarity(filename):
-    df = pd.read_csv(filename)
-    df.replace("Not available", np.nan, inplace=True)
+def getCosineSimilarity(df):
+    df.replace("Wrong output format", np.nan, inplace=True)
     df_clean = df.dropna()
     
-    ground_truth = df_clean['fut_summary'].tolist()
-    zero_shot = df_clean['pred_summary'].tolist()
+    ground_truth = df_clean['output'].tolist()
+    zero_shot = df_clean['pred_output'].tolist()
     # print(scores)
     model = SentenceTransformer('thenlper/gte-base')
     ground_truth_embeddings = model.encode(ground_truth)
@@ -51,10 +49,8 @@ def getCosineSimilarity(filename):
 
     return np.mean(zs_cos_sims)
 
-def getROUGEScore(filename):
-    # Load the dataset
-    df = pd.read_csv(filename)
-    df.replace("Not available", np.nan, inplace=True)
+def getROUGEScore(df):
+    df.replace("Wrong output format", np.nan, inplace=True)
     df_clean = df.dropna()
     
     scorer = rouge_scorer.RougeScorer(['rouge1', 'rouge2', 'rougeL'], use_stemmer=True)
@@ -64,7 +60,7 @@ def getROUGEScore(filename):
     rougeL_scores = []
     
     for idx, row in df_clean.iterrows():
-        scores = scorer.score(row['fut_summary'], row['pred_summary'])
+        scores = scorer.score(row['output'], row['pred_output'])
         rouge1_scores.append(scores['rouge1'].fmeasure)
         rouge2_scores.append(scores['rouge2'].fmeasure)
         rougeL_scores.append(scores['rougeL'].fmeasure)
@@ -75,16 +71,14 @@ def getROUGEScore(filename):
     
     return mean_rouge1, mean_rouge2, mean_rougeL
 
-def getRMSEScore(filename, key_name):
-    df = pd.read_csv(filename)
-    
+def getRMSEScore(df, key_name):
     fut_values = []
     pred_values = []
     
     for idx, row in df.iterrows():
         try:
-            fut_res = json.loads(row['fut_summary'])
-            pred_res = json.loads(row['pred_summary'])
+            fut_res = json.loads(row['output'])
+            pred_res = json.loads(row['pred_output'])
             fut_num_dict_list = [ele[key_name] for ele in fut_res.values()]
             pred_num_dict_list = [ele[key_name] for ele in pred_res.values()]
             pred_num = [list(pred_num_dict.values()) for pred_num_dict in pred_num_dict_list]
