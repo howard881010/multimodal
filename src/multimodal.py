@@ -13,9 +13,9 @@ from text_evaluation import getMeteorScore, getCosineSimilarity, getROUGEScore, 
 from datasets import load_dataset, DatasetDict, Dataset
 
 def getSummaryOutput(dataset, unit, model_name, model_chat, sub_dir, window_size, split, hf_dataset):
-    dataset = load_dataset(hf_dataset)
+    data_all = load_dataset(hf_dataset)
 
-    data = pd.DataFrame(dataset[split])
+    data = pd.DataFrame(data_all[split])
     data['idx'] = data.index
 
     log_path, res_path = open_record_directory(
@@ -34,8 +34,8 @@ def getSummaryOutput(dataset, unit, model_name, model_chat, sub_dir, window_size
     data['pred_output'] = results['pred_summary']
     updated_data = Dataset.from_pandas(data[['input', 'output', 'instruction','pred_output']])
     updated_dataset = DatasetDict({
-        'train': dataset['train'], 
-        'test': dataset['test'],
+        'train': data_all['train'], 
+        'test': data_all['test'],
         'validation': updated_data
     })
 
@@ -45,8 +45,8 @@ def getSummaryOutput(dataset, unit, model_name, model_chat, sub_dir, window_size
 
 
 def getTextScore(dataset, filename, unit, sub_dir, case, window_size, num_key_name, split,hf_dataset):
-    dataset = load_dataset(hf_dataset)
-    data = pd.DataFrame(dataset[split])
+    data_all = load_dataset(hf_dataset)
+    data = pd.DataFrame(data_all[split])
 
     meteor_score, nan_rate = getMeteorScore(data, num_key_name)
     cosine_similarity_score = getCosineSimilarity(data)
