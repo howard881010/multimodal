@@ -81,14 +81,14 @@ if __name__ == "__main__":
 
     if case == 1:
         if finetune == "finetune":
-            sub_dir = f"text-text/finetune"
+            sub_dir = f"text-text-{postfix}/finetune"
         elif finetune == "zeroshot":
-            sub_dir = f"text-text/zeroshot"
+            sub_dir = f"text-text-{postfix}/zeroshot"
     elif case == 2:
         if finetune == "finetune":
-            sub_dir = f"mixed-mixed/finetune"
+            sub_dir = f"mixed-mixed-{postfix}/finetune"
         elif finetune == "zeroshot":
-            sub_dir = f"mixed-mixed/zeroshot"
+            sub_dir = f"mixed-mixed-{postfix}/zeroshot"
     
     model_chat = MistralChatModel("mistralai/Mistral-7B-Instruct-v0.2", token, dataset)
     runs_name = "Mistral-7B-Instruct-v0.2"
