@@ -41,17 +41,19 @@ def nlinear_darts(train_input, test_input, historcial_window_size, train_embeddi
     for i in range(len(test_input)):
         # test = np.append(test, test_input[i])
         print(test_input[i])
-        test_series = TimeSeries.from_values(np.array(test_input[i]))
+        test_series = TimeSeries.from_values(np.array([test_input[i]]))
         predictions = model_NLinearModel.predict(n=historcial_window_size, series=test_series, past_covariates=test_past_covariates).all_values().flatten().tolist()
         str_res = ' '.join([str(round(num,3)) for num in predictions])
         pred_value.append(str_res)
     
     return pred_value
 
-def getLLMTIMEOutput(dataset, filename, unit, sub_dir, historical_window_size):
+def getLLMTIMEOutput(dataset, filename, unit, sub_dir, window_size):
     # filename for train
     data = pd.read_csv(filename)
     train_input_arr = np.array([list(json.loads(row['input']).values())[0]['gas_price'] for idx, row in data.iterrows()])
+    train_input_arr = train_input_arr.reshape((-1, 1))
+    print(train_input_arr.shape)
     train_summary_arr = [list(json.loads(row['input']).values())[0]['summary'] for idx, row in data.iterrows()]
 
     filename = filename.replace('train', 'validation')
@@ -71,15 +73,15 @@ def getLLMTIMEOutput(dataset, filename, unit, sub_dir, historical_window_size):
     test_embedding = None
     
     log_path, res_path = open_record_directory(
-        dataset=dataset, sub_dir=sub_dir, unit=unit, filename=filename, model_name="nlinear", historical_window_size=historical_window_size)
+        dataset=dataset, sub_dir=sub_dir, unit=unit, filename=filename, model_name="nlinear", window_size=window_size)
 
-    pred_value = nlinear_darts(train_input_arr, test_input_arr, historical_window_size, train_embedding, test_embedding)
+    pred_value = nlinear_darts(train_input_arr, test_input_arr, window_size, train_embedding, test_embedding)
     results = [{"pred_values": pred_value[i], "fut_values": test_output_arr[i]} for i in range(len(data))]
     results = pd.DataFrame(results, columns=['pred_values', 'fut_values'])
     results.to_csv(res_path)
     return res_path
 
-def getLLMTIMERMSE(dataset, filename, unit, sub_dir, historical_window_size=1):
+def getLLMTIMERMSE(dataset, filename, unit, sub_dir, window_size=1):
     data = pd.read_csv(filename)
     data["fut_values"] = data["fut_values"].apply(str)
     data["pred_values"] = data["pred_values"].apply(str)
@@ -95,7 +97,7 @@ def getLLMTIMERMSE(dataset, filename, unit, sub_dir, historical_window_size=1):
     test_rmse_loss = rmse(np.array(pred_values), np.array(gt_values))
 
     path = create_result_file(
-        dir = f"Results/{dataset}/{historical_window_size}_{unit}/{sub_dir}",
+        dir = f"Results/{dataset}/{window_size}_{unit}/{sub_dir}",
         filename = (filename.split("/")[-1]).replace("output", "text_score"),
     )
     
@@ -113,13 +115,13 @@ if __name__ == "__main__":
     set_seed(42)
 
     if len(sys.argv) != 5:
-        print("Usage: python models/lltime_test.py <dataset> <historical_window_size> <model_name> <case>")
+        print("Usage: python models/lltime_test.py <dataset> <window_size> <model_name> <case>")
         sys.exit(1)
 
     token = os.environ.get("HF_TOKEN")
 
     dataset = sys.argv[1]
-    historical_window_size = int(sys.argv[2])
+    window_size = int(sys.argv[2])
     case = int(sys.argv[4])
     model_name = sys.argv[3]
 
@@ -128,7 +130,7 @@ if __name__ == "__main__":
 
     wandb.init(project="Inference",
                config={"name": "nlinear",
-                       "window_size": historical_window_size,
+                       "window_size": window_size,
                        "dataset": dataset,
                        "model": model_name,
                        "case": sub_dir})
@@ -137,7 +139,7 @@ if __name__ == "__main__":
     rmses = []
     unit = "week"
 
-    folder_path = f"Data/{dataset}/{historical_window_size}_{unit}/{sub_dir}"
+    folder_path = f"Data/{dataset}/{window_size}_{unit}/{sub_dir}"
     if not os.path.exists(folder_path):
         print(f"The folder '{folder_path}' does not exist")
         sys.exit(1)
@@ -150,9 +152,9 @@ if __name__ == "__main__":
             else:
         # filepath = "Data/Yelp/4_weeks/test_1.csv"
                 out_filename = getLLMTIMEOutput(
-                    dataset, filepath, unit, sub_dir, historical_window_size)
+                    dataset, filepath, unit, sub_dir, window_size)
                 out_rmse = getLLMTIMERMSE(
-                    dataset, out_filename, unit, sub_dir, historical_window_size
+                    dataset, out_filename, unit, sub_dir, window_size
                 )
                 if out_rmse != 0 and str(out_rmse) != "nan":
                     rmses.append(out_rmse)

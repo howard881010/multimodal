@@ -11,23 +11,23 @@ import nltk
 nltk.download('punkt')
 nltk.download('wordnet')
 
-def getMeteorScore(filename):
+def getMeteorScore(filename, num_key_name):
     df = pd.read_csv(filename)
     nan_rate = (df['pred_summary'] == "Not available").sum() / len(df)
     df.replace("Not available", np.nan, inplace=True)
     df_clean = df.dropna()
 
-    # delete the gas_price key in fut_summary and pred_summary
+    # delete the number key in fut_summary and pred_summary
     for idx, row in df_clean.iterrows():
         fut_res = json.loads(row['fut_summary'])
         pred_res = json.loads(row['pred_summary'])
         for key in fut_res.keys():
-            if "gas_price" in fut_res[key].keys():
-                del fut_res[key]['gas_price']
+            if num_key_name in fut_res[key].keys():
+                del fut_res[key][num_key_name]
                 df_clean.at[idx, 'fut_summary'] = json.dumps(fut_res)
         for key in pred_res.keys():
-            if "gas_price" in pred_res[key].keys():
-                del pred_res[key]['gas_price']
+            if num_key_name in pred_res[key].keys():
+                del pred_res[key][num_key_name]
                 df_clean.at[idx, 'pred_summary'] = json.dumps(pred_res)
                 
     scores = [meteor([word_tokenize(x['fut_summary'])], word_tokenize(x['pred_summary'])) for idx, x in df_clean.iterrows()]

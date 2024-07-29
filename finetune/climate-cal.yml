@@ -8,17 +8,17 @@ strict: false
 
 chat_template: chatml
 datasets:
-  - path: Howard881010/gas
+  - path: Howard881010/climate-cal
     type: alpaca
     train_on_split: train
 dataset_prepared_path:
 val_set_size: 0.05
-output_dir: ./finetune/outputs/gas
+output_dir: ./finetune/outputs/climate-cal
 
 adapter: qlora
 lora_model_dir:
 
-sequence_len: 1200
+sequence_len: 2048
 sample_packing: false
 pad_to_sequence_len: true
 
@@ -32,7 +32,7 @@ lora_fan_in_fan_out:
 wandb_project: finetune
 wandb_entity:
 wandb_watch:
-wandb_name: gas
+wandb_name: climate-cal
 wandb_log_model:
 
 gradient_accumulation_steps: 2

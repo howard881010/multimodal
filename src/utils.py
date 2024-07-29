@@ -3,6 +3,10 @@ import numpy as np
 import os
 import torch
 from transformers import BertTokenizer, BertModel
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from datasets import load_dataset, DatasetDict
+import json
 
 
 def is_valid_sequence(sequence, window_size):
@@ -133,4 +137,98 @@ def add_idx(example, idx):
     example['idx'] = idx
     return example
 
+def split_data(file_path, train_ratio=0.8, validation_ratio=0.1, test_ratio=0.1):
+    # Read the CSV file
+    data = pd.read_csv(file_path)
+    
+    # Calculate the validation and test sizes
+    val_size = validation_ratio / (test_ratio + validation_ratio)
+    
+    # Split the data into train and temporary datasets
+    train_data, temp_data = train_test_split(data, test_size=(1 - train_ratio), random_state=42, shuffle=False)
+    
+    # Split the temporary dataset into validation and test datasets
+    validation_data, test_data = train_test_split(temp_data, test_size=val_size, random_state=42, shuffle=False)
+    
+    # Save the datasets
+    
+    dir = file_path.split('/')[:-1]
+    dir = '/'.join(dir)
+    file_name = file_path.split('/')[-1]
+    train_data.to_csv(f'{dir}/train_{file_name}', index=False)
+    validation_data.to_csv(f'{dir}/val_{file_name}', index=False)
+    test_data.to_csv(f'{dir}/test_{file_name}', index=False)
 
+    return
+
+
+def convert_to_parquet(dataframe_test, dataframe_train, dataframe_val):
+    train = pd.concat(dataframe_train)
+    test = pd.concat(dataframe_test)
+    val = pd.concat(dataframe_val)
+
+    train_path = '../parquet_dir/train_finance.parquet'
+    test_path = '../parquet_dir/test_finance.parquet'
+    val_path = '../parquet_dir/val_finance.parquet'
+
+    train.to_parquet(train_path, engine='pyarrow')
+    test.to_parquet(test_path, engine='pyarrow')
+    val.to_parquet(val_path, engine='pyarrow')
+    # Load the dataset
+    train_dataset = load_dataset('parquet', data_files=train_path, split='train')
+    test_dataset = load_dataset('parquet', data_files=test_path, split='train')
+    val_dataset = load_dataset('parquet', data_files=val_path, split = 'train')
+    dataset_dict = DatasetDict({
+        'train': train_dataset,
+        'validation': val_dataset,
+        'test': test_dataset
+    })
+
+    return dataset_dict
+
+def load_from_huggingface(dataset, dataset_path, case, units):
+    dataset = load_dataset(dataset_path)
+
+    if not os.path.exists(f"../Data/{dataset}/{units}/{case}"):
+        os.makedirs(f"../Data/{dataset}/{units}/{case}")
+
+# Access the train split
+    for split in ['train', 'validation', 'test']:
+        train_dataset = dataset[split]
+
+        # Convert the dataset to a Pandas DataFrame
+        df = train_dataset.to_pandas()
+        # Save the DataFrame to a CSV file
+        df.to_csv(f"../Data/{dataset}/{units}/{case}/{split}_all.csv", index=False)
+    
+    return 
+
+def combine_window(df, window_size, unit):
+    json_data = []
+    end_index = len(df) - window_size + 1
+
+    for i in range(end_index):
+        combined_input = {}
+        combine_output = {}
+        
+        for j in range(window_size):
+            input_key = f"{unit}_{j+1}"
+            combined_input[input_key] = json.loads(df.iloc[i + j]['input'])
+
+        output_key = f"{unit}_{window_size+1}"
+        combine_output[output_key] = json.loads(df.iloc[i + window_size - 1]['output'])
+
+        combine_json = {
+            "input": json.dumps(combined_input),
+            "output": json.dumps(combine_output),
+            "instruction": df.iloc[i]['instruction'],
+            "pred_output": df.iloc[i]['pred_output']
+        }
+        json_data.append(combine_json)
+    
+    json_df = pd.DataFrame(json_data)
+    return json_df
+
+def add_new_column(df, results):
+    df['pred_output'] = results['pred_summary']
+    return df

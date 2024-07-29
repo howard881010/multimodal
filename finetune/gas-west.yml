@@ -8,12 +8,12 @@ strict: false
 
 chat_template: chatml
 datasets:
-  - path: Howard881010/gas
+  - path: Howard881010/gas-west
     type: alpaca
     train_on_split: train
 dataset_prepared_path:
 val_set_size: 0.05
-output_dir: ./finetune/outputs/gas
+output_dir: ./finetune/outputs/gas-west
 
 adapter: qlora
 lora_model_dir:
@@ -32,7 +32,7 @@ lora_fan_in_fan_out:
 wandb_project: finetune
 wandb_entity:
 wandb_watch:
-wandb_name: gas
+wandb_name: gas-west
 wandb_log_model:
 
 gradient_accumulation_steps: 2

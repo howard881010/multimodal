@@ -10,11 +10,12 @@ import os
 
 
 class ChatModel:
-    def __init__(self, model_name, token):
+    def __init__(self, model_name, token, dataset):
         self.model_name = model_name
         self.token = token
         self.tokenizer = self.load_tokenizer(model_name)
         self.tokenizer.pad_token = self.tokenizer.eos_token
+        self.dataset = dataset
 
     def load_model(self, model_name):
         raise NotImplementedError("Subclasses must implement this method")
@@ -32,16 +33,19 @@ class ChatModel:
 
 
 class MistralChatModel(ChatModel):
-    def __init__(self, model_name, token):
-        super().__init__(model_name, token)
-        self.model = self.load_model(model_name, token)
+    def __init__(self, model_name, token, dataset):
+        super().__init__(model_name, token, dataset)
+        self.model = self.load_model(model_name, token, dataset)
         self.device = next(self.model.parameters()).device
 
-    def load_model(self, model_name, token):
+    def load_model(self, model_name, token, dataset):
         base_model = AutoModelForCausalLM.from_pretrained(
             model_name, token=token, device_map="auto")
-        return base_model
-        # return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/gas-west")
+        # return base_model
+        if dataset == "climate":
+            return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/climate")
+        elif dataset == "gas":
+            return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/gas")
         # return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/gas-mixed-mixed-fact")
 
     def chat(self, prompt):

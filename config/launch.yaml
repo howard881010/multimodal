@@ -1,30 +1,31 @@
 project_name: multimodal
 model:
-  finance-summary:
+  climate-zeroshot:
     command: >
       git checkout . &&
       git pull &&
       sudo apt update &&
       sudo apt install -y libaio-dev &&
-      python src/multimodal.py climate 1 mistral7b 2 finetune &&
-      python src/multimodal.py climate 2 mistral7b 2 finetune &&
-      python src/multimodal.py climate 3 mistral7b 2 finetune &&
-      python src/multimodal.py climate 1 mistral7b 1 finetune &&
-      python src/multimodal.py climate 2 mistral7b 1 finetune &&
-      python src/multimodal.py climate 3 mistral7b 1 finetune 
+      python src/multimodal.py climate 1 mistral7b 2 zeroshot &&
+      python src/multimodal.py climate 2 mistral7b 2 zeroshot &&
+      python src/multimodal.py climate 3 mistral7b 2 zeroshot &&
+      python src/multimodal.py climate 1 mistral7b 1 zeroshot &&
+      python src/multimodal.py climate 2 mistral7b 1 zeroshot &&
+      python src/multimodal.py climate 3 mistral7b 1 zeroshot &&
+      s5cmd cp Predictions_and_attempts s3://multimodal_fine_tuning
     cpu_count: 10
     gpu_count: 4
     memory: 200
 dataset:
-  yelp:
+  climate:
     hparam:
       _fn: Howard881010/Yelp-dataset
   mimic:
     hparam:
       _fn: mimic.txt
 run:
-  model: [finance-summary]
-  dataset: [yelp]
+  model: [climate-zeroshot]
+  dataset: [climate]
 # file:
 #   - ./axolotl/examples/llama-2/myconfig.yml
 # hostname_whitelist:
