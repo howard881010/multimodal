@@ -6,7 +6,7 @@ from sentence_transformers import SentenceTransformer
 from sentence_transformers.util import cos_sim
 from rouge_score import rouge_scorer
 import json
-from utils import rmse
+from utils import rmse, convertJSONToList
 import nltk
 nltk.download('punkt')
 nltk.download('wordnet')
@@ -71,27 +71,51 @@ def getROUGEScore(df):
     
     return mean_rouge1, mean_rouge2, mean_rougeL
 
-def getRMSEScore(df, key_name):
+def getRMSEScore(df, num_key_name):
     fut_values = []
     pred_values = []
     
     for idx, row in df.iterrows():
-        try:
-            fut_res = json.loads(row['output'])
-            pred_res = json.loads(row['pred_output'])
-            fut_num_dict_list = [ele[key_name] for ele in fut_res.values()]
-            pred_num_dict_list = [ele[key_name] for ele in pred_res.values()]
-            pred_num = [list(pred_num_dict.values()) for pred_num_dict in pred_num_dict_list]
-            fut_num = [list(fut_num_dict.values()) for fut_num_dict in fut_num_dict_list]
-            pred_num = np.array(pred_num).flatten().tolist()
-            fut_num = np.array(fut_num).flatten().tolist()
+        pred_num = convertJSONToList(row, idx, num_key_name, "pred_output")
+        fut_num = convertJSONToList(row, idx, num_key_name, "output")
+        pred_num = np.array(pred_num).flatten().tolist()
+        fut_num = np.array(fut_num).flatten().tolist()
 
-            if len(fut_num) == len(pred_num) and all(isinstance(element, float) for element in pred_num):
-                fut_values.append(fut_num)
-                pred_values.append(pred_num)
-        except (json.JSONDecodeError, TypeError, KeyError) as e:
-                print(f"An error occurred: {e}, row: {idx}")
+        if len(fut_num) == len(pred_num) and all(isinstance(element, float) for element in pred_num):
+            fut_values.append(fut_num)
+            pred_values.append(pred_num)
                 
     rmse_loss = rmse(np.array(fut_values), np.array(pred_values))
     
     return rmse_loss
+
+def getBinaryPrecision(df, num_key_name):
+    fut_values = []
+    pred_values = []
+    input_values = []
+    precision = []
+
+    for idx, row in df.iterrows():
+        pred_num = convertJSONToList(row, idx, num_key_name, "pred_output")
+        fut_num = convertJSONToList(row, idx, num_key_name, "output")
+        input_num = convertJSONToList(row, idx, num_key_name, "input")
+        pred_num = np.array(pred_num).flatten().tolist()
+        fut_num = np.array(fut_num).flatten().tolist()
+        input_num = np.array(input_num).flatten().tolist()
+
+        if len(fut_num) == len(pred_num) and all(isinstance(element, float) for element in pred_num):
+            fut_values.append(fut_num)
+            pred_values.append(pred_num)
+            input_values.append(input_num)
+    
+    for input_value, pred_value, fut_value in zip(input_values, pred_values, fut_values):
+        if (input_value > pred_value and input_value > fut_value) or \
+            (input_value < pred_value and input_value < fut_value) or \
+            (input_value == pred_value and input_value == fut_value):
+            precision.append(1)
+        else:
+            precision.append(0)
+
+    return np.mean(precision)
+
+    

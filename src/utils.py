@@ -229,6 +229,11 @@ def combine_window(df, window_size, unit):
     json_df = pd.DataFrame(json_data)
     return json_df
 
-def add_new_column(df, results):
-    df['pred_output'] = results['pred_summary']
-    return df
+def convertJSONToList(row, idx, key_name, col_name):
+    try:
+        res = json.loads(row[col_name])
+        num_dict_list = [ele[key_name] for ele in res.values()]
+        num_list = [list(num_dict.values()) for num_dict in num_dict_list]
+        return num_list
+    except (json.JSONDecodeError, TypeError, KeyError) as e:
+            print(f"An error occurred: {e}, row: {idx}")
