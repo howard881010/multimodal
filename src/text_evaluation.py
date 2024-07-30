@@ -12,14 +12,14 @@ nltk.download('punkt')
 nltk.download('wordnet')
 
 def getMeteorScore(df, num_key_name):
-    nan_rate = (df['pred_output'] == "Not available").sum() / len(df)
+    nan_rate = (df['input'] == "Not available").sum() / len(df)
     df.replace("Wrong output format", np.nan, inplace=True)
     df_clean = df.dropna()
 
-    # delete the number key in output and pred_output
+    # delete the number key in output and input
     for idx, row in df_clean.iterrows():
         fut_res = json.loads(row['output'])
-        pred_res = json.loads(row['pred_output'])
+        pred_res = json.loads(row['input'])
         for key in fut_res.keys():
             if num_key_name in fut_res[key].keys():
                 del fut_res[key][num_key_name]
@@ -27,9 +27,9 @@ def getMeteorScore(df, num_key_name):
         for key in pred_res.keys():
             if num_key_name in pred_res[key].keys():
                 del pred_res[key][num_key_name]
-                df_clean.at[idx, 'pred_output'] = json.dumps(pred_res)
+                df_clean.at[idx, 'input'] = json.dumps(pred_res)
                 
-    scores = [meteor([word_tokenize(x['output'])], word_tokenize(x['pred_output'])) for idx, x in df_clean.iterrows()]
+    scores = [meteor([word_tokenize(x['output'])], word_tokenize(x['input'])) for idx, x in df_clean.iterrows()]
     mean_score=np.mean(scores)
     
     return mean_score, nan_rate
@@ -39,7 +39,7 @@ def getCosineSimilarity(df):
     df_clean = df.dropna()
     
     ground_truth = df_clean['output'].tolist()
-    zero_shot = df_clean['pred_output'].tolist()
+    zero_shot = df_clean['input'].tolist()
     # print(scores)
     model = SentenceTransformer('thenlper/gte-base')
     ground_truth_embeddings = model.encode(ground_truth)
@@ -60,7 +60,7 @@ def getROUGEScore(df):
     rougeL_scores = []
     
     for idx, row in df_clean.iterrows():
-        scores = scorer.score(row['output'], row['pred_output'])
+        scores = scorer.score(row['output'], row['input'])
         rouge1_scores.append(scores['rouge1'].fmeasure)
         rouge2_scores.append(scores['rouge2'].fmeasure)
         rougeL_scores.append(scores['rougeL'].fmeasure)
@@ -76,7 +76,7 @@ def getRMSEScore(df, num_key_name):
     pred_values = []
     
     for idx, row in df.iterrows():
-        pred_num = convertJSONToList(row, idx, num_key_name, "pred_output")
+        pred_num = convertJSONToList(row, idx, num_key_name, "input")
         fut_num = convertJSONToList(row, idx, num_key_name, "output")
         pred_num = np.array(pred_num).flatten().tolist()
         fut_num = np.array(fut_num).flatten().tolist()
@@ -96,7 +96,7 @@ def getBinaryPrecision(df, num_key_name):
     precision = []
 
     for idx, row in df.iterrows():
-        pred_num = convertJSONToList(row, idx, num_key_name, "pred_output")
+        pred_num = convertJSONToList(row, idx, num_key_name, "input")
         fut_num = convertJSONToList(row, idx, num_key_name, "output")
         input_num = convertJSONToList(row, idx, num_key_name, "input")
         pred_num = np.array(pred_num).flatten().tolist()
