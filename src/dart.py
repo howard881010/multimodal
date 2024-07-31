@@ -78,31 +78,47 @@ def getLLMTIMEOutput(dataset, unit, sub_dir, window_size, key_name):
         dataset=dataset, sub_dir=sub_dir, unit=unit, filename="validation", model_name="nlinear", window_size=window_size)
 
     pred_value = nlinear_darts(np.array(train_input_arr), test_input_arr, window_size, train_embedding, test_embedding)
-    results = [{"pred_values": pred_value[i], "fut_values": test_output_arr[i]} for i in range(len(data))]
-    results = pd.DataFrame(results, columns=['pred_values', 'fut_values'])
+    results = [{"pred_values": pred_value[i], "fut_values": test_output_arr[i], "input_values": test_input_arr[i]} for i in range(len(data))]
+    results = pd.DataFrame(results, columns=['pred_values', 'fut_values', 'input_values'])
     results.to_csv(res_path)
     return res_path
 
-def getLLMTIMERMSE(dataset, filename, unit, sub_dir, window_size=1):
+def numberEval(dataset, filename, unit, sub_dir, window_size=1):
     data = pd.read_csv(filename)
     
     data['pred_values'] = data['pred_values'].apply(lambda x: np.array(eval(x)).flatten())
     data['fut_values'] = data['fut_values'].apply(lambda x: np.array(eval(x)).flatten())
+    data['input_values'] = data['input_values'].apply(lambda x: np.array(eval(x)).flatten())
     pred_values_flat = data['pred_values'].values.tolist()
     fut_values_flat = data['fut_values'].values.tolist()
+    input_values_flat = data['input_values'].values.tolist()
+
 
     test_rmse_loss = rmse(pred_values_flat, fut_values_flat)
+
+    precision = []
+    input_values = np.reshape(input_values_flat, -1)
+    pred_values = np.reshape(pred_values_flat, -1)
+    fut_values = np.reshape(fut_values_flat, -1)
+
+    for input_value, pred_value, fut_value in zip(input_values, pred_values, fut_values):
+        if (input_value > pred_value and input_value > fut_value) or \
+            (input_value < pred_value and input_value < fut_value) or \
+            (input_value == pred_value and input_value == fut_value):
+            precision.append(1)
+        else:
+            precision.append(0)
 
     path = create_result_file(
         dir = f"Results/{dataset}/{window_size}_{unit}/{sub_dir}",
         filename = (filename.split("/")[-1]).replace("output", "text_score"),
     )
     
-    results = [{"test_rmse_loss": test_rmse_loss}]
+    results = [{"test_rmse_loss": test_rmse_loss, "precision": np.mean(precision)}]
     results = pd.DataFrame(results, columns=['test_rmse_loss'])
     results.to_csv(path)
 
-    return test_rmse_loss
+    return test_rmse_loss, np.mean(precision)
 
 
 
@@ -123,17 +139,16 @@ if __name__ == "__main__":
     model_name = sys.argv[3]
 
     if case == 1:
-        sub_dir = "mixed-mixed-west"
+        sub_dir = "mixed-mixed-cal"
 
     wandb.init(project="Inference",
                config={"name": "nlinear",
                        "window_size": window_size,
                        "dataset": dataset,
                        "model": model_name,
-                       "case": sub_dir})
+                       "case": dataset})
     
     start_time = time.time()
-    rmses = []
     if dataset == "gas":
         unit = "week"
         key_name = "gas_price"
@@ -144,16 +159,13 @@ if __name__ == "__main__":
     
     out_filename = getLLMTIMEOutput(
         dataset, unit, sub_dir, window_size, key_name)
-    # out_filename = "/home/ubuntu/multimodal/Predictions_and_attempts/climate/1_day/mixed-mixed/nlinear_output_validation.csv"
-    out_rmse = getLLMTIMERMSE(
+    out_rmse, binary_precision = numberEval(
         dataset, out_filename, unit, sub_dir, window_size
     )
-    if out_rmse != 0 and str(out_rmse) != "nan":
-                    rmses.append(out_rmse)
-    print("Mean RMSE: " + str(np.mean(rmses)))
-    print("Std-Dev RMSE: " + str(np.std(rmses)))
-    wandb.log({"RMSE Scores": np.mean(rmses)})
-    wandb.log({"std-dev": np.std(rmses)})
+    print("RMSE Scores: ", out_rmse)
+    print("Binary Precision: ", binary_precision)
+    wandb.log({"RMSE Scores": out_rmse})
+    wandb.log({"Binary Precision": binary_precision})
 
     end_time = time.time()
     print("Total Time: " + str(end_time - start_time))

@@ -5,7 +5,7 @@ import torch
 from transformers import BertTokenizer, BertModel
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from datasets import load_dataset, DatasetDict
+from datasets import load_dataset, DatasetDict, Dataset
 import json
 
 
@@ -167,17 +167,13 @@ def convert_to_parquet(dataframe_test, dataframe_train, dataframe_val):
     test = pd.concat(dataframe_test)
     val = pd.concat(dataframe_val)
 
-    train_path = '../parquet_dir/train_finance.parquet'
-    test_path = '../parquet_dir/test_finance.parquet'
-    val_path = '../parquet_dir/val_finance.parquet'
+    train = train.reset_index(drop=True)
+    test = test.reset_index(drop=True)
+    val = val.reset_index(drop=True)
 
-    train.to_parquet(train_path, engine='pyarrow')
-    test.to_parquet(test_path, engine='pyarrow')
-    val.to_parquet(val_path, engine='pyarrow')
-    # Load the dataset
-    train_dataset = load_dataset('parquet', data_files=train_path, split='train')
-    test_dataset = load_dataset('parquet', data_files=test_path, split='train')
-    val_dataset = load_dataset('parquet', data_files=val_path, split = 'train')
+    train_dataset = Dataset.from_pandas(train[['input', 'output', 'instruction','pred_output']])
+    test_dataset = Dataset.from_pandas(test[['input', 'output', 'instruction','pred_output']])
+    val_dataset = Dataset.from_pandas(val[['input', 'output', 'instruction','pred_output']])
     dataset_dict = DatasetDict({
         'train': train_dataset,
         'validation': val_dataset,
@@ -205,7 +201,7 @@ def load_from_huggingface(dataset, dataset_path, case, units):
 
 def combine_window(df, window_size, unit):
     json_data = []
-    end_index = len(df) - window_size + 1
+    end_index = len(df) - window_size
 
     for i in range(end_index):
         combined_input = {}
@@ -216,6 +212,7 @@ def combine_window(df, window_size, unit):
             combined_input[input_key] = json.loads(df.iloc[i + j]['input'])
 
         output_key = f"{unit}_{window_size+1}"
+        
         combine_output[output_key] = json.loads(df.iloc[i + window_size - 1]['output'])
 
         combine_json = {
@@ -233,7 +230,10 @@ def convertJSONToList(row, idx, key_name, col_name):
     try:
         res = json.loads(row[col_name])
         num_dict_list = [ele[key_name] for ele in res.values()]
-        num_list = [list(num_dict.values()) for num_dict in num_dict_list]
-        return num_list
+        if all(isinstance(num, (int, float)) for num in num_dict_list):
+            return num_dict_list
+        else:
+            num_list = [list(num_dict.values()) for num_dict in num_dict_list]
+            return num_list
     except (json.JSONDecodeError, TypeError, KeyError) as e:
             print(f"An error occurred: {e}, row: {idx}")

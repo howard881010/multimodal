@@ -13,3 +13,5 @@ hostname_whitelist:
   - node-2-3.sdsc.optiputer.net
   # - gp-engine.beocat.ksu.edu
   # - sphinx.sdstate.edu
+  # - k8s-a6000-01.calit2.optiputer.net
+  # - rci-nrp-gpu-06.sdsu.edu

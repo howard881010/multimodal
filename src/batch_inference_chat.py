@@ -11,7 +11,7 @@ def batch_inference_llama_summary(
     data,
     logger
 ):
-    batches = list(create_batched(data, 16))
+    batches = list(create_batched(data, 32))
     err_idx = []
 
     for batch in tqdm(batches):
