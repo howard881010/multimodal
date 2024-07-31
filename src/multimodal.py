@@ -49,8 +49,8 @@ def getTextScore(case, num_key_name, split,hf_dataset):
     data = pd.DataFrame(data_all[split])
 
     meteor_score, nan_rate = getMeteorScore(data, num_key_name)
-    cosine_similarity_score = getCosineSimilarity(data)
-    # cosine_similarity_score = np.nan
+    # cosine_similarity_score = getCosineSimilarity(data)
+    cosine_similarity_score = np.nan
     rouge1, rouge2, rougeL = getROUGEScore(data)
     if case == 2:
         rmse_loss = getRMSEScore(data, num_key_name)
@@ -81,16 +81,16 @@ if __name__ == "__main__":
 
     if case == 1:
         if finetune == "finetune":
-            sub_dir = f"text-text-{postfix}/finetune"
+            sub_dir = f"text-text/finetune"
         elif finetune == "zeroshot":
-            sub_dir = f"text-text-{postfix}/zeroshot"
+            sub_dir = f"text-text/zeroshot"
     elif case == 2:
         if finetune == "finetune":
-            sub_dir = f"mixed-mixed-{postfix}/finetune"
+            sub_dir = f"mixed-mixed/finetune"
         elif finetune == "zeroshot":
-            sub_dir = f"mixed-mixed-{postfix}/zeroshot"
+            sub_dir = f"mixed-mixed/zeroshot"
     
-    # model_chat = MistralChatModel("mistralai/Mistral-7B-Instruct-v0.2", token, dataset)
+    model_chat = MistralChatModel("mistralai/Mistral-7B-Instruct-v0.2", token, dataset)
     runs_name = "Mistral-7B-Instruct-v0.2"
     
     if dataset == "gas":
@@ -99,6 +99,9 @@ if __name__ == "__main__":
     elif dataset == "climate":
         unit = "day"
         num_key_name = "temperature"
+    elif dataset == "medical":
+        unit = "day"
+        num_key_name = "Heart_Rate"
 
 
 
@@ -107,37 +110,36 @@ if __name__ == "__main__":
                        "window_size": window_size,
                        "dataset": dataset,
                        "model": model_name + "-" + ("finetune" if finetune == "finetune" else "zeroshot"),
-                       "case": sub_dir.split("/")[0] + "/baseline"})
+                       "case": sub_dir})
     
     start_time = time.time()
 
     if case == 1 or case == 2:
         hf_dataset = f"Howard881010/{dataset}-{window_size}_{unit}-{sub_dir.split('/')[0]}"
 
-        # out_filename = getSummaryOutput(
-        #     dataset, unit, model_name, model_chat, sub_dir, window_size, "validation", hf_dataset
-        # )
-        meteor_score, nan_rate, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, binary_precision = getTextScore(
-            case, num_key_name, "validation", hf_dataset
+        out_filename = getSummaryOutput(
+            dataset, unit, model_name, model_chat, sub_dir, window_size, "validation", hf_dataset
         )
+        # meteor_score, nan_rate, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, binary_precision = getTextScore(
+        #     case, num_key_name, "validation", hf_dataset
+        # )
     
-    print("Meteor Scores: ", meteor_score)
-    print("Nan Rate: ", nan_rate)
-    print("Cos Sim Scores: ", cos_sim_score)
-    print("Rouge1 Scores: ", rouge1)
-    print("Rouge2 Scores: ", rouge2)
-    print("RougeL Scores: ", rougeL)
-    print("RMSE Scores: ", rmse_loss)
-    print("Binary Precision: ", binary_precision)
-    wandb.log({"Meteor Scores": meteor_score})
-    wandb.log({"Nan Rate": nan_rate})
-    wandb.log({"Cos Sim Scores": cos_sim_score})
-    wandb.log({"Rouge1 Scores": rouge1})
-    wandb.log({"Rouge2 Scores": rouge2})
-    wandb.log({"RougeL Scores": rougeL})
-    wandb.log({"RMSE Scores": rmse_loss})
-    wandb.log({"Binary Precision": binary_precision})
-
-
+    # print("Meteor Scores: ", meteor_score)
+    # print("Nan Rate: ", nan_rate)
+    # print("Cos Sim Scores: ", cos_sim_score)
+    # print("Rouge1 Scores: ", rouge1)
+    # print("Rouge2 Scores: ", rouge2)
+    # print("RougeL Scores: ", rougeL)
+    # print("RMSE Scores: ", rmse_loss)
+    # print("Binary Precision: ", binary_precision)
+    # wandb.log({"Meteor Scores": meteor_score})
+    # wandb.log({"Nan Rate": nan_rate})
+    # wandb.log({"Cos Sim Scores": cos_sim_score})
+    # wandb.log({"Rouge1 Scores": rouge1})
+    # wandb.log({"Rouge2 Scores": rouge2})
+    # wandb.log({"RougeL Scores": rougeL})
+    # wandb.log({"RMSE Scores": rmse_loss})
+    # wandb.log({"Binary Precision": binary_precision})
+    
     end_time = time.time()
     print("Total Time: " + str(end_time - start_time))
