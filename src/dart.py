@@ -10,7 +10,7 @@ import numpy as np
 import wandb
 import time
 from loguru import logger
-from utils import open_record_directory, rmse, nmae, create_result_file, bert_model_inference
+from utils import open_record_directory, rmse, create_result_file, convertJSONToList
 from transformers import set_seed
 import json
 from datasets import load_dataset
@@ -36,8 +36,8 @@ def nlinear_darts(train_input, test_input, window_size, train_embedding=None, te
     for i in range(len(test_input)):
         # test = np.append(test, test_input[i])
         test_series = TimeSeries.from_values(np.array(test_input[i]))
-        print("Number of time steps:", test_series.n_timesteps)
-        print("Number of dimensions:", test_series.width)
+        # print("Number of time steps:", test_series.n_timesteps)
+        # print("Number of dimensions:", test_series.width)
         predictions = model_NLinearModel.predict(n=1, series=test_series, past_covariates=test_past_covariates).values().tolist()
         pred_value.append(predictions)
     
@@ -61,13 +61,8 @@ def getLLMTIMEOutput(dataset, unit, sub_dir, window_size, key_name):
     test_input_arr = []
     test_output_arr = []
     for idx, row in data.iterrows():
-        input_json = json.loads(row['input'])
-        output_json = json.loads(row['output'])
-        input_dict_list = [ele[key_name] for ele in input_json.values()]
-        output_dict_list = [ele[key_name] for ele in output_json.values()]
-        input_num = [list(input_dict.values()) for input_dict in input_dict_list]
-        output_num = [list(output_dict.values()) for output_dict in output_dict_list]
-        
+        input_num = convertJSONToList(row, idx, key_name, "input")
+        output_num = convertJSONToList(row, idx, key_name, "output")
         test_input_arr.append(input_num)
         test_output_arr.append(output_num)
             
@@ -139,14 +134,14 @@ if __name__ == "__main__":
     model_name = sys.argv[3]
 
     if case == 1:
-        sub_dir = "mixed-mixed-cal"
+        sub_dir = "mixed-mixed-west"
 
-    wandb.init(project="Inference",
-               config={"name": "nlinear",
-                       "window_size": window_size,
-                       "dataset": dataset,
-                       "model": model_name,
-                       "case": dataset})
+    # wandb.init(project="Inference",
+    #            config={"name": "nlinear",
+    #                    "window_size": window_size,
+    #                    "dataset": dataset,
+    #                    "model": model_name,
+    #                    "case": dataset})
     
     start_time = time.time()
     if dataset == "gas":
@@ -164,8 +159,8 @@ if __name__ == "__main__":
     )
     print("RMSE Scores: ", out_rmse)
     print("Binary Precision: ", binary_precision)
-    wandb.log({"RMSE Scores": out_rmse})
-    wandb.log({"Binary Precision": binary_precision})
+    # wandb.log({"RMSE Scores": out_rmse})
+    # wandb.log({"Binary Precision": binary_precision})
 
     end_time = time.time()
     print("Total Time: " + str(end_time - start_time))

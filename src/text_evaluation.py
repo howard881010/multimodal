@@ -41,7 +41,7 @@ def getCosineSimilarity(df):
     ground_truth = df_clean['output'].tolist()
     zero_shot = df_clean['pred_output'].tolist()
     # print(scores)
-    model = SentenceTransformer('thenlper/gte-base')
+    model = SentenceTransformer('sentence-transformers/paraphrase-MiniLM-L6-v2')
     ground_truth_embeddings = model.encode(ground_truth)
     zero_shot_embeddings = model.encode(zero_shot)
 
@@ -78,8 +78,6 @@ def getRMSEScore(df, num_key_name):
     for idx, row in df.iterrows():
         pred_num = convertJSONToList(row, idx, num_key_name, "pred_output")
         fut_num = convertJSONToList(row, idx, num_key_name, "output")
-        pred_num = np.array(pred_num).flatten().tolist()
-        fut_num = np.array(fut_num).flatten().tolist()
 
         if len(fut_num) == len(pred_num) and all(isinstance(element, float) for element in pred_num):
             fut_values.append(fut_num)

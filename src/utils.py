@@ -231,9 +231,10 @@ def convertJSONToList(row, idx, key_name, col_name):
         res = json.loads(row[col_name])
         num_dict_list = [ele[key_name] for ele in res.values()]
         if all(isinstance(num, (int, float)) for num in num_dict_list):
-            return num_dict_list
+            return np.array(num_dict_list).flatten()
         else:
             num_list = [list(num_dict.values()) for num_dict in num_dict_list]
-            return num_list
+            return np.array(num_list).flatten()
     except (json.JSONDecodeError, TypeError, KeyError) as e:
             print(f"An error occurred: {e}, row: {idx}")
+

@@ -31,4 +31,3 @@ run:
 #   - hcc-chase-shor-c4715.unl.edu
 prefix: a100
 special_gpu: a100
-gpu_count: 2
