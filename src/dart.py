@@ -83,7 +83,8 @@ def numberEval(dataset, filename, unit, sub_dir, window_size=1):
     
     data['pred_values'] = data['pred_values'].apply(lambda x: np.array(eval(x)).flatten())
     data['fut_values'] = data['fut_values'].apply(lambda x: np.array(eval(x)).flatten())
-    data['input_values'] = data['input_values'].apply(lambda x: np.array(eval(x)).flatten())
+    data['input_values'] = data['input_values'].apply(lambda x: np.array(eval(x))[-1:].flatten())
+    print(data["input_values"].head(5))
     pred_values_flat = data['pred_values'].values.tolist()
     fut_values_flat = data['fut_values'].values.tolist()
     input_values_flat = data['input_values'].values.tolist()
@@ -95,6 +96,8 @@ def numberEval(dataset, filename, unit, sub_dir, window_size=1):
     input_values = np.reshape(input_values_flat, -1)
     pred_values = np.reshape(pred_values_flat, -1)
     fut_values = np.reshape(fut_values_flat, -1)
+
+    print(input_values.shape, pred_values.shape, fut_values.shape)
 
     for input_value, pred_value, fut_value in zip(input_values, pred_values, fut_values):
         if (input_value > pred_value and input_value > fut_value) or \
@@ -134,14 +137,14 @@ if __name__ == "__main__":
     model_name = sys.argv[3]
 
     if case == 1:
-        sub_dir = "mixed-mixed-west"
+        sub_dir = "mixed-mixed"
 
-    # wandb.init(project="Inference",
-    #            config={"name": "nlinear",
-    #                    "window_size": window_size,
-    #                    "dataset": dataset,
-    #                    "model": model_name,
-    #                    "case": dataset})
+    wandb.init(project="Inference",
+               config={"name": "nlinear",
+                       "window_size": window_size,
+                       "dataset": dataset,
+                       "model": model_name,
+                       "case": dataset})
     
     start_time = time.time()
     if dataset == "gas":
@@ -154,13 +157,14 @@ if __name__ == "__main__":
     
     out_filename = getLLMTIMEOutput(
         dataset, unit, sub_dir, window_size, key_name)
+    # out_filename = "/home/ubuntu/multimodal/Predictions_and_attempts/gas/2_week/mixed-mixed-west/nlinear_output_validation.csv"
     out_rmse, binary_precision = numberEval(
         dataset, out_filename, unit, sub_dir, window_size
     )
     print("RMSE Scores: ", out_rmse)
     print("Binary Precision: ", binary_precision)
-    # wandb.log({"RMSE Scores": out_rmse})
-    # wandb.log({"Binary Precision": binary_precision})
+    wandb.log({"RMSE Scores": out_rmse})
+    wandb.log({"Binary Precision": binary_precision})
 
     end_time = time.time()
     print("Total Time: " + str(end_time - start_time))

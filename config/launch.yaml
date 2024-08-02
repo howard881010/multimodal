@@ -6,15 +6,10 @@ model:
       git pull &&
       sudo apt update &&
       sudo apt install -y libaio-dev &&
-      python src/multimodal.py medical 3 mistral7b 2 finetune && 
-      python src/multimodal.py medical 2 mistral7b 2 finetune && 
-      python src/multimodal.py medical 1 mistral7b 2 finetune &&
-      python src/multimodal.py medical 3 mistral7b 1 finetune && 
-      python src/multimodal.py medical 2 mistral7b 1 finetune && 
-      python src/multimodal.py medical 1 mistral7b 1 finetune 
+      
     cpu_count: 16
     gpu_count: 4
-    memory: 150
+    memory: 200
 dataset:
   medical:
     hparam:
@@ -31,3 +26,4 @@ run:
 #   - hcc-chase-shor-c4715.unl.edu
 prefix: a100
 special_gpu: a100
+file: [src/multimodal.py, src/text_evaluation.py, src/dart.py, src/utils.py]

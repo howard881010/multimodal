@@ -49,9 +49,9 @@ def getTextScore(case, num_key_name, split,hf_dataset):
     data = pd.DataFrame(data_all[split])
 
     meteor_score, nan_rate = getMeteorScore(data, num_key_name)
-    cosine_similarity_score = getCosineSimilarity(data)
+    cosine_similarity_score = getCosineSimilarity(data, num_key_name)
     # cosine_similarity_score = np.nan
-    rouge1, rouge2, rougeL = getROUGEScore(data)
+    rouge1, rouge2, rougeL = getROUGEScore(data, num_key_name)
     if case == 2:
         rmse_loss = getRMSEScore(data, num_key_name)
         binary_precision = getBinaryPrecision(data, num_key_name)
@@ -78,19 +78,20 @@ if __name__ == "__main__":
     model_name = sys.argv[3]
     finetune = sys.argv[5]
     postfix = "cal" if dataset == "climate" else "west"
+    split = "test"
 
     if case == 1:
         if finetune == "finetune":
-            sub_dir = f"text-text/finetune"
+            sub_dir = f"text-text-{postfix}/finetune"
         elif finetune == "zeroshot":
-            sub_dir = f"text-text/zeroshot"
+            sub_dir = f"text-text-{postfix}/zeroshot"
     elif case == 2:
         if finetune == "finetune":
-            sub_dir = f"mixed-mixed/finetune"
+            sub_dir = f"mixed-mixed-{postfix}/finetune"
         elif finetune == "zeroshot":
-            sub_dir = f"mixed-mixed/zeroshot"
+            sub_dir = f"mixed-mixed-{postfix}/zeroshot"
     
-    # model_chat = MistralChatModel("mistralai/Mistral-7B-Instruct-v0.2", token, dataset)
+    model_chat = MistralChatModel("mistralai/Mistral-7B-Instruct-v0.2", token, dataset)
     runs_name = "Mistral-7B-Instruct-v0.2"
     
     if dataset == "gas":
@@ -110,18 +111,19 @@ if __name__ == "__main__":
                        "window_size": window_size,
                        "dataset": dataset,
                        "model": model_name + "-" + ("finetune" if finetune == "finetune" else "zeroshot"),
-                       "case": sub_dir})
+                       "case": sub_dir,
+                       "split": split})
     
     start_time = time.time()
 
     if case == 1 or case == 2:
         hf_dataset = f"Howard881010/{dataset}-{window_size}_{unit}-{sub_dir.split('/')[0]}"
 
-        # out_filename = getSummaryOutput(
-        #     dataset, unit, model_name, model_chat, sub_dir, window_size, "validation", hf_dataset
-        # )
+        out_filename = getSummaryOutput(
+            dataset, unit, model_name, model_chat, sub_dir, window_size, "validation", hf_dataset
+        )
         meteor_score, nan_rate, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, binary_precision = getTextScore(
-            case, num_key_name, "validation", hf_dataset
+            case, num_key_name, split, hf_dataset
         )
     
     print("Meteor Scores: ", meteor_score)

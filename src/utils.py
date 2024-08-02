@@ -231,10 +231,25 @@ def convertJSONToList(row, idx, key_name, col_name):
         res = json.loads(row[col_name])
         num_dict_list = [ele[key_name] for ele in res.values()]
         if all(isinstance(num, (int, float)) for num in num_dict_list):
-            return np.array(num_dict_list).flatten()
+            return num_dict_list
         else:
             num_list = [list(num_dict.values()) for num_dict in num_dict_list]
-            return np.array(num_list).flatten()
+            return num_list
     except (json.JSONDecodeError, TypeError, KeyError) as e:
             print(f"An error occurred: {e}, row: {idx}")
+    
+def clean_num(df, num_key_name):
+    for idx, row in df.iterrows():
+        fut_res = json.loads(row['output'])
+        pred_res = json.loads(row['pred_output'])
+        for key in fut_res.keys():
+            if num_key_name in fut_res[key].keys():
+                del fut_res[key][num_key_name]
+                df.at[idx, 'output'] = json.dumps(fut_res)
+        for key in pred_res.keys():
+            if num_key_name in pred_res[key].keys():
+                del pred_res[key][num_key_name]
+                df.at[idx, 'pred_output'] = json.dumps(pred_res)
+    
+    return df
 
