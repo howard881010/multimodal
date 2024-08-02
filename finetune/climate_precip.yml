@@ -13,7 +13,7 @@ datasets:
     train_on_split: train
 dataset_prepared_path:
 val_set_size: 0.05
-output_dir: ./finetune/outputs/climate-precip
+output_dir: ./finetune/climate-precip
 
 adapter: qlora
 lora_model_dir:
