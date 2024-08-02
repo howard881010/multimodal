@@ -79,7 +79,7 @@ def getRMSEScore(df, num_key_name):
         pred_num = convertJSONToList(row, idx, num_key_name, "pred_output")
         fut_num = convertJSONToList(row, idx, num_key_name, "output")
 
-        if len(fut_num) == len(pred_num) and all(isinstance(element, float) for element in pred_num):
+        if pred_num and len(fut_num) == len(pred_num) and all(isinstance(element, float) for element in pred_num):
             fut_values.append(fut_num)
             pred_values.append(pred_num)
                 
@@ -97,11 +97,8 @@ def getBinaryPrecision(df, num_key_name):
         pred_num = convertJSONToList(row, idx, num_key_name, "pred_output")
         fut_num = convertJSONToList(row, idx, num_key_name, "output")
         input_num = convertJSONToList(row, idx, num_key_name, "input")
-        pred_num = np.array(pred_num).flatten().tolist()
-        fut_num = np.array(fut_num).flatten().tolist()
-        input_num = np.array(input_num).flatten().tolist()
 
-        if len(fut_num) == len(pred_num) and all(isinstance(element, float) for element in pred_num):
+        if pred_num and len(fut_num) == len(pred_num) and all(isinstance(element, float) for element in pred_num):
             fut_values.append(fut_num)
             pred_values.append(pred_num)
             input_values.append(input_num)
