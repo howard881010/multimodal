@@ -9,7 +9,7 @@ from utils import open_record_directory, create_result_file
 from modelchat import MistralChatModel
 from transformers import set_seed
 from batch_inference_chat import batch_inference_llama_summary
-from text_evaluation import getMeteorScore, getCosineSimilarity, getROUGEScore, getRMSEScore, getBinaryPrecision
+from text_evaluation import getMeteorScore, getCosineSimilarity, getROUGEScore, getRMSEScore, getBinaryPrecision, getGPTScore
 from datasets import load_dataset, DatasetDict, Dataset
 
 def getSummaryOutput(dataset, unit, model_name, model_chat, sub_dir, window_size, split, hf_dataset):
@@ -59,7 +59,9 @@ def getTextScore(case, num_key_name, split,hf_dataset):
     cosine_similarity_score = getCosineSimilarity(data, num_key_name)
     # cosine_similarity_score = np.nan
     rouge1, rouge2, rougeL = getROUGEScore(data, num_key_name)
-    # gpt_score = getGPTScore(data, num_key_name)
+    gpt_score = getGPTScore(data, num_key_name)
+    # gpt_score = np.nan
+
     if case == 2:
         rmse_loss = getRMSEScore(data, num_key_name)
         binary_precision = getBinaryPrecision(data, num_key_name)
@@ -68,7 +70,7 @@ def getTextScore(case, num_key_name, split,hf_dataset):
         binary_precision = np.nan
     
 
-    return meteor_score, nan_rate, cosine_similarity_score, rouge1, rouge2, rougeL, rmse_loss, binary_precision
+    return meteor_score, nan_rate, cosine_similarity_score, rouge1, rouge2, rougeL, rmse_loss, binary_precision, gpt_score
 
 if __name__ == "__main__":
     # add seed
@@ -87,7 +89,7 @@ if __name__ == "__main__":
     model_name = sys.argv[3]
     finetune = sys.argv[5]
     postfix = "cal" if dataset == "climate" else "west"
-    split = "test"
+    split = "validation"
 
     if case == 1:
         if finetune == "finetune":
@@ -115,42 +117,47 @@ if __name__ == "__main__":
 
 
 
-    # wandb.init(project="Inference",
-    #            config={"name": runs_name,
-    #                    "window_size": window_size,
-    #                    "dataset": dataset,
-    #                    "model": model_name + "-" + ("finetune" if finetune == "finetune" else "zeroshot"),
-    #                    "case": sub_dir,
-    #                    "split": split})
+    wandb.init(project="Inference",
+               config={"name": runs_name,
+                       "window_size": window_size,
+                       "dataset": dataset,
+                       "model": model_name + "-" + ("finetune" if finetune == "finetune" else "zeroshot"),
+                       "case": sub_dir,
+                       "split": split})
     
     start_time = time.time()
 
-    if case == 1 or case == 2:
-        hf_dataset = f"Howard881010/{dataset}-{window_size}_{unit}-{sub_dir.split('/')[0]}"
+    hf_dataset = f"Howard881010/{dataset}-{window_size}_{unit}-{sub_dir.split('/')[0]}"
 
-        out_filename = getSummaryOutput(
-            dataset, unit, model_name, model_chat, sub_dir, window_size, split, hf_dataset
-        )
-        # meteor_score, nan_rate, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, binary_precision = getTextScore(
-        #     case, num_key_name, split, hf_dataset
-        # )
+    out_filename = getSummaryOutput(
+        dataset, unit, model_name, model_chat, sub_dir, window_size, split, hf_dataset
+    )
+    meteor_score, nan_rate, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, binary_precision, gpt_score = getTextScore(
+        case, num_key_name, split, hf_dataset
+    )
+
     
-    # print("Meteor Scores: ", meteor_score)
-    # print("Nan Rate: ", nan_rate)
-    # print("Cos Sim Scores: ", cos_sim_score)
-    # print("Rouge1 Scores: ", rouge1)
-    # print("Rouge2 Scores: ", rouge2)
-    # print("RougeL Scores: ", rougeL)
-    # print("RMSE Scores: ", rmse_loss)
-    # print("Binary Precision: ", binary_precision)
-    # wandb.log({"Meteor Scores": meteor_score})
-    # wandb.log({"Nan Rate": nan_rate})
-    # wandb.log({"Cos Sim Scores": cos_sim_score})
-    # wandb.log({"Rouge1 Scores": rouge1})
-    # wandb.log({"Rouge2 Scores": rouge2})
-    # wandb.log({"RougeL Scores": rougeL})
-    # wandb.log({"RMSE Scores": rmse_loss})
-    # wandb.log({"Binary Precision": binary_precision})
+    print("Meteor Scores: ", meteor_score)
+    print("Nan Rate: ", nan_rate)
+    print("Cos Sim Scores: ", cos_sim_score)
+    print("Rouge1 Scores: ", rouge1)
+    print("Rouge2 Scores: ", rouge2)
+    print("RougeL Scores: ", rougeL)
+    print("RMSE Scores: ", rmse_loss)
+    print("Binary Precision: ", binary_precision)
+    print("GPT Scores: ", np.mean(gpt_score))
+    wandb.log({"Meteor Scores": meteor_score})
+    wandb.log({"Nan Rate": nan_rate})
+    wandb.log({"Cos Sim Scores": cos_sim_score})
+    wandb.log({"Rouge1 Scores": rouge1})
+    wandb.log({"Rouge2 Scores": rouge2})
+    wandb.log({"RougeL Scores": rougeL})
+    wandb.log({"RMSE Scores": rmse_loss})
+    wandb.log({"Binary Precision": binary_precision})
+    wandb.log({"GPT Scores": np.mean(gpt_score)})
+    # gpt_score = pd.DataFrame(gpt_score)
+    # os.makedirs(f"Results/{dataset}/{window_size}_{unit}/{sub_dir.split('/')[0]}", exist_ok=True)
+    # gpt_score.to_csv(f"Results/{dataset}/{window_size}_{unit}/{sub_dir.split('/')[0]}/gpt_score.csv", index=False)
     
     end_time = time.time()
     print("Total Time: " + str(end_time - start_time))

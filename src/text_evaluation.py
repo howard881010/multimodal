@@ -8,8 +8,8 @@ from rouge_score import rouge_scorer
 import json
 from utils import rmse, convertJSONToList, clean_num
 import nltk
-# from openai import OpenAI
-# import os
+from openai import OpenAI
+import os
 nltk.download('punkt')
 nltk.download('wordnet')
 
@@ -118,25 +118,26 @@ def getBinaryPrecision(df, num_key_name):
 
     return np.mean(precision)
 
-# def getGPTScore(df, num_key_name):
-#     key = os.environ.get("OPENAI_API_KEY")
-#     client = OpenAI(api_key=key)
+def getGPTScore(df, num_key_name):
+    key = os.environ.get("OPENAI_API_KEY")
+    client = OpenAI(api_key=key)
 
-#     df.replace("Wrong output format", np.nan, inplace=True)
+    df.replace("Wrong output format", np.nan, inplace=True)
     
-#     df_clean = df.dropna()
-#     df_text_part = clean_num(df_clean, num_key_name)
+    df_clean = df.dropna()
+    df_text_part = clean_num(df_clean, num_key_name)
 
-#     gpt_scores = []    
-#     for idx, row in df_text_part.iterrows():
-#         question = f"summary1: {row['output']} summary2: {row['pred_output']}"
-#         response = client.chat.completions.create(
-#             model="gpt-4o-mini",
-#             messages=[
-#                 {"role": "system", "content": "You are a helpful assistant. And can give me the semantic score between two summary from 1 to 10, you should only give me the scores"},
-#                 {"role": "user", "content": question},
-#             ]
-#         )
-#         gpt_scores.append(response["choices"][0]["message"]["content"])
-    
-#     return gpt_scores
+    gpt_scores = []    
+    for idx, row in df_text_part.iterrows():
+        question = f"summary1: {row['output']} summary2: {row['pred_output']}"
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant. And can give me the semantic score between two summary from 1 to 10, you should only give me the scores"},
+                {"role": "user", "content": question},
+            ]
+        )
+        # print(response.choices[0].message.content)
+        if len(response.choices[0].message.content) <= 2:
+            gpt_scores.append(float(response.choices[0].message.content))
+    return gpt_scores

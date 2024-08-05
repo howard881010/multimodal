@@ -18,7 +18,7 @@ output_dir: ./finetune/climate-cal
 adapter: qlora
 lora_model_dir:
 
-sequence_len: 400
+sequence_len: 1900
 sample_packing: false
 pad_to_sequence_len: true
 

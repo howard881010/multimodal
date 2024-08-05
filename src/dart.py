@@ -58,6 +58,7 @@ def getLLMTIMEOutput(dataset, unit, sub_dir, window_size, key_name):
     # train_input_arr = np.array([list(json.loads(row['input']).values())[0][key_name] for idx, row in data.iterrows()])
 
     data = pd.DataFrame(hf_dataset['validation'])
+    # data = data[:-5]
     test_input_arr = []
     test_output_arr = []
     for idx, row in data.iterrows():
@@ -138,13 +139,15 @@ if __name__ == "__main__":
 
     if case == 1:
         sub_dir = "mixed-mixed"
+    split = 'validation'
 
     wandb.init(project="Inference",
                config={"name": "nlinear",
                        "window_size": window_size,
                        "dataset": dataset,
                        "model": model_name,
-                       "case": dataset})
+                       "case": dataset,
+                       'split': split})
     
     start_time = time.time()
     if dataset == "gas":
