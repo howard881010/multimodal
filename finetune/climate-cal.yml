@@ -13,12 +13,12 @@ datasets:
     train_on_split: train
 dataset_prepared_path:
 val_set_size: 0.05
-output_dir: ./finetune/outputs/climate-cal
+output_dir: ./finetune/climate-cal
 
 adapter: qlora
 lora_model_dir:
 
-sequence_len: 2048
+sequence_len: 400
 sample_packing: false
 pad_to_sequence_len: true
 
@@ -66,5 +66,4 @@ deepspeed:
 weight_decay: 0.0
 fsdp:
 fsdp_config:
-# For finetune
 seed: 42
