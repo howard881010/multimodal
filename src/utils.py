@@ -253,3 +253,27 @@ def clean_num(df, num_key_name):
     
     return df
 
+def combine_window_multiple_output(df, window_size, unit):
+    json_data = []
+    end_index = len(df) - 2 * window_size + 1
+
+    for i in range(end_index):
+        combined_input = {}
+        combine_output = {}
+        
+        for j in range(window_size):
+            input_key = f"{unit}_{j+1}"
+            combined_input[input_key] = json.loads(df.iloc[i + j]['input'])
+            output_key = f"{unit}_{j+window_size+1}"
+            combine_output[output_key] = json.loads(df.iloc[i + window_size + j - 1]['output'])
+
+        combine_json = {
+            "input": json.dumps(combined_input),
+            "output": json.dumps(combine_output),
+            "instruction": df.iloc[i]['instruction'],
+            "pred_output": df.iloc[i]['pred_output']
+        }
+        json_data.append(combine_json)
+    
+    json_df = pd.DataFrame(json_data)
+    return json_df

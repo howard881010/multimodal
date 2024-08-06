@@ -72,17 +72,24 @@ class MistralChatModel(ChatModel):
 
 
 class LLMChatModel(ChatModel):
-    def __init__(self, model_name, token):
-        super().__init__(model_name, token)
-        self.model = self.load_model(model_name, token)
+    def __init__(self, model_name, token, dataset):
+        super().__init__(model_name, token, dataset)
+        self.model = self.load_model(model_name, token, dataset)
         self.tokenizer = AutoTokenizer.from_pretrained(model_name, device_map="auto")
+        self.tokenizer.padding_side = "left"
         self.tokenizer.pad_token = self.tokenizer.eos_token
         self.device = next(self.model.parameters()).device
 
-    def load_model(self, model_name, token):
-        base_model = AutoModelForCausalLM.from_pretrained(model_name, device_map="auto", token=token)
+    def load_model(self, model_name, token, dataset):
+        base_model = AutoModelForCausalLM.from_pretrained(
+            model_name, token=token, device_map="auto")
         return base_model
-        # return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/gas-1_day-text-text")
+        # if dataset == "climate":
+        #     return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/climate-cal")
+        # elif dataset == "gas":
+        #     return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/gas-west")
+        # elif dataset == "medical":
+        #     return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/medical")
 
     def chat(self, prompt):
         new_prompt = self.tokenizer.apply_chat_template(
@@ -100,7 +107,7 @@ class LLMChatModel(ChatModel):
 
         # Generate text using the model
         generate_ids = self.model.generate(
-            model_inputs.input_ids, max_new_tokens=1000, eos_token_id=terminators, attention_mask=model_inputs.attention_mask)
+            model_inputs.input_ids, max_new_tokens=2048, eos_token_id=terminators, attention_mask=model_inputs.attention_mask)
 
         output = self.tokenizer.batch_decode(
             generate_ids, skip_special_tokens=True)

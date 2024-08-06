@@ -15,7 +15,7 @@ nltk.download('wordnet')
 
 
 def getMeteorScore(df, num_key_name):
-    nan_rate = (df['pred_output'] == "Not available").sum() / len(df)
+    nan_rate = (df['pred_output'] == "Wrong output format").sum() / len(df)
     df.replace("Wrong output format", np.nan, inplace=True)
     df_clean = df.dropna()
     df_text_part = clean_num(df_clean, num_key_name)
@@ -137,7 +137,6 @@ def getGPTScore(df, num_key_name):
                 {"role": "user", "content": question},
             ]
         )
-        # print(response.choices[0].message.content)
         if len(response.choices[0].message.content) <= 2:
             gpt_scores.append(float(response.choices[0].message.content))
     return gpt_scores

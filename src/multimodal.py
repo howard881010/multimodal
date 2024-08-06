@@ -6,7 +6,7 @@ import wandb
 import time
 from loguru import logger
 from utils import open_record_directory, create_result_file
-from modelchat import MistralChatModel
+from modelchat import MistralChatModel, LLMChatModel
 from transformers import set_seed
 from batch_inference_chat import batch_inference_llama_summary
 from text_evaluation import getMeteorScore, getCosineSimilarity, getROUGEScore, getRMSEScore, getBinaryPrecision, getGPTScore
@@ -32,21 +32,21 @@ def getSummaryOutput(dataset, unit, model_name, model_chat, sub_dir, window_size
     results['fut_summary'] = data['output'].apply(str)
     results.to_csv(res_path)
     data['pred_output'] = results['pred_summary']
-    updated_data = Dataset.from_pandas(data[['input', 'output', 'instruction','pred_output']])
-    if split == 'validation':
-        updated_dataset = DatasetDict({
-            'train': data_all['train'], 
-            'test': data_all['test'],
-            'validation': updated_data
-        })
-    elif split == 'test':
-        updated_dataset = DatasetDict({
-            'train': data_all['train'], 
-            'validation': data_all['validation'],
-            'test': updated_data
-        })
+    # updated_data = Dataset.from_pandas(data[['input', 'output', 'instruction','pred_output']])
+    # if split == 'validation':
+    #     updated_dataset = DatasetDict({
+    #         'train': data_all['train'], 
+    #         'test': data_all['test'],
+    #         'validation': updated_data
+    #     })
+    # elif split == 'test':
+    #     updated_dataset = DatasetDict({
+    #         'train': data_all['train'], 
+    #         'validation': data_all['validation'],
+    #         'test': updated_data
+    #     })
 
-    updated_dataset.push_to_hub(hf_dataset)
+    # updated_dataset.push_to_hub(hf_dataset)
 
     return res_path
 
@@ -102,8 +102,10 @@ if __name__ == "__main__":
         elif finetune == "zeroshot":
             sub_dir = f"mixed-mixed-{postfix}/zeroshot"
     
-    model_chat = MistralChatModel("mistralai/Mistral-7B-Instruct-v0.2", token, dataset)
-    runs_name = "Mistral-7B-Instruct-v0.2"
+    # model_chat = MistralChatModel("mistralai/Mistral-7B-Instruct-v0.2", token, dataset)
+    # runs_name = "Mistral-7B-Instruct-v0.2"
+    model_chat = LLMChatModel("meta-llama/Meta-Llama-3.1-8B-Instruct", token, dataset)
+    runs_name = "Meta-Llama-3.1-8B-Instruct"
     
     if dataset == "gas":
         unit = "week"
@@ -117,13 +119,13 @@ if __name__ == "__main__":
 
 
 
-    wandb.init(project="Inference",
-               config={"name": runs_name,
-                       "window_size": window_size,
-                       "dataset": dataset,
-                       "model": model_name + "-" + ("finetune" if finetune == "finetune" else "zeroshot"),
-                       "case": sub_dir,
-                       "split": split})
+    # wandb.init(project="Inference",
+    #            config={"name": runs_name,
+    #                    "window_size": window_size,
+    #                    "dataset": dataset,
+    #                    "model": model_name + "-" + ("finetune" if finetune == "finetune" else "zeroshot"),
+    #                    "case": sub_dir,
+    #                    "split": split})
     
     start_time = time.time()
 
@@ -146,15 +148,15 @@ if __name__ == "__main__":
     print("RMSE Scores: ", rmse_loss)
     print("Binary Precision: ", binary_precision)
     print("GPT Scores: ", np.mean(gpt_score))
-    wandb.log({"Meteor Scores": meteor_score})
-    wandb.log({"Nan Rate": nan_rate})
-    wandb.log({"Cos Sim Scores": cos_sim_score})
-    wandb.log({"Rouge1 Scores": rouge1})
-    wandb.log({"Rouge2 Scores": rouge2})
-    wandb.log({"RougeL Scores": rougeL})
-    wandb.log({"RMSE Scores": rmse_loss})
-    wandb.log({"Binary Precision": binary_precision})
-    wandb.log({"GPT Scores": np.mean(gpt_score)})
+    # wandb.log({"Meteor Scores": meteor_score})
+    # wandb.log({"Nan Rate": nan_rate})
+    # wandb.log({"Cos Sim Scores": cos_sim_score})
+    # wandb.log({"Rouge1 Scores": rouge1})
+    # wandb.log({"Rouge2 Scores": rouge2})
+    # wandb.log({"RougeL Scores": rougeL})
+    # wandb.log({"RMSE Scores": rmse_loss})
+    # wandb.log({"Binary Precision": binary_precision})
+    # wandb.log({"GPT Scores": np.mean(gpt_score)})
     # gpt_score = pd.DataFrame(gpt_score)
     # os.makedirs(f"Results/{dataset}/{window_size}_{unit}/{sub_dir.split('/')[0]}", exist_ok=True)
     # gpt_score.to_csv(f"Results/{dataset}/{window_size}_{unit}/{sub_dir.split('/')[0]}/gpt_score.csv", index=False)
