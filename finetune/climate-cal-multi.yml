@@ -1,4 +1,4 @@
-base_model: mistralai/Mistral-7B-Instruct-v0.2
+base_model: meta-llama/Meta-Llama-3.1-8B-Instruct
 model_type: AutoModelForCausalLM
 tokenizer_type: AutoTokenizer
 
@@ -13,7 +13,7 @@ datasets:
     train_on_split: train
 dataset_prepared_path:
 val_set_size: 0.05
-output_dir: ./finetune/outputs/climate-cal-multi
+output_dir: ./finetune/output/climate-cal-multi
 
 adapter: qlora
 lora_model_dir:
