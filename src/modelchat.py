@@ -41,13 +41,13 @@ class MistralChatModel(ChatModel):
     def load_model(self, model_name, token, dataset):
         base_model = AutoModelForCausalLM.from_pretrained(
             model_name, token=token, device_map="auto")
-        # return base_model
-        if dataset == "climate":
-            return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/climate-cal")
-        elif dataset == "gas":
-            return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/gas-west")
-        elif dataset == "medical":
-            return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/medical")
+        return base_model
+        # if dataset == "climate":
+        #     return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/climate-cal")
+        # elif dataset == "gas":
+        #     return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/gas-west")
+        # elif dataset == "medical":
+        #     return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/medical")
         # return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/gas-mixed-mixed-fact")
 
     def chat(self, prompt):
@@ -156,14 +156,14 @@ if __name__ == "__main__":
     start = time.time()
 
     input = str({"share_price": 169.9})
-    content = [{"role": "system", "content": "Given the share price for the current day, please predict the shared price in json format for next day"}, {"role": "user", "content": input}]
+    content = [{"role": "system", "content": "Given the share price for the current day, please predict the shared price in json format for next day, the example output is \{\"share_price\": 169.9\}."}, {"role": "user", "content": input}]
     prompt = [content]
     token = os.getenv("HF_TOKEN")
 
     # model_chat = MistralChatModel(
-    #     "mistralai/Mistral-7B-Instruct-v0.1")
+    #     "mistralai/Mistral-7B-Instruct-v0.1", token, "gas")
     # fine-tuned model
-    model_chat = LLMChatModel("meta-llama/Llama-2-7b-chat-hf", token=token)
+    model_chat = LLMChatModel("Howard881010/climate-cal", token=token, dataset="gas")
     # model_chat = GemmaChatModel("google/gemma-7b-it")
 
     # model_chat.apply_chat_template(chat)

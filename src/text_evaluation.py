@@ -92,7 +92,7 @@ def getBinaryPrecision(df, num_key_name):
     for idx, row in df.iterrows():
         pred_num = convertJSONToList(row, idx, num_key_name, "pred_output")
         fut_num = convertJSONToList(row, idx, num_key_name, "output")
-        input_num = convertJSONToList(row, idx, num_key_name, "input")
+        input_num = convertJSONToList(row, idx, num_key_name, "pred_output")
         pred_num = np.array(pred_num).flatten()
         fut_num = np.array(fut_num).flatten()
         input_num = np.array(input_num).flatten()

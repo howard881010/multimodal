@@ -43,7 +43,7 @@ def nlinear_darts(train_input, test_input, window_size, train_embedding=None, te
     
     return pred_value
 
-def getLLMTIMEOutput(dataset, unit, sub_dir, window_size, key_name):
+def getLLMTIMEOutput(dataset, unit, sub_dir, window_size, num_key_name):
     # filename for train
     hf_dataset = load_dataset(f"Howard881010/{dataset}-{window_size}_{unit}-{sub_dir.split('/')[0]}")
 
@@ -51,19 +51,17 @@ def getLLMTIMEOutput(dataset, unit, sub_dir, window_size, key_name):
     data = pd.DataFrame(hf_dataset['train'])
     train_input_arr = []
     for idx, row in data.iterrows():
-         input_json = json.loads(row['input'])
-         input_dict_list = [ele[key_name] for ele in input_json.values()]
-         input_num = [list(input_dict.values()) for input_dict in input_dict_list]
+         input_num = convertJSONToList(row, idx, num_key_name, "input")
          train_input_arr.append(input_num[0])
-    # train_input_arr = np.array([list(json.loads(row['input']).values())[0][key_name] for idx, row in data.iterrows()])
+    # train_input_arr = np.array([list(json.loads(row['input']).values())[0][num_key_name] for idx, row in data.iterrows()])
 
     data = pd.DataFrame(hf_dataset['validation'])
     # data = data[:-5]
     test_input_arr = []
     test_output_arr = []
     for idx, row in data.iterrows():
-        input_num = convertJSONToList(row, idx, key_name, "input")
-        output_num = convertJSONToList(row, idx, key_name, "output")
+        input_num = convertJSONToList(row, idx, num_key_name, "input")
+        output_num = convertJSONToList(row, idx, num_key_name, "output")
         test_input_arr.append(input_num)
         test_output_arr.append(output_num)
             
@@ -82,7 +80,9 @@ def getLLMTIMEOutput(dataset, unit, sub_dir, window_size, key_name):
 def numberEval(dataset, filename, unit, sub_dir, window_size=1):
     data = pd.read_csv(filename)
     
-    data['pred_values'] = data['pred_values'].apply(lambda x: np.array(eval(x)).flatten())
+    # data['pred_values'] = data['pred_values'].apply(lambda x: np.array(eval(x)).flatten())
+    # for case input == output
+    data['pred_values'] = data['input_values'].apply(lambda x: np.array(eval(x)).flatten())
     data['fut_values'] = data['fut_values'].apply(lambda x: np.array(eval(x)).flatten())
     data['input_values'] = data['input_values'].apply(lambda x: np.array(eval(x))[-1:].flatten())
     print(data["input_values"].head(5))
@@ -139,27 +139,30 @@ if __name__ == "__main__":
 
     if case == 1:
         sub_dir = "mixed-mixed"
-    split = 'validation'
+    split = 'test'
 
     wandb.init(project="Inference",
                config={"name": "nlinear",
                        "window_size": window_size,
                        "dataset": dataset,
                        "model": model_name,
-                       "case": dataset,
+                       "case": "nlinear",
                        'split': split})
     
     start_time = time.time()
     if dataset == "gas":
         unit = "week"
-        key_name = "gas_price"
+        num_key_name = "gas_price"
     elif dataset == "climate":
         unit = "day"
-        key_name = "temperature"
+        num_key_name = "temperature"
+    elif dataset == "medical":
+        unit = "day"
+        num_key_name = "Heart_Rate"
 
     
     out_filename = getLLMTIMEOutput(
-        dataset, unit, sub_dir, window_size, key_name)
+        dataset, unit, sub_dir, window_size, num_key_name)
     # out_filename = "/home/ubuntu/multimodal/Predictions_and_attempts/gas/2_week/mixed-mixed-west/nlinear_output_validation.csv"
     out_rmse, binary_precision = numberEval(
         dataset, out_filename, unit, sub_dir, window_size
