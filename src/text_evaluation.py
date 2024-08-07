@@ -70,8 +70,8 @@ def getRMSEScore(df, num_key_name):
     
     
     for idx, row in df.iterrows():
-        pred_num = convertJSONToList(row, idx, num_key_name, "pred_output")
-        fut_num = convertJSONToList(row, idx, num_key_name, "output")
+        pred_num = convertJSONToList(row, idx, num_key_name, "pred_output", float)
+        fut_num = convertJSONToList(row, idx, num_key_name, "output", float)
         pred_num = np.array(pred_num).flatten()
         fut_num = np.array(fut_num).flatten()
 
@@ -82,41 +82,6 @@ def getRMSEScore(df, num_key_name):
     rmse_loss = rmse(np.array(fut_values), np.array(pred_values))
     
     return rmse_loss
-
-def getBinaryPrecision(df, num_key_name):
-    fut_values = []
-    pred_values = []
-    input_values = []
-    precision = []
-
-    for idx, row in df.iterrows():
-        pred_num = convertJSONToList(row, idx, num_key_name, "pred_output")
-        fut_num = convertJSONToList(row, idx, num_key_name, "output")
-        input_num = convertJSONToList(row, idx, num_key_name, "pred_output")
-        pred_num = np.array(pred_num).flatten()
-        fut_num = np.array(fut_num).flatten()
-        input_num = np.array(input_num).flatten()
-
-        if type(pred_num) == type(fut_num) and len(fut_num) == len(pred_num) and all(isinstance(element, float) for element in pred_num):
-            fut_values.append(fut_num)
-            pred_values.append(pred_num)
-            input_values.append(input_num[-len(pred_num):])
-    
-    fut_values = np.reshape(fut_values, -1)
-    pred_values = np.reshape(pred_values, -1)
-    input_values = np.reshape(input_values, -1)
-
-    print(fut_values.shape, pred_values.shape, input_values.shape)
-    
-    for input_value, pred_value, fut_value in zip(input_values, pred_values, fut_values):
-        if (input_value > pred_value and input_value > fut_value) or \
-            (input_value < pred_value and input_value < fut_value) or \
-            (input_value == pred_value and input_value == fut_value):
-            precision.append(1)
-        else:
-            precision.append(0)
-
-    return np.mean(precision)
 
 def getGPTScore(df, num_key_name):
     key = os.environ.get("OPENAI_API_KEY")

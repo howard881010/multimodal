@@ -32,21 +32,21 @@ def getSummaryOutput(dataset, unit, model_name, model_chat, sub_dir, window_size
     results['fut_summary'] = data['output'].apply(str)
     results.to_csv(res_path)
     data['pred_output'] = results['pred_summary']
-    # updated_data = Dataset.from_pandas(data[['input', 'output', 'instruction','pred_output']])
-    # if split == 'validation':
-    #     updated_dataset = DatasetDict({
-    #         'train': data_all['train'], 
-    #         'test': data_all['test'],
-    #         'validation': updated_data
-    #     })
-    # elif split == 'test':
-    #     updated_dataset = DatasetDict({
-    #         'train': data_all['train'], 
-    #         'validation': data_all['validation'],
-    #         'test': updated_data
-    #     })
+    updated_data = Dataset.from_pandas(data[['input', 'output', 'instruction','pred_output']])
+    if split == 'validation':
+        updated_dataset = DatasetDict({
+            'train': data_all['train'], 
+            'test': data_all['test'],
+            'validation': updated_data
+        })
+    elif split == 'test':
+        updated_dataset = DatasetDict({
+            'train': data_all['train'], 
+            'validation': data_all['validation'],
+            'test': updated_data
+        })
 
-    # updated_dataset.push_to_hub(hf_dataset)
+    updated_dataset.push_to_hub(hf_dataset)
 
     return res_path
 
@@ -92,13 +92,13 @@ if __name__ == "__main__":
     if case == 1:
         if finetune == "finetune":
             sub_dir = f"text-text-{postfix}/finetune"
-        elif finetune == "zeroshot":
-            sub_dir = f"text-text-{postfix}/zeroshot"
+        # elif finetune == "zeroshot":
+        #     sub_dir = f"text-text-{postfix}/zeroshot"
     elif case == 2:
         if finetune == "finetune":
             sub_dir = f"mixed-mixed-{postfix}/finetune"
-        elif finetune == "zeroshot":
-            sub_dir = f"mixed-mixed-{postfix}/zeroshot"
+        # elif finetune == "zeroshot":
+        #     sub_dir = f"mixed-mixed-{postfix}/zeroshot"
     
     # model_chat = MistralChatModel("mistralai/Mistral-7B-Instruct-v0.2", token, dataset)
     # runs_name = "Mistral-7B-Instruct-v0.2"

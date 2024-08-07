@@ -1,32 +1,32 @@
 project_name: multimodal
 model:
-  climate:
+  medical:
     command: >
       git checkout . &&
       git pull &&
       sudo apt update &&
       sudo apt install -y libaio-dev &&
-      python -m axolotl.cli.preprocess finetune/climate-cal-multi.yml &&
-      accelerate launch -m axolotl.cli.train finetune/climate-cal-multi.yml &&
-      s5cmd cp finetune/output/climate-cal-multi s3://multimodal_fine_tuning
-    cpu_count: 16
-    gpu_count: 4
+      python -m axolotl.cli.preprocess finetune/medical.yml &&
+      accelerate launch -m axolotl.cli.train finetune/medical.yml &&
+      s5cmd cp finetune/medical s3://multimodal_fine_tuning
+    cpu_count: 14
+    gpu_count: 8
     memory: 150
 dataset:
-  climate:
+  medical:
     hparam:
       _fn: Howard881010/Yelp-dataset
   mimic:
     hparam:
       _fn: mimic.txt
 run:
-  model: [climate]
-  dataset: [climate]
+  model: [medical]
+  dataset: [medical]
 # file:
 #   - ./axolotl/examples/llama-2/myconfig.yml
 # hostname_whitelist:
 #   - hcc-chase-shor-c4715.unl.edu
-prefix: a100
-special_gpu: a100
+prefix: rtxa6000
+special_gpu: rtxa6000
 file: [src/multimodal.py, src/text_evaluation.py, src/dart.py, src/utils.py, src/modelchat.py, src/batch_inference_chat.py]
-gpu_count: 2
+# gpu_count: 2
