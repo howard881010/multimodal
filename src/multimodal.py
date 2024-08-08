@@ -91,19 +91,19 @@ if __name__ == "__main__":
 
     if case == 1:
         if finetune == "finetune":
-            sub_dir = f"text-text-{postfix}/finetune"
+            sub_dir = f"text-text/finetune"
         # elif finetune == "zeroshot":
         #     sub_dir = f"text-text-{postfix}/zeroshot"
     elif case == 2:
         if finetune == "finetune":
-            sub_dir = f"mixed-mixed-{postfix}/finetune"
+            sub_dir = f"mixed-mixed/finetune"
         # elif finetune == "zeroshot":
         #     sub_dir = f"mixed-mixed-{postfix}/zeroshot"
     
-    # model_chat = MistralChatModel("mistralai/Mistral-7B-Instruct-v0.2", token, dataset)
-    # runs_name = "Mistral-7B-Instruct-v0.2"
-    model_chat = LLMChatModel("Howard881010/climate-cal", token, dataset)
-    runs_name = "Meta-Llama-3.1-8B-Instruct"
+    model_chat = MistralChatModel("mistralai/Mistral-7B-Instruct-v0.2", token, dataset)
+    runs_name = "Mistral-7B-Instruct-v0.2"
+    # model_chat = LLMChatModel("Howard881010/climate-cal", token, dataset)
+    # runs_name = "Meta-Llama-3.1-8B-Instruct"
     
     if dataset == "gas":
         unit = "week"

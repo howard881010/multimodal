@@ -41,13 +41,13 @@ class MistralChatModel(ChatModel):
     def load_model(self, model_name, token, dataset):
         base_model = AutoModelForCausalLM.from_pretrained(
             model_name, token=token, device_map="auto")
-        return base_model
-        # if dataset == "climate":
-        #     return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/climate-cal")
-        # elif dataset == "gas":
-        #     return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/gas-west")
-        # elif dataset == "medical":
-        #     return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/medical")
+        # return base_model
+        if dataset == "climate":
+            return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/climate-cal")
+        elif dataset == "gas":
+            return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/gas-west")
+        elif dataset == "medical":
+            return PeftModel.from_pretrained(base_model, "Howard881010/medical-openai")
         # return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/gas-mixed-mixed-fact")
 
     def chat(self, prompt):
