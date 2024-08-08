@@ -87,14 +87,14 @@ if __name__ == "__main__":
     model_name = sys.argv[3]
     finetune = sys.argv[5]
     split = sys.argv[6]
-    
+
     if case == 1:
-        if dataset == "cal":
+        if dataset == "climate":
             sub_dir = f"text-text-dc/finetune"
         elif dataset == "medical":
             sub_dir = f"text-text/finetune"
     elif case == 2:
-        if dataset == "cal":
+        if dataset == "climate":
             sub_dir = f"mixed-mixed-dc/finetune"
         elif dataset == "medical":
             sub_dir = f"mixed-mixed/finetune"
