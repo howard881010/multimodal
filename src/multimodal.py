@@ -122,7 +122,7 @@ if __name__ == "__main__":
                        "window_size": window_size,
                        "dataset": dataset,
                        "model": model_name + "-" + ("finetune" if finetune == "finetune" else "zeroshot"),
-                       "case": "copy input",
+                       "case": sub_dir,
                        "split": split})
     
     start_time = time.time()
