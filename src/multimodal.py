@@ -91,12 +91,12 @@ if __name__ == "__main__":
 
     if case == 1:
         if finetune == "finetune":
-            sub_dir = f"text-text/finetune"
+            sub_dir = f"text-text-dc/finetune"
         # elif finetune == "zeroshot":
         #     sub_dir = f"text-text-{postfix}/zeroshot"
     elif case == 2:
         if finetune == "finetune":
-            sub_dir = f"mixed-mixed/finetune"
+            sub_dir = f"mixed-mixed-dc/finetune"
         # elif finetune == "zeroshot":
         #     sub_dir = f"mixed-mixed-{postfix}/zeroshot"
     

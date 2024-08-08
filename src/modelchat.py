@@ -43,7 +43,7 @@ class MistralChatModel(ChatModel):
             model_name, token=token, device_map="auto")
         # return base_model
         if dataset == "climate":
-            return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/climate-cal")
+            return PeftModel.from_pretrained(base_model, "Howard881010/climate-dc")
         elif dataset == "gas":
             return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/gas-west")
         elif dataset == "medical":
