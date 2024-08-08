@@ -9,7 +9,7 @@ from utils import open_record_directory, create_result_file
 from modelchat import MistralChatModel, LLMChatModel
 from transformers import set_seed
 from batch_inference_chat import batch_inference_llama_summary
-from text_evaluation import getMeteorScore, getCosineSimilarity, getROUGEScore, getRMSEScore, getBinaryPrecision, getGPTScore
+from text_evaluation import getMeteorScore, getCosineSimilarity, getROUGEScore, getRMSEScore, getGPTScore
 from datasets import load_dataset, DatasetDict, Dataset
 
 def getSummaryOutput(dataset, unit, model_name, model_chat, sub_dir, window_size, split, hf_dataset):
