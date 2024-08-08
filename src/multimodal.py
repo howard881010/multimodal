@@ -75,8 +75,8 @@ if __name__ == "__main__":
     np.random.seed(42)
     set_seed(42)
 
-    if len(sys.argv) != 6:
-        print("Usage: python models/lltime_test.py <dataset> <window_size> <model_name> <case> <finetune>")
+    if len(sys.argv) != 7:
+        print("Usage: python models/lltime_test.py <dataset> <window_size> <model_name> <case> <finetune> <split>")
         sys.exit(1)
 
     token = os.environ.get("HF_TOKEN")
@@ -86,19 +86,18 @@ if __name__ == "__main__":
     case = int(sys.argv[4])
     model_name = sys.argv[3]
     finetune = sys.argv[5]
-    postfix = "cal" if dataset == "climate" else "west"
-    split = "test"
-
+    split = sys.argv[6]
+    
     if case == 1:
-        if finetune == "finetune":
+        if dataset == "cal":
             sub_dir = f"text-text-dc/finetune"
-        # elif finetune == "zeroshot":
-        #     sub_dir = f"text-text-{postfix}/zeroshot"
+        elif dataset == "medical":
+            sub_dir = f"text-text/finetune"
     elif case == 2:
-        if finetune == "finetune":
+        if dataset == "cal":
             sub_dir = f"mixed-mixed-dc/finetune"
-        # elif finetune == "zeroshot":
-        #     sub_dir = f"mixed-mixed-{postfix}/zeroshot"
+        elif dataset == "medical":
+            sub_dir = f"mixed-mixed/finetune"
     
     model_chat = MistralChatModel("mistralai/Mistral-7B-Instruct-v0.2", token, dataset)
     runs_name = "Mistral-7B-Instruct-v0.2"
