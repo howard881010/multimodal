@@ -54,6 +54,7 @@ def getSummaryOutput(dataset, unit, model_name, model_chat, sub_dir, window_size
 def getTextScore(case, num_key_name, split,hf_dataset):
     data_all = load_dataset(hf_dataset)
     data = pd.DataFrame(data_all[split])
+    data = data.iloc[:-1]
 
     meteor_score, nan_rate = getMeteorScore(data, num_key_name)
     cosine_similarity_score = getCosineSimilarity(data, num_key_name)

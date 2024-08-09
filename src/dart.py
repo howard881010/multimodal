@@ -181,8 +181,8 @@ if __name__ == "__main__":
     np.random.seed(42)
     set_seed(42)
 
-    if len(sys.argv) != 5:
-        print("Usage: python models/lltime_test.py <dataset> <window_size> <model_name> <case>")
+    if len(sys.argv) != 6:
+        print("Usage: python models/lltime_test.py <dataset> <window_size> <model_name> <case> <split>")
         sys.exit(1)
 
     token = os.environ.get("HF_TOKEN")
@@ -191,14 +191,13 @@ if __name__ == "__main__":
     window_size = int(sys.argv[2])
     case = int(sys.argv[4])
     model_name = sys.argv[3]
-
-    sub_dir = "mixed-mixed"
+    split = sys.argv[5]
+    
     if case == 1:
         runs_name = "nlinear"
     elif case == 2:
         runs_name = "nlinear_embedding"
 
-    split = 'test'
 
     wandb.init(project="Inference",
                config={"name": "nlinear",
@@ -212,12 +211,15 @@ if __name__ == "__main__":
     if dataset == "gas":
         unit = "week"
         num_key_name = "gas_price"
+        sub_dir = f"mixed-mixed-west"
     elif dataset == "climate":
         unit = "day"
         num_key_name = "temperature"
+        sub_dir = f"mixed-mixed-dc"
     elif dataset == "medical":
         unit = "day"
         num_key_name = "Heart_Rate"
+        sub_dir = f"mixed-mixed"
 
     
     out_filename = getLLMTIMEOutput(
