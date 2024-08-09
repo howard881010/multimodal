@@ -93,13 +93,17 @@ if __name__ == "__main__":
             sub_dir = f"text-text-dc/finetune"
         elif dataset == "medical":
             sub_dir = f"text-text/finetune"
+        elif dataset == "gas":
+            sub_dir = f"text-text-west/finetune"
     elif case == 2:
         if dataset == "climate":
             sub_dir = f"mixed-mixed-dc/finetune"
         elif dataset == "medical":
             sub_dir = f"mixed-mixed/finetune"
+        elif dataset == "gas":
+            sub_dir = f"mixed-mixed-west/finetune"
     
-    model_chat = MistralChatModel("mistralai/Mistral-7B-Instruct-v0.2", token, dataset)
+    # model_chat = MistralChatModel("mistralai/Mistral-7B-Instruct-v0.2", token, dataset)
     runs_name = "Mistral-7B-Instruct-v0.2"
     # model_chat = LLMChatModel("Howard881010/climate-cal", token, dataset)
     # runs_name = "Meta-Llama-3.1-8B-Instruct"
@@ -128,9 +132,9 @@ if __name__ == "__main__":
 
     hf_dataset = f"Howard881010/{dataset}-{window_size}_{unit}-{sub_dir.split('/')[0]}"
 
-    out_filename = getSummaryOutput(
-        dataset, unit, model_name, model_chat, sub_dir, window_size, split, hf_dataset
-    )
+    # out_filename = getSummaryOutput(
+    #     dataset, unit, model_name, model_chat, sub_dir, window_size, split, hf_dataset
+    # )
     meteor_score, nan_rate, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, gpt_score = getTextScore(
         case, num_key_name, split, hf_dataset
     )

@@ -98,7 +98,7 @@ def getGPTScore(df, num_key_name):
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are a helpful assistant. And can give me the semantic score between two summary from 1 to 10, you should only give me the scores"},
+                {"role": "system", "content": "You are a helpful assistant capable of evaluating the semantic similarity between two summaries. The semantic score you provide should be a number between 1 and 10, where 10 represents the highest level of semantic similarity (meaning the summaries convey almost identical information), and 1 represents the lowest level of semantic similarity (meaning the summaries convey entirely different or unrelated information). The score should reflect how closely the meanings and key details of the two summaries align. You should only give me the number, nothing else."},
                 {"role": "user", "content": question},
             ]
         )
