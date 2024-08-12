@@ -56,20 +56,21 @@ def getTextScore(case, num_key_name, split,hf_dataset):
     data = pd.DataFrame(data_all[split])
     data = data.iloc[:-1]
 
-    meteor_score, nan_rate = getMeteorScore(data, num_key_name)
-    cosine_similarity_score = getCosineSimilarity(data, num_key_name)
-    # cosine_similarity_score = np.nan
+    meteor_score = getMeteorScore(data, num_key_name)
+    # cosine_similarity_score = getCosineSimilarity(data, num_key_name)
+    cosine_similarity_score = np.nan
     rouge1, rouge2, rougeL = getROUGEScore(data, num_key_name)
-    gpt_score = getGPTScore(data, num_key_name)
-    # gpt_score = np.nan
+    # gpt_score = getGPTScore(data, num_key_name)
+    gpt_score = np.nan
 
-    if case == 2:
+    if case == "mixed-mixed":
+        print("case 2")
         rmse_loss = getRMSEScore(data, num_key_name)
     else:
         rmse_loss = np.nan
     
 
-    return meteor_score, nan_rate, cosine_similarity_score, rouge1, rouge2, rougeL, rmse_loss, gpt_score
+    return meteor_score, cosine_similarity_score, rouge1, rouge2, rougeL, rmse_loss, gpt_score
 
 if __name__ == "__main__":
     # add seed
@@ -88,36 +89,29 @@ if __name__ == "__main__":
     model_name = sys.argv[3]
     finetune = sys.argv[5]
     split = sys.argv[6]
+    if case == 2:
+        case = "mixed-mixed"
+    elif case == 1:
+        case = "text-text"
 
-    if case == 1:
-        if dataset == "climate":
-            sub_dir = f"text-text-dc/finetune"
-        elif dataset == "medical":
-            sub_dir = f"text-text/finetune"
-        elif dataset == "gas":
-            sub_dir = f"text-text-west/finetune"
-    elif case == 2:
-        if dataset == "climate":
-            sub_dir = f"mixed-mixed-dc/finetune"
-        elif dataset == "medical":
-            sub_dir = f"mixed-mixed/finetune"
-        elif dataset == "gas":
-            sub_dir = f"mixed-mixed-west/finetune"
+    if dataset == "climate":
+        specified_region = "cal"
+        unit = "day"
+        num_key_name = "temperature"
+    elif dataset == "medical":
+        specified_region = None
+        unit = "day"
+        num_key_name = "Heart_Rate"
+    elif dataset == "gas":
+        specified_region = "west"
+        unit = "week"
+        num_key_name = "gas_price"
     
     # model_chat = MistralChatModel("mistralai/Mistral-7B-Instruct-v0.2", token, dataset)
     runs_name = "Mistral-7B-Instruct-v0.2"
     # model_chat = LLMChatModel("Howard881010/climate-cal", token, dataset)
     # runs_name = "Meta-Llama-3.1-8B-Instruct"
-    
-    if dataset == "gas":
-        unit = "week"
-        num_key_name = "gas_price"
-    elif dataset == "climate":
-        unit = "day"
-        num_key_name = "temperature"
-    elif dataset == "medical":
-        unit = "day"
-        num_key_name = "Heart_Rate"
+        
 
 
 
@@ -126,9 +120,14 @@ if __name__ == "__main__":
                        "window_size": window_size,
                        "dataset": dataset,
                        "model": model_name + "-" + ("finetune" if finetune == "finetune" else "zeroshot"),
-                       "case": sub_dir,
+                       "case": case,
+                       "specified_region": specified_region,
                        "split": split})
     
+    if specified_region is not None:
+        sub_dir = f"{case}-{specified_region}"
+    else:
+        sub_dir = case
     start_time = time.time()
 
     hf_dataset = f"Howard881010/{dataset}-{window_size}_{unit}-{sub_dir.split('/')[0]}"
@@ -136,13 +135,12 @@ if __name__ == "__main__":
     # out_filename = getSummaryOutput(
     #     dataset, unit, model_name, model_chat, sub_dir, window_size, split, hf_dataset
     # )
-    meteor_score, nan_rate, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, gpt_score = getTextScore(
+    meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, gpt_score = getTextScore(
         case, num_key_name, split, hf_dataset
     )
 
     
     print("Meteor Scores: ", meteor_score)
-    print("Nan Rate: ", nan_rate)
     print("Cos Sim Scores: ", cos_sim_score)
     print("Rouge1 Scores: ", rouge1)
     print("Rouge2 Scores: ", rouge2)
@@ -150,16 +148,12 @@ if __name__ == "__main__":
     print("RMSE Scores: ", rmse_loss)
     print("GPT Scores: ", np.mean(gpt_score))
     wandb.log({"Meteor Scores": meteor_score})
-    wandb.log({"Nan Rate": nan_rate})
     wandb.log({"Cos Sim Scores": cos_sim_score})
     wandb.log({"Rouge1 Scores": rouge1})
     wandb.log({"Rouge2 Scores": rouge2})
     wandb.log({"RougeL Scores": rougeL})
     wandb.log({"RMSE Scores": rmse_loss})
     wandb.log({"GPT Scores": np.mean(gpt_score)})
-    gpt_score = pd.DataFrame(gpt_score)
-    os.makedirs(f"Results/{dataset}/{window_size}_{unit}/{sub_dir.split('/')[0]}", exist_ok=True)
-    gpt_score.to_csv(f"Results/{dataset}/{window_size}_{unit}/{sub_dir.split('/')[0]}/gpt_score.csv", index=False)
     
     end_time = time.time()
     print("Total Time: " + str(end_time - start_time))

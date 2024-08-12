@@ -15,7 +15,6 @@ nltk.download('wordnet')
 
 
 def getMeteorScore(df, num_key_name):
-    nan_rate = (df['pred_output'] == "Wrong output format").sum() / len(df)
     df.replace("Wrong output format", np.nan, inplace=True)
     df_clean = df.dropna()
     df_text_part = clean_num(df_clean, num_key_name)
@@ -23,7 +22,7 @@ def getMeteorScore(df, num_key_name):
     scores = [meteor([word_tokenize(x['output'])], word_tokenize(x['pred_output'])) for idx, x in df_text_part.iterrows()]
     mean_score=np.mean(scores)
     
-    return mean_score, nan_rate
+    return mean_score
 
 def getCosineSimilarity(df, num_key_name):
     df.replace("Wrong output format", np.nan, inplace=True)

@@ -197,6 +197,20 @@ if __name__ == "__main__":
         runs_name = "nlinear"
     elif case == 2:
         runs_name = "nlinear_embedding"
+    
+    
+    if dataset == "gas":
+        unit = "week"
+        num_key_name = "gas_price"
+        specified_region = "west"
+    elif dataset == "climate":
+        unit = "day"
+        num_key_name = "temperature"
+        specified_region = "cal"
+    elif dataset == "medical":
+        unit = "day"
+        num_key_name = "Heart_Rate"
+        specified_region = None
 
 
     wandb.init(project="Inference",
@@ -205,21 +219,15 @@ if __name__ == "__main__":
                        "dataset": dataset,
                        "model": model_name,
                        "case": runs_name,
+                       "specified_region": specified_region,
                        'split': split})
-    
+
+    if specified_region is not None:
+        sub_dir = f"{case}-{specified_region}"
+    else:
+        sub_dir = case
     start_time = time.time()
-    if dataset == "gas":
-        unit = "week"
-        num_key_name = "gas_price"
-        sub_dir = f"mixed-mixed-west"
-    elif dataset == "climate":
-        unit = "day"
-        num_key_name = "temperature"
-        sub_dir = f"mixed-mixed-dc"
-    elif dataset == "medical":
-        unit = "day"
-        num_key_name = "Heart_Rate"
-        sub_dir = f"mixed-mixed"
+    
 
     
     out_filename = getLLMTIMEOutput(

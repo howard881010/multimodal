@@ -1,32 +1,59 @@
 project_name: multimodal
 model:
-  medical:
+  gpt:
     command: >
       git checkout . &&
       git pull &&
       sudo apt update &&
       sudo apt install -y libaio-dev &&
-      python -m axolotl.cli.preprocess finetune/medical.yml &&
-      accelerate launch -m axolotl.cli.train finetune/medical.yml &&
-      s5cmd cp finetune/medical s3://multimodal_fine_tuning
+      python src/dart.py climate 3 mistral7b 2 validation && 
+      python src/dart.py climate 3 mistral7b 1 validation && 
+      python src/dart.py climate 2 mistral7b 1 validation &&
+      python src/dart.py climate 2 mistral7b 2 validation && 
+      python src/dart.py climate 1 mistral7b 1 validation && 
+      python src/dart.py climate 1 mistral7b 2 validation &&
+      python src/dart.py climate 3 mistral7b 2 test && 
+      python src/dart.py climate 3 mistral7b 1 test && 
+      python src/dart.py climate 2 mistral7b 1 test &&
+      python src/dart.py climate 2 mistral7b 2 test && 
+      python src/dart.py climate 1 mistral7b 1 test && 
+      python src/dart.py climate 1 mistral7b 2 test &&
+      python src/dart.py medical 3 mistral7b 2 validation && 
+      python src/dart.py medical 3 mistral7b 1 validation && 
+      python src/dart.py medical 2 mistral7b 1 validation &&
+      python src/dart.py medical 2 mistral7b 2 validation && 
+      python src/dart.py medical 1 mistral7b 1 validation && 
+      python src/dart.py medical 1 mistral7b 2 validation &&
+      python src/dart.py medical 3 mistral7b 2 test && 
+      python src/dart.py medical 3 mistral7b 1 test && 
+      python src/dart.py medical 2 mistral7b 1 test &&
+      python src/dart.py medical 2 mistral7b 2 test && 
+      python src/dart.py medical 1 mistral7b 1 test && 
+      python src/dart.py medical 1 mistral7b 2 test &&
+      python src/multimodal.py climate 3 mistral7b 2 finetune test && 
+      python src/multimodal.py climate 3 mistral7b 1 finetune test && 
+      python src/multimodal.py climate 2 mistral7b 1 finetune test &&
+      python src/multimodal.py climate 2 mistral7b 2 finetune test && 
+      python src/multimodal.py climate 1 mistral7b 1 finetune test && 
+      python src/multimodal.py climate 1 mistral7b 2 finetune test
     cpu_count: 14
-    gpu_count: 8
+    gpu_count: 6
     memory: 150
 dataset:
-  medical:
+  climate:
     hparam:
       _fn: Howard881010/Yelp-dataset
   mimic:
     hparam:
       _fn: mimic.txt
 run:
-  model: [medical]
-  dataset: [medical]
+  model: [gpt]
+  dataset: [climate]
 # file:
 #   - ./axolotl/examples/llama-2/myconfig.yml
 # hostname_whitelist:
 #   - hcc-chase-shor-c4715.unl.edu
-prefix: rtxa6000
-special_gpu: rtxa6000
-file: [src/multimodal.py, src/text_evaluation.py, src/dart.py, src/utils.py, src/modelchat.py, src/batch_inference_chat.py]
-# gpu_count: 2
+prefix: a100
+special_gpu: a100
+file: [src/multimodal.py, src/utils.py]
+gpu_count: 2

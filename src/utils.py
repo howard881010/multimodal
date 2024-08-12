@@ -40,10 +40,21 @@ def open_result_directory(dataset, sub_dir, unit, filename, model_name, window_s
     return out_path
 
 
+def normalize_together(pred, truth):
+    combined = np.concatenate((pred, truth))
+    min_val = np.min(combined)
+    max_val = np.max(combined)
+    print(min_val, max_val)
+    pred_norm = (pred - min_val) / (max_val - min_val)
+    truth_norm = (truth - min_val) / (max_val - min_val)
+    return pred_norm, truth_norm
+
+
 def rmse(y_pred, y_true):
     y_pred = np.reshape(y_pred, -1)
     y_true = np.reshape(y_true, -1)
-    return np.sqrt(np.mean(np.square(y_pred - y_true)))
+    pred_norm, ground_truth_norm = normalize_together(y_pred, y_true)
+    return np.sqrt(np.mean(np.square(pred_norm - ground_truth_norm)))
 
 def nmae(y_pred, y_true, penalty):
     nmaes = []
