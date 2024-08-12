@@ -1,4 +1,4 @@
-base_model: mistralai/Mistral-7B-Instruct-v0.2
+base_model: meta-llama/Meta-Llama-3.1-8B-Instruct
 model_type: AutoModelForCausalLM
 tokenizer_type: AutoTokenizer
 
@@ -57,6 +57,7 @@ xformers_attention:
 flash_attention: true
 eval_sample_packing: False
 
+
 warmup_steps: 10
 evals_per_epoch: 4
 eval_table_size:
@@ -67,3 +68,5 @@ weight_decay: 0.0
 fsdp:
 fsdp_config:
 seed: 42
+special_tokens:
+  pad_token: "<|end_of_text|>"
