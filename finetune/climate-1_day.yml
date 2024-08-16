@@ -18,7 +18,7 @@ output_dir: ./finetune/output/climate
 adapter: lora
 lora_model_dir:
 
-sequence_len: 3050
+sequence_len: 1150
 sample_packing: false
 pad_to_sequence_len: true
 
@@ -37,7 +37,7 @@ wandb_log_model:
 
 gradient_accumulation_steps: 2
 micro_batch_size: 1
-num_epochs: 20
+num_epochs: 10
 optimizer: paged_adamw_32bit
 lr_scheduler: cosine
 learning_rate: 0.0002
