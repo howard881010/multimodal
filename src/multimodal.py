@@ -12,7 +12,7 @@ from batch_inference_chat import batch_inference_llama_summary
 from text_evaluation import getMeteorScore, getCosineSimilarity, getROUGEScore, getRMSEScore, getGPTScore
 from datasets import load_dataset, DatasetDict, Dataset
 
-def getSummaryOutput(dataset, unit, model_name, model_chat, sub_dir, window_size, split, hf_dataset):
+def getSummaryOutput(dataset, unit, model_name, model_chat, sub_dir, window_size, split, hf_dataset, num_key_name):
     data_all = load_dataset(hf_dataset)
 
     data = pd.DataFrame(data_all[split])
@@ -24,29 +24,31 @@ def getSummaryOutput(dataset, unit, model_name, model_chat, sub_dir, window_size
     logger.remove()
     logger.add(log_path, rotation="10 MB", mode="w")
 
-    results = [{"pred_summary": "Wrong output format"} for _ in range(len(data))]
-    error_idx = batch_inference_llama_summary(results, model_chat, data, logger)
+    results = [{"pred_summary": "Wrong output format", "pred_num": "Wrong output format"} for _ in range(len(data))]
+    error_idx = batch_inference_llama_summary(results, model_chat, data, logger, unit, num_key_name)
 
     print("Error idx: ", error_idx)
     results = pd.DataFrame(results, columns=['pred_summary'])
     results['fut_summary'] = data['output'].apply(str)
     results.to_csv(res_path)
     data['pred_output'] = results['pred_summary']
-    # updated_data = Dataset.from_pandas(data[['input', 'output', 'instruction','pred_output']])
-    # if split == 'validation':
-    #     updated_dataset = DatasetDict({
-    #         'train': data_all['train'], 
-    #         'test': data_all['test'],
-    #         'validation': updated_data
-    #     })
-    # elif split == 'test':
-    #     updated_dataset = DatasetDict({
-    #         'train': data_all['train'], 
-    #         'validation': data_all['validation'],
-    #         'test': updated_data
-    #     })
+    data['pred_time'] = results['pred_num']
+    data.drop(columns=['idx'], inplace=True)
+    updated_data = Dataset.from_pandas(data)
+    if split == 'validation':
+        updated_dataset = DatasetDict({
+            'train': data_all['train'], 
+            'test': data_all['test'],
+            'validation': updated_data
+        })
+    elif split == 'test':
+        updated_dataset = DatasetDict({
+            'train': data_all['train'], 
+            'validation': data_all['validation'],
+            'test': updated_data
+        })
 
-    # updated_dataset.push_to_hub(hf_dataset)
+    updated_dataset.push_to_hub(hf_dataset)
 
     return res_path
 
@@ -97,7 +99,7 @@ if __name__ == "__main__":
     if dataset == "climate":
         specified_region = None
         unit = "day"
-        num_key_name = "temperature"
+        num_key_name = "temp"
     elif dataset == "medical":
         specified_region = None
         unit = "day"
@@ -126,7 +128,7 @@ if __name__ == "__main__":
     hf_dataset = f"Howard881010/{dataset}-{window_size}_{unit}-{sub_dir}"
 
     out_filename = getSummaryOutput(
-        dataset, unit, model_name, model_chat, sub_dir, window_size, split, hf_dataset
+        dataset, unit, model_name, model_chat, sub_dir, window_size, split, hf_dataset, num_key_name
     )
     # meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, gpt_score = getTextScore(
     #     case, num_key_name, split, hf_dataset
