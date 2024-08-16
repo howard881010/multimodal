@@ -102,7 +102,7 @@ def nlinear_darts(train_input, test_input, window_size, train_embedding=None, te
 
 def getLLMTIMEOutput(dataset, unit, sub_dir, window_size, num_key_name, split, case):
     # filename for train
-    hf_dataset = load_dataset(f"Howard881010/{dataset}-{window_size}_{unit}-{sub_dir.split('/')[0]}")
+    hf_dataset = load_dataset(f"Howard881010/{dataset}-{window_size}_{unit}-{sub_dir}")
 
     train_embeddings = []
     test_embeddings = []
@@ -223,12 +223,10 @@ if __name__ == "__main__":
                        'split': split})
 
     if specified_region is not None:
-        sub_dir = f"{case}-{specified_region}"
+        sub_dir = f"mixed-mixed-{specified_region}"
     else:
-        sub_dir = case
+        sub_dir = "mixed-mixed"
     start_time = time.time()
-    
-
     
     out_filename = getLLMTIMEOutput(
         dataset, unit, sub_dir, window_size, num_key_name, split, case)

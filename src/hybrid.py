@@ -90,8 +90,8 @@ def getTextScore(case, num_key_name, split,hf_dataset):
     data = pd.DataFrame(data_all['train'])
 
     meteor_score = getMeteorScore(data)
-    # cosine_similarity_score = getCosineSimilarity(data)
-    cosine_similarity_score = np.nan
+    cosine_similarity_score = getCosineSimilarity(data)
+    # cosine_similarity_score = np.nan
     rouge1, rouge2, rougeL = getROUGEScore(data)
     # gpt_score = getGPTScore(data)
     gpt_score = np.nan
@@ -154,9 +154,6 @@ if __name__ == "__main__":
 
     hf_dataset = "kaimkim/climate_1_1_pred"
 
-    # out_filename = getSummaryOutput(
-    #     dataset, unit, model_name, model_chat, sub_dir, window_size, split, hf_dataset
-    # )
     meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, gpt_score = getTextScore(
         case, num_key_name, split, hf_dataset
     )
