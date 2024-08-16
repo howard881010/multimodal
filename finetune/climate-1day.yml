@@ -1,5 +1,5 @@
 base_model: meta-llama/Meta-Llama-3.1-8B-Instruct
-model_type: LlamaForCausalLM
+model_type: AutoModelForCausalLM
 tokenizer_type: AutoTokenizer
 
 load_in_8bit: false
