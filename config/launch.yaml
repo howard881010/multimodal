@@ -6,10 +6,10 @@ model:
       git pull &&
       sudo apt update &&
       sudo apt install -y libaio-dev &&
-      python -m axolotl.cli.preprocess finetune/climate-14day-mixed.yml &&
-      accelerate launch -m axolotl.cli.train finetune/climate-14day-mixed.yml &&
-      python -m axolotl.cli.preprocess finetune/climate-14day.yml &&
-      accelerate launch -m axolotl.cli.train finetune/climate-14day.yml &&
+      python -m axolotl.cli.preprocess finetune/climate/climate-14day-mixed.yml &&
+      accelerate launch -m axolotl.cli.train finetune/climate/climate-14day-mixed.yml &&
+      python -m axolotl.cli.preprocess finetune/climate/climate-14day.yml &&
+      accelerate launch -m axolotl.cli.train finetune/climate/climate-14day.yml &&
       s5cmd cp finetune/output/climate-14day-mixed s3://multimodal_fine_tuning &&
       s5cmd cp finetune/output/climate-14day s3://multimodal_fine_tuning
     cpu_count: 8
