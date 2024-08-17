@@ -1,30 +1,34 @@
-base_model: meta-llama/Meta-Llama-3.1-8B-Instruct
+base_model: unsloth/Meta-Llama-3.1-8B-Instruct
 model_type: AutoModelForCausalLM
 tokenizer_type: AutoTokenizer
 
 load_in_8bit: false
-load_in_4bit: true
+load_in_4bit: false
 strict: false
 
 chat_template: chatml
 datasets:
-  - path: Howard881010/climate-cal-multi
+  - path: Howard881010/gas-4week
     type: alpaca
     train_on_split: train
 dataset_prepared_path:
-val_set_size: 0.05
-output_dir: ./finetune/output/climate-cal-multi
+output_dir: ./finetune/output/gas-4week
 
-adapter: qlora
+test_datasets:
+  - path: Howard881010/gas-4week
+    split: valid
+    type: alpaca
+
+adapter: lora
 lora_model_dir:
 
-sequence_len: 1900
+sequence_len: 1000
 sample_packing: false
 pad_to_sequence_len: true
 
-lora_r: 32
-lora_alpha: 16
-lora_dropout: 0.05
+lora_r: 8
+lora_alpha: 32
+lora_dropout: 0.1
 lora_target_modules:
 lora_target_linear: true
 lora_fan_in_fan_out:
@@ -32,15 +36,15 @@ lora_fan_in_fan_out:
 wandb_project: finetune
 wandb_entity:
 wandb_watch:
-wandb_name: climate-cal-multi
+wandb_name: gas-4week
 wandb_log_model:
 
-gradient_accumulation_steps: 2
-micro_batch_size: 1
+gradient_accumulation_steps: 1
+micro_batch_size: 4
 num_epochs: 10
 optimizer: paged_adamw_32bit
-lr_scheduler: cosine
-learning_rate: 0.0002
+learning_rate: 0.0001
+max_grad_norm: 1.0
 
 train_on_inputs: false
 group_by_length: false
@@ -49,9 +53,6 @@ fp16:
 tf32: false
 
 gradient_checkpointing: true
-early_stopping_patience:
-resume_from_checkpoint:
-local_rank:
 logging_steps: 1
 xformers_attention: 
 flash_attention: true
@@ -59,11 +60,8 @@ eval_sample_packing: False
 
 warmup_steps: 10
 evals_per_epoch: 4
-eval_table_size:
 saves_per_epoch: 1
-debug:
-deepspeed:
 weight_decay: 0.0
-fsdp:
-fsdp_config:
-seed: 42
+seed: 0
+special_tokens:
+  pad_token: "<|end_of_text|>"
