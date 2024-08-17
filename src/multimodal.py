@@ -28,7 +28,7 @@ def getSummaryOutput(dataset, unit, model_name, model_chat, sub_dir, window_size
     error_idx = batch_inference_llama_summary(results, model_chat, data, logger, unit, num_key_name)
 
     print("Error idx: ", error_idx)
-    results = pd.DataFrame(results, columns=['pred_summary'])
+    results = pd.DataFrame(results, columns=['pred_summary', 'pred_num'])
     results['fut_summary'] = data['output'].apply(str)
     results.to_csv(res_path)
     data['pred_output'] = results['pred_summary']
