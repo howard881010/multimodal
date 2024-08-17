@@ -12,8 +12,12 @@ datasets:
     type: alpaca
     train_on_split: train
 dataset_prepared_path:
-val_set_size: 0.05
 output_dir: ./finetune/output/climate-7day-mixed
+
+test_datasets:
+  - path: Howard881010/climate-7day-mixed
+    split: valid
+    type: alpaca
 
 adapter: lora
 lora_model_dir:
