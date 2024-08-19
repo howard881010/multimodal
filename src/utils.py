@@ -53,36 +53,8 @@ def normalize_together(pred, truth):
 def rmse(y_pred, y_true):
     y_pred = np.reshape(y_pred, -1)
     y_true = np.reshape(y_true, -1)
-    pred_norm, ground_truth_norm = normalize_together(y_pred, y_true)
-    return np.sqrt(np.mean(np.square(pred_norm - ground_truth_norm)))
-
-def nmae(y_pred, y_true, penalty):
-    nmaes = []
-    mae = []
-    for row_A, row_B in zip(y_true, y_pred):
-        # Skip rows where all values are NaN in either A or B
-        if np.isnan(row_A).all() or np.isnan(row_B).all():
-            continue
-        
-        # Calculate MSE for the current row
-        mae = np.mean(np.abs(row_A - row_B))
-        # Normalize the MSE
-        if len(row_A) == 1:
-            value_range = row_A[0]
-        else:
-            value_range = max(row_A) - min(row_A)
-        if value_range == 0:
-            continue
-        nmae = mae / value_range
-        
-        # Append to the list of NMSEs
-        nmaes.append(nmae)
-
-    # Calculate the mean NMSE
-    mean_nmae = np.mean(nmaes)
-    
-    return mean_nmae
-
+    # pred_norm, ground_truth_norm = normalize_together(y_pred, y_true)
+    return np.sqrt(np.mean(np.square(y_pred - y_true)))
 
 def create_batched(data, batch_size):
     for i in range(0, len(data), batch_size):
@@ -93,204 +65,18 @@ def create_result_file(dir, filename):
         os.makedirs(dir)
     return dir + "/" + filename
 
-def bert_model_inference(summaries):
-    # Set float32 matmul precision to utilize Tensor Cores
-    torch.set_float32_matmul_precision('high')  # You can also use 'medium' for less precision but potentially higher performance
-
-    # Load pre-trained model and tokenizer
-    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-    model = BertModel.from_pretrained('bert-base-uncased')
-
-    # Use DataParallel to wrap the model if multiple GPUs are available
-    if torch.cuda.device_count() > 1:
-        print("Using {} GPUs".format(torch.cuda.device_count()))
-        model = torch.nn.DataParallel(model)
-
-    # Move model to the available GPU(s)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print("Using device:", device)
-    model = model.to(device)
-    print(type(summaries[0]))
-
-    # Tokenize summaries
-    inputs = tokenizer(summaries, padding=True, truncation=True, return_tensors="pt")
-    input_ids = inputs["input_ids"]
-    attention_mask = inputs["attention_mask"]
-
-    # Define batch size
-    batch_size = 8
-
-    # Function to get batches
-    def get_batches(input_ids, attention_mask, batch_size):
-        for i in range(0, len(input_ids), batch_size):
-            yield input_ids[i:i + batch_size], attention_mask[i:i + batch_size]
-
-    # Create batches
-    batches = list(get_batches(input_ids, attention_mask, batch_size))
-
-    # Perform inference on each batch and collect pooled outputs
-    pooled_outputs = []
-    model.eval()
-    with torch.no_grad():
-        for batch in batches:
-            input_ids_batch, attention_mask_batch = batch
-            input_ids_batch = input_ids_batch.to(device)
-            attention_mask_batch = attention_mask_batch.to(device)
-            outputs = model(input_ids_batch, attention_mask=attention_mask_batch)
-            pooled_output = outputs.pooler_output.cpu().numpy()
-            pooled_outputs.append(pooled_output)
-
-    pooled_outputs = np.vstack(pooled_outputs)  # Shape: (num_samples, 768)
-
-    return pooled_outputs
-
-def add_idx(example, idx):
-    example['idx'] = idx
-    return example
-
-def split_data(file_path, train_ratio=0.8, validation_ratio=0.1, test_ratio=0.1):
-    # Read the CSV file
-    data = pd.read_csv(file_path)
+def find_text_parts(text, num_pattern):
+    modified_text = re.sub(num_pattern, "", text)
     
-    # Calculate the validation and test sizes
-    val_size = validation_ratio / (test_ratio + validation_ratio)
-    
-    # Split the data into train and temporary datasets
-    train_data, temp_data = train_test_split(data, test_size=(1 - train_ratio), random_state=42, shuffle=False)
-    
-    # Split the temporary dataset into validation and test datasets
-    validation_data, test_data = train_test_split(temp_data, test_size=val_size, random_state=42, shuffle=False)
-    
-    # Save the datasets
-    
-    dir = file_path.split('/')[:-1]
-    dir = '/'.join(dir)
-    file_name = file_path.split('/')[-1]
-    train_data.to_csv(f'{dir}/train_{file_name}', index=False)
-    validation_data.to_csv(f'{dir}/val_{file_name}', index=False)
-    test_data.to_csv(f'{dir}/test_{file_name}', index=False)
+    return modified_text
 
-    return
+def find_num_parts(text, num_pattern):
+    num_matches = re.findall(num_pattern, text)
+    formatted_nums = [[float(temp)] for temp in num_matches]
 
+    return formatted_nums
 
-def convert_to_parquet(dataframe_test, dataframe_train, dataframe_val):
-    train = pd.concat(dataframe_train)
-    test = pd.concat(dataframe_test)
-    val = pd.concat(dataframe_val)
+def split_text(text, text_pattern):
+    text_matches = re.findall(text_pattern, text)
 
-    train = train.reset_index(drop=True)
-    test = test.reset_index(drop=True)
-    val = val.reset_index(drop=True)
-
-    train_dataset = Dataset.from_pandas(train[['input', 'output', 'instruction','pred_output']])
-    test_dataset = Dataset.from_pandas(test[['input', 'output', 'instruction','pred_output']])
-    val_dataset = Dataset.from_pandas(val[['input', 'output', 'instruction','pred_output']])
-    dataset_dict = DatasetDict({
-        'train': train_dataset,
-        'validation': val_dataset,
-        'test': test_dataset
-    })
-
-    return dataset_dict
-
-def load_from_huggingface(dataset, dataset_path, case, units):
-    dataset = load_dataset(dataset_path)
-
-    if not os.path.exists(f"../Data/{dataset}/{units}/{case}"):
-        os.makedirs(f"../Data/{dataset}/{units}/{case}")
-
-# Access the train split
-    for split in ['train', 'validation', 'test']:
-        train_dataset = dataset[split]
-
-        # Convert the dataset to a Pandas DataFrame
-        df = train_dataset.to_pandas()
-        # Save the DataFrame to a CSV file
-        df.to_csv(f"../Data/{dataset}/{units}/{case}/{split}_all.csv", index=False)
-    
-    return 
-
-def combine_window(df, window_size, unit):
-    json_data = []
-    end_index = len(df) - window_size
-
-    for i in range(end_index):
-        combined_input = {}
-        combine_output = {}
-        
-        for j in range(window_size):
-            input_key = f"{unit}_{j+1}"
-            combined_input[input_key] = json.loads(df.iloc[i + j]['input'])
-
-        output_key = f"{unit}_{window_size+1}"
-        
-        combine_output[output_key] = json.loads(df.iloc[i + window_size - 1]['output'])
-
-        combine_json = {
-            "input": json.dumps(combined_input),
-            "output": json.dumps(combine_output),
-            "instruction": df.iloc[i]['instruction'],
-            "pred_output": df.iloc[i]['pred_output']
-        }
-        json_data.append(combine_json)
-    
-    json_df = pd.DataFrame(json_data)
-    return json_df
-
-def convertJSONToList(row, idx, key_name, col_name, dtype):
-    try:
-        res = json.loads(row[col_name])
-        num_dict_list = [ele[key_name] for ele in res.values()]
-        if any(num is None for num in num_dict_list):
-            print(f"Null value detected in row: {idx}")
-            return 
-        if all(isinstance(num, dtype) for num in num_dict_list):
-            return num_dict_list
-        else:
-            num_list = [list(num_dict.values()) for num_dict in num_dict_list]
-            return num_list
-    except (json.JSONDecodeError, TypeError, KeyError) as e:
-            print(f"An error occurred: {e}, row: {idx}")
-    
-def clean_num(df, num_key_name):
-    for idx, row in df.iterrows():
-        fut_res = json.loads(row['output'])
-        for key in fut_res.keys():
-            if num_key_name in fut_res[key].keys():
-                del fut_res[key][num_key_name]
-                df.at[idx, 'output'] = json.dumps(fut_res)
-        try:
-            pred_res = json.loads(row['pred_output'])
-            for key in pred_res.keys():
-                if num_key_name in pred_res[key].keys():
-                    del pred_res[key][num_key_name]
-                    df.at[idx, 'pred_output'] = json.dumps(pred_res)
-        except (json.JSONDecodeError, TypeError, KeyError) as e:
-            print(f"An error occurred: {e} at pred output, row: {idx}")
-
-    return df
-
-def combine_window_multiple_output(df, window_size, unit):
-    json_data = []
-    end_index = len(df) - 2 * window_size + 1
-
-    for i in range(end_index):
-        combined_input = {}
-        combine_output = {}
-        
-        for j in range(window_size):
-            input_key = f"{unit}_{j+1}"
-            combined_input[input_key] = json.loads(df.iloc[i + j]['input'])
-            output_key = f"{unit}_{j+window_size+1}"
-            combine_output[output_key] = json.loads(df.iloc[i + window_size + j - 1]['output'])
-
-        combine_json = {
-            "input": json.dumps(combined_input),
-            "output": json.dumps(combine_output),
-            "instruction": df.iloc[i]['instruction'],
-            "pred_output": df.iloc[i]['pred_output']
-        }
-        json_data.append(combine_json)
-    
-    json_df = pd.DataFrame(json_data)
-    return json_df
+    return text_matches

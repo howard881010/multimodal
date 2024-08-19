@@ -9,98 +9,51 @@ import os
 
 
 class ChatModel:
-    def __init__(self, model_name, token, dataset):
+    def __init__(self, model_name, token, dataset, window_size):
         self.model_name = model_name
+        self.window_size = window_size
         self.token = token
-        self.tokenizer = self.load_tokenizer(model_name)
+        self.tokenizer = self.load_tokenizer()
         self.tokenizer.pad_token = self.tokenizer.eos_token
         self.dataset = dataset
 
-    def load_model(self, model_name):
+    def load_model(self):
         raise NotImplementedError("Subclasses must implement this method")
 
-    def load_tokenizer(self, model_name):
+    def load_tokenizer(self):
         raise NotImplementedError("Subclasses must implement this method")
 
     def chat(self, prompt):
         raise NotImplementedError("Subclasses must implement this method")
-
-
-class MistralChatModel(ChatModel):
-    def __init__(self, model_name, token, dataset):
-        super().__init__(model_name, token, dataset)
-        self.model = self.load_model(model_name, token, dataset)
-        self.tokenizer = self.load_tokenizer(model_name)
-        self.device = next(self.model.parameters()).device
-
-    def load_model(self, model_name, token, dataset):
-        base_model = AutoModelForCausalLM.from_pretrained(
-            model_name, token=token, device_map="auto")
-        # return base_model
-        if dataset == "climate":
-            return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/climate-cal")
-        elif dataset == "gas":
-            return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/gas-west")
-        elif dataset == "medical":
-            return PeftModel.from_pretrained(base_model, "Howard881010/medical-openai")
-        # return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/gas-mixed-mixed-fact")
-
-    def load_tokenizer(self, model_name):
-        return AutoTokenizer.from_pretrained(model_name, device_map="auto")
-    def chat(self, prompt):
-        new_prompt = self.tokenizer.apply_chat_template(
-            prompt, tokenize=False)
-
-        model_inputs = self.tokenizer(
-            new_prompt, return_tensors="pt", padding=True)
-        # # Get the device of the model
-        model_inputs = model_inputs.to(self.device)
-
-        # Generate text using the model
-        with autocast():
-            generated_ids = self.model.generate(
-                **model_inputs, max_new_tokens=2048)
-
-        # Decode generated ids to text
-        output_text = self.tokenizer.batch_decode(
-            generated_ids, skip_special_tokens=True)
-
-        return output_text
-
 
 class LLMChatModel(ChatModel):
-    def __init__(self, model_name, token, dataset):
-        super().__init__(model_name, token, dataset)
-        self.model = self.load_model(model_name, token, dataset)
-        self.tokenizer = self.load_tokenizer(model_name)
+    def __init__(self, model_name, token, dataset, window_size):
+        super().__init__(model_name, token, dataset, window_size)
+        self.model = self.load_model()
+        self.tokenizer = self.load_tokenizer()
         self.tokenizer.pad_token = self.tokenizer.eos_token
         self.device = next(self.model.parameters()).device
 
-    def load_model(self, model_name, token, dataset):
+    def load_model(self):
         base_model = AutoModelForCausalLM.from_pretrained(
-            model_name, token=token, device_map="auto")
+            self.model_name, token=self.token, device_map="auto")
         # return base_model
-        if dataset == "climate":
-            return PeftModel.from_pretrained(base_model, "Howard881010/climate-1_day")
-        elif dataset == "gas":
-            return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/gas-west")
-        elif dataset == "medical":
-            return PeftModel.from_pretrained(base_model, "Rose-STL-Lab/medical")
-    def load_tokenizer(self, model_name):
-        return AutoTokenizer.from_pretrained(model_name, device_map="auto", padding_side="left")
+        if self.dataset == "climate":
+            return PeftModel.from_pretrained(base_model, f"Howard881010/climate-{self.window_size}day-mixed")
+    def load_tokenizer(self):
+        return AutoTokenizer.from_pretrained(self.model_name, device_map="auto", padding_side="left")
     def chat(self, prompt):
         new_prompt = self.tokenizer.apply_chat_template(
             prompt, tokenize=False)
         model_inputs = self.tokenizer(
             new_prompt, return_tensors="pt", padding="longest")
-        # Get the device of the model
         model_inputs = model_inputs.to(self.device)
 
         terminators = [
             self.tokenizer.eos_token_id,
             self.tokenizer.convert_tokens_to_ids("<|eot_id|>")
         ]
-        print("before generate")
+
         # Generate text using the model
         with torch.no_grad():
             generate_ids = self.model.generate(
