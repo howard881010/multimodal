@@ -37,8 +37,8 @@ class LLMChatModel(ChatModel):
     def load_model(self):
         base_model = AutoModelForCausalLM.from_pretrained(
             self.model_name, token=self.token, device_map="auto")
-        return base_model
-        # return PeftModel.from_pretrained(base_model, f"Howard881010/{self.dataset}")
+        # return base_model
+        return PeftModel.from_pretrained(base_model, f"Howard881010/{self.dataset}")
     def load_tokenizer(self):
         return AutoTokenizer.from_pretrained(self.model_name, device_map="auto", padding_side="left")
     def chat(self, prompt):
