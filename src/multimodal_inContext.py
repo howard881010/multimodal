@@ -8,7 +8,7 @@ from loguru import logger
 from utils import open_record_directory, find_text_parts, find_num_parts
 from modelchat import LLMChatModel
 from transformers import set_seed
-from batch_inference_chat import batch_inference
+from batch_inference_chat import batch_inference_inContext
 from text_evaluation import getMeteorScore, getCosineSimilarity, getROUGEScore, getRMSEScore, getGPTScore
 from datasets import load_dataset, DatasetDict, Dataset
 
@@ -25,13 +25,12 @@ def getSummaryOutput(dataset, unit, model_name, model_chat, sub_dir, window_size
     logger.add(log_path, rotation="10 MB", mode="w")
 
     results = [{"pred_output": "Wrong output format", "pred_time": "Wrong output format"} for _ in range(len(data))]
-    batch_inference(results, model_chat, data, logger, num_pattern)
+    batch_inference_inContext(results, model_chat, data, logger, num_pattern)
 
     results = pd.DataFrame(results, columns=['pred_output'])
     results['fut_summary'] = data['output'].apply(str)
     results.to_csv(res_path)
     data['pred_output'] = results['pred_output']
-    # data['pred_time'] = results['pred_time']
     data.drop(columns=['idx'], inplace=True)
 
     updated_data = Dataset.from_pandas(data)
@@ -65,8 +64,8 @@ def getTextScore(case, split, hf_dataset, text_pattern, number_pattern, window_s
 
     
     meteor_score = getMeteorScore(data)
-    cosine_similarity_score = getCosineSimilarity(data)
-    # cosine_similarity_score = np.nan
+    # cosine_similarity_score = getCosineSimilarity(data)
+    cosine_similarity_score = np.nan
     rouge1, rouge2, rougeL = getROUGEScore(data)
     # gpt_score = getGPTScore(data)
     gpt_score = np.nan
@@ -103,10 +102,10 @@ if __name__ == "__main__":
         num_key_name = "gas_price"
     
     if case == 2:
-        hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-mixed"
+        hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-mixed-inContext"
         sub_dir = "mixed"
     elif case == 1:
-        hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}"
+        hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-inContext"
         sub_dir = "text"
 
     num_pattern = fr"{unit}_\d+_{num_key_name}: '([\d.]+)'"
@@ -117,7 +116,7 @@ if __name__ == "__main__":
     wandb.init(project="Inference-new",
                config={"window_size": f"{window_size}-{window_size}",
                        "dataset": dataset,
-                       "model": model_name + ("mixed" if case == 2 else "")})
+                       "model": model_name + "InContext" + ("mixed" if case == 2 else "")})
     start_time = time.time()
 
     getSummaryOutput(

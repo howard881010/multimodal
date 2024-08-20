@@ -3,7 +3,7 @@ import json
 from tqdm import tqdm
 import re
 
-def batch_inference_llama_summary(
+def batch_inference(
     results,
     model_chat,
     data,
@@ -11,8 +11,6 @@ def batch_inference_llama_summary(
     num_pattern,
 ):
     batches = list(create_batched(data, 24))
-    example_input = data.iloc[0]['input']
-    example_output = data.iloc[0]['output']
 
     for batch in tqdm(batches):
         prompt, cur_idx = create_batch_prompt(batch)
@@ -34,6 +32,35 @@ def batch_inference_llama_summary(
             results[cur_idx[index]] = (
                     {"pred_output": response, "pred_time": formatted_nums})
 
+def batch_inference_inContext(
+    results,
+    model_chat,
+    data,
+    logger,
+    num_pattern,
+):
+    batches = list(create_batched(data, 16))
+    example_input = data.iloc[0]['input']
+    example_output = data.iloc[0]['output']
+
+    for batch in tqdm(batches):
+        prompt, cur_idx = create_batch_prompt_in_Context(batch, example_input, example_output)
+        output_texts = model_chat.chat(prompt)
+
+        for index, output_text in enumerate(output_texts):
+            response = output_text.split("assistant")[-1]
+
+            logger.info("Content for row: " + str(cur_idx[index]) + " Content: " + prompt[index][-1]['content'])
+            logger.info("Response for row: " + str(cur_idx[index]) +  " Content: " + response)
+
+            num_matches = re.findall(num_pattern, response)
+            if len(num_matches) == 0:
+                formatted_nums = []
+            else:
+                formatted_nums = [[float(temp)] for temp in num_matches]
+            
+            results[cur_idx[index]] = (
+                    {"pred_output": response, "pred_time": formatted_nums})
 
 def create_batch_prompt(data):
     prompt = []
@@ -51,7 +78,7 @@ def create_batch_prompt_in_Context(data, example_input, example_output):
     cur_idx = []
 
     for index, row in data.iterrows():
-        content = [{"role": "system", "content": example_input}, {"role": "user", "content": example_output}, {"role": "user", "content": row['input']}]
+        content = [{"role": "system", "content": row['instruction']}, {"role": "user", "content": example_input}, {"role": "assistant", "content": example_output}, {"role": "user", "content": row['input']}]
         prompt.append(content)
         cur_idx.append(row['idx'])
 
