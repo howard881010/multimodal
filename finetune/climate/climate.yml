@@ -41,8 +41,8 @@ wandb_log_model:
 
 gradient_accumulation_steps: 1
 micro_batch_size: 4
-num_epochs: 5
-optimizer: paged_adamw_32bit
+num_epochs: 3
+optimizer: adamw_hf
 learning_rate: 0.0001
 max_grad_norm: 1.0
 
