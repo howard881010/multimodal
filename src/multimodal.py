@@ -5,7 +5,7 @@ import numpy as np
 import wandb
 import time
 from loguru import logger
-from utils import open_record_directory
+from utils import open_record_directory, find_text_parts, find_num_parts
 from modelchat import LLMChatModel
 from transformers import set_seed
 from batch_inference_chat import batch_inference_llama_summary
@@ -19,61 +19,60 @@ def getSummaryOutput(dataset, unit, model_name, model_chat, sub_dir, window_size
     data['idx'] = data.index
 
     log_path, res_path = open_record_directory(
-        dataset=dataset, sub_dir=sub_dir, unit=unit, filename=split, model_name=model_name, window_size=window_size)
+        dataset, unit, split, model_name, sub_dir, window_size)
 
     logger.remove()
     logger.add(log_path, rotation="10 MB", mode="w")
 
     results = [{"pred_output": "Wrong output format", "pred_time": "Wrong output format"} for _ in range(len(data))]
-    error_idx = batch_inference_llama_summary(results, model_chat, data, logger, unit, num_pattern)
+    batch_inference_llama_summary(results, model_chat, data, logger, num_pattern)
 
-    print("Error idx: ", error_idx)
-    results = pd.DataFrame(results, columns=['pred_output', 'pred_time'])
+    results = pd.DataFrame(results, columns=['pred_output'])
     results['fut_summary'] = data['output'].apply(str)
     results.to_csv(res_path)
     data['pred_output'] = results['pred_output']
-    data['pred_time'] = results['pred_time']
+    # data['pred_time'] = results['pred_time']
     data.drop(columns=['idx'], inplace=True)
-    print(data.head(5))
-    # updated_data = Dataset.from_pandas(data)
-    # if split == 'validation':
-    #     updated_dataset = DatasetDict({
-    #         'train': data_all['train'], 
-    #         'test': data_all['test'],
-    #         'validation': updated_data
-    #     })
-    # elif split == 'test':
-    #     updated_dataset = DatasetDict({
-    #         'train': data_all['train'], 
-    #         'validation': data_all['validation'],
-    #         'test': updated_data
-    #     })
 
-    # updated_dataset.push_to_hub(hf_dataset)
-
-    return res_path
+    updated_data = Dataset.from_pandas(data)
+    if split == 'validation':
+        updated_dataset = DatasetDict({
+            'train': data_all['train'], 
+            'test': data_all['test'],
+            'valid': updated_data
+        })
+    elif split == 'test':
+        updated_dataset = DatasetDict({
+            'train': data_all['train'], 
+            'valid': data_all['valid'],
+            'test': updated_data
+        })
+    updated_dataset.push_to_hub(hf_dataset)
 
 
-def getTextScore(case, num_key_name, split,hf_dataset):
+def getTextScore(case, split, hf_dataset, text_pattern, number_pattern, window_size):
     data_all = load_dataset(hf_dataset)
     data = pd.DataFrame(data_all[split])
-    data = data.iloc[:-1]
-
-    meteor_score = getMeteorScore(data, num_key_name)
-    # cosine_similarity_score = getCosineSimilarity(data, num_key_name)
-    cosine_similarity_score = np.nan
-    rouge1, rouge2, rougeL = getROUGEScore(data, num_key_name)
-    # gpt_score = getGPTScore(data, num_key_name)
-    gpt_score = np.nan
-
-    if case == "mixed-mixed":
-        print("case 2")
-        rmse_loss = getRMSEScore(data, num_key_name)
+    if case == 2:
+        data['pred_time'] = data['pred_output'].apply(lambda x: find_num_parts(x, number_pattern, window_size))
+        data['pred_output'] = data['pred_output'].apply(lambda x: find_text_parts(x, number_pattern))
+        data_clean = data.dropna()
+        drop_rate = (len(data) - len(data_clean)) / len(data)
+        rmse_loss = getRMSEScore(data_clean)
     else:
         rmse_loss = np.nan
+        drop_rate = np.nan
+
+    
+    meteor_score = getMeteorScore(data)
+    cosine_similarity_score = getCosineSimilarity(data)
+    # cosine_similarity_score = np.nan
+    rouge1, rouge2, rougeL = getROUGEScore(data)
+    # gpt_score = getGPTScore(data)
+    gpt_score = np.nan
     
 
-    return meteor_score, cosine_similarity_score, rouge1, rouge2, rougeL, rmse_loss, gpt_score
+    return meteor_score, cosine_similarity_score, rouge1, rouge2, rougeL, rmse_loss, gpt_score, drop_rate
 
 if __name__ == "__main__":
     # add seed
@@ -110,31 +109,32 @@ if __name__ == "__main__":
         hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}"
         sub_dir = "text"
 
-    num_pattern = fr"<{unit}_\d+_{num_key_name}> : '([\d.]+)'"
-    text_pattern = fr'(<{unit}_\d+_date>[^<]*<{unit}_\d+_{text_key_name}>[^<]*)' 
+    num_pattern = fr"{unit}_\d+_{num_key_name}: '([\d.]+)'"
+    text_pattern = fr'(?={unit}_\d+_date:)'
     
     model_chat = LLMChatModel("unsloth/Meta-Llama-3.1-8B-Instruct", token, dataset, window_size)
     
-    # wandb.init(project="Inference-new",
-    #            config={"window_size": f"{window_size}-{window_size}",
-    #                    "dataset": dataset,
-    #                    "model": model_name})
+    wandb.init(project="Inference-new",
+               config={"window_size": f"{window_size}-{window_size}",
+                       "dataset": dataset,
+                       "model": model_name})
     start_time = time.time()
 
-    out_filename = getSummaryOutput(
+    getSummaryOutput(
         dataset, unit, model_name, model_chat, sub_dir, window_size, split, hf_dataset, num_pattern
     )
-    # meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, gpt_score = getTextScore(
-    #     case, num_key_name, split, hf_dataset
-    # )
+    meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, gpt_score, drop_rate = getTextScore(
+        case, split, hf_dataset, text_pattern, num_pattern, window_size
+    )
 
-    # wandb.log({"Meteor Scores": meteor_score})
-    # wandb.log({"Cos Sim Scores": cos_sim_score})
-    # wandb.log({"Rouge1 Scores": rouge1})
-    # wandb.log({"Rouge2 Scores": rouge2})
-    # wandb.log({"RougeL Scores": rougeL})
-    # wandb.log({"RMSE Scores": rmse_loss})
-    # wandb.log({"GPT Scores": np.mean(gpt_score)})
+    wandb.log({"Meteor Scores": meteor_score})
+    wandb.log({"Cos Sim Scores": cos_sim_score})
+    wandb.log({"Rouge1 Scores": rouge1})
+    wandb.log({"Rouge2 Scores": rouge2})
+    wandb.log({"RougeL Scores": rougeL})
+    wandb.log({"RMSE Scores": rmse_loss})
+    wandb.log({"GPT Scores": np.mean(gpt_score)})
+    wandb.log({"Drop Rate": f"{drop_rate*100:.2f}%"})
     
     end_time = time.time()
     print("Total Time: " + str(end_time - start_time))

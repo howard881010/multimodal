@@ -38,8 +38,7 @@ class LLMChatModel(ChatModel):
         base_model = AutoModelForCausalLM.from_pretrained(
             self.model_name, token=self.token, device_map="auto")
         # return base_model
-        if self.dataset == "climate":
-            return PeftModel.from_pretrained(base_model, f"Howard881010/climate-{self.window_size}day-mixed")
+        return PeftModel.from_pretrained(base_model, f"Howard881010/{self.dataset}")
     def load_tokenizer(self):
         return AutoTokenizer.from_pretrained(self.model_name, device_map="auto", padding_side="left")
     def chat(self, prompt):

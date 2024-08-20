@@ -66,15 +66,16 @@ def create_result_file(dir, filename):
     return dir + "/" + filename
 
 def find_text_parts(text, num_pattern):
-    modified_text = re.sub(num_pattern, "", text)
+    modified_text = re.sub(num_pattern, "\r", text)
     
     return modified_text
 
-def find_num_parts(text, num_pattern):
+def find_num_parts(text, num_pattern, window_size):
     num_matches = re.findall(num_pattern, text)
-    formatted_nums = [[float(temp)] for temp in num_matches]
-
-    return formatted_nums
+    if len(num_matches) != window_size:
+        return np.nan
+    else:
+        return  [[float(temp)] for temp in num_matches]
 
 def split_text(text, text_pattern):
     text_matches = re.findall(text_pattern, text)

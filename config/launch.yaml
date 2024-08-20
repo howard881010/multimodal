@@ -6,17 +6,11 @@ model:
       git pull &&
       sudo apt update &&
       sudo apt install -y libaio-dev &&
-      python -m axolotl.cli.preprocess finetune/climate/climate-1day-mixed.yml &&
-      accelerate launch -m axolotl.cli.train finetune/climate/climate-1day-mixed.yml &&
-      s5cmd cp finetune/output/climate-1day-mixed s3://multimodal_fine_tuning &&
-      python -m axolotl.cli.preprocess finetune/climate/climate-2day-mixed.yml &&
-      accelerate launch -m axolotl.cli.train finetune/climate/climate-2day-mixed.yml &&
-      s5cmd cp finetune/output/climate-2day-mixed s3://multimodal_fine_tuning &&
-      python -m axolotl.cli.preprocess finetune/climate/climate-3day-mixed.yml &&
-      accelerate launch -m axolotl.cli.train finetune/climate/climate-3day-mixed.yml &&
-      s5cmd cp finetune/output/climate-3day-mixed s3://multimodal_fine_tuning
+      python -m axolotl.cli.preprocess finetune/climate/climate.yml &&
+      accelerate launch -m axolotl.cli.train finetune/climate/climate.yml &&
+      s5cmd cp finetune/output/climate s3://multimodal_fine_tuning
     cpu_count: 10
-    gpu_count: 6
+    gpu_count: 8
     memory: 200
 dataset:
   climate:
@@ -32,7 +26,7 @@ run:
 #   - ./axolotl/examples/llama-2/myconfig.yml
 # hostname_whitelist:
 #   - hcc-chase-shor-c4715.unl.edu
-prefix: climate123
-special_gpu: a100
+prefix: climate1
+special_gpu: rtxa6000
 # file: [src/multimodal.py, src/utils.py, src/dart.py, src/modelchat.py, src/hybrid.py, src/batch_inference_chat.py]
 # gpu_count: 2

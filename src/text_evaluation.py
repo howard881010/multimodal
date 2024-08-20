@@ -16,10 +16,7 @@ nltk.download('wordnet')
 
 def getRMSEScore(df):
     fut_values = df['output_time'].tolist()
-    
     pred_values = df['pred_time'].tolist()
-    print(type(fut_values[0]))
-    print(type(pred_values[0]))
     rmse_loss = rmse(np.array(fut_values), np.array(pred_values))
     
     return rmse_loss
