@@ -40,7 +40,7 @@ wandb_name: climate
 wandb_log_model:
 
 gradient_accumulation_steps: 1
-micro_batch_size: 4
+micro_batch_size: 3
 num_epochs: 3
 optimizer: adamw_hf
 learning_rate: 0.0001
