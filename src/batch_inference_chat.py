@@ -39,7 +39,7 @@ def batch_inference_inContext(
     logger,
     num_pattern,
 ):
-    batches = list(create_batched(data, 16))
+    batches = list(create_batched(data, 8))
     example_input = data.iloc[0]['input']
     example_output = data.iloc[0]['output']
 
