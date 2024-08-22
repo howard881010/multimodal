@@ -9,9 +9,9 @@ import os
 
 
 class ChatModel:
-    def __init__(self, model_name, token, dataset, window_size):
+    def __init__(self, model_name, token, dataset, zeroshot):
         self.model_name = model_name
-        self.window_size = window_size
+        self.zeroshot = zeroshot
         self.token = token
         self.tokenizer = self.load_tokenizer()
         self.tokenizer.pad_token = self.tokenizer.eos_token
@@ -27,8 +27,8 @@ class ChatModel:
         raise NotImplementedError("Subclasses must implement this method")
 
 class LLMChatModel(ChatModel):
-    def __init__(self, model_name, token, dataset, window_size):
-        super().__init__(model_name, token, dataset, window_size)
+    def __init__(self, model_name, token, dataset, zeroshot):
+        super().__init__(model_name, token, dataset, zeroshot)
         self.model = self.load_model()
         self.tokenizer = self.load_tokenizer()
         self.tokenizer.pad_token = self.tokenizer.eos_token
@@ -37,8 +37,10 @@ class LLMChatModel(ChatModel):
     def load_model(self):
         base_model = AutoModelForCausalLM.from_pretrained(
             self.model_name, token=self.token, device_map="auto")
-        # return base_model
-        return PeftModel.from_pretrained(base_model, f"Howard881010/{self.dataset}")
+        if self.zeroshot == True:
+            return base_model
+        else:
+            return PeftModel.from_pretrained(base_model, f"Howard881010/{self.dataset}")
     def load_tokenizer(self):
         return AutoTokenizer.from_pretrained(self.model_name, device_map="auto", padding_side="left")
     def chat(self, prompt):
