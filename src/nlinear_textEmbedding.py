@@ -100,10 +100,10 @@ if __name__ == "__main__":
     text_pattern =fr'({unit}_\d+_date:\s*\S+\s+{unit}_\d+_{text_key_name}:.*?)(?=\s{unit}_\d+_date|\Z)'
     print(text_pattern)
 
-    # wandb.init(project="Inference-new",
-    #            config={"window_size": f"{window_size}-{window_size}",
-    #                    "dataset": dataset,
-    #                    "model": model_name})
+    wandb.init(project="Inference-new",
+               config={"window_size": f"{window_size}-{window_size}",
+                       "dataset": dataset,
+                       "model": model_name})
     start_time = time.time()
     
     out_filename = getLLMTIMEOutput(
@@ -112,7 +112,7 @@ if __name__ == "__main__":
         out_filename
     )
     print("RMSE Scores: ", out_rmse)
-    # wandb.log({"RMSE Scores": out_rmse})
+    wandb.log({"RMSE Scores": out_rmse})
 
     end_time = time.time()
     print("Total Time: " + str(end_time - start_time))
