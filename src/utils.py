@@ -1,22 +1,10 @@
 import re
 import numpy as np
 import os
-import torch
-from transformers import BertTokenizer, BertModel
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from datasets import load_dataset, DatasetDict, Dataset
-import json
+import yaml
+from transformers import AutoTokenizer
 
 
-def is_valid_sequence(sequence, window_size):
-    numbers = re.findall(r"\d+\.\d+", sequence)
-    try:
-        # Attempt to convert the sequence to floats and check its length
-        return len(numbers) == window_size
-    except ValueError:
-        # If conversion fails or length is incorrect, return False
-        return False
     
 def open_record_directory(dataset, unit, filename, model_name, sub_dir, window_size):
 
@@ -81,3 +69,30 @@ def split_text(text, text_pattern):
     text_matches = re.findall(text_pattern, text)
 
     return text_matches
+
+def load_config(yaml_path):
+    with open(yaml_path, 'r') as yaml_file:
+        cfg = yaml.load(yaml_file, Loader=yaml.FullLoader)
+    return cfg
+
+def apply_chat_template(tokenizer, instruction, input_text, output_text):
+    prompt = [
+        {"role": "system", "content": instruction},
+        {"role": "user", "content": input_text},
+        {"role": "assistant", "content": output_text}
+    ]
+    new_prompt = tokenizer.apply_chat_template(prompt, tokenize=False, add_generation_prompt=False)
+    input_tokens = tokenizer(new_prompt, return_tensors="pt")
+    return input_tokens.input_ids.shape[1]
+
+def get_max_token_size(dataset, model_name="meta-llama/Meta-Llama-3.1-8B-Instruct"):
+    max_tokens = 0
+    tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side='left')
+    for split in ['train', 'valid', 'test']:
+        tokens_split = max([apply_chat_template(tokenizer, row['instruction'], 
+                                        row['input_text'], 
+                                        row['output_text']) for row in dataset[split]])
+        if tokens_split > max_tokens:
+            max_tokens = tokens_split
+
+    return max_tokens + 10 # add 10 extra tokens for safety

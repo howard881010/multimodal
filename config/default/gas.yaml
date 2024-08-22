@@ -1,0 +1,44 @@
+dataset:
+  batch_size: 4
+  dataset_path: data/kai/forecasting/multimodal_dataset/gas_data.csv
+  date_template: '{timestep}_{index}_date'
+  hf_repo: Howard881010/gas-1week
+  input_window: 7
+  instruction_template: 'Given the gas related facts of the first {input_window} {timestep},
+    predict the gas related facts of the next {output_window} {timestep}.
+
+    Output the result in the following format:
+
+    '
+  model_type: text_text
+  name: gas
+  normalization: none
+  numerical_columns:
+  - West_Coast
+  output_window: 7
+  text_template: '{timestep}_{index}_gas_news'
+  time_template: '{timestep}_{index}_{col}_gas_price'
+  timestep: week
+  train_split: 0.8
+  valid_split: 0.9
+model:
+  embd_dim: 4096
+  lora_alpha: 32
+  lora_dropout: 0.1
+  lora_r: 8
+  model_name: unsloth/Meta-Llama-3.1-8B-Instruct
+results:
+  model_type: text_time_text_time
+  result_dir: results/gas/text_time_text_time/1_1
+  results_path: results/gas/text_time_text_time/1_1/result.csv
+  wandb_project: Inference
+training:
+  batch_size: 1
+  device: cuda
+  epochs: 20
+  lr: 0.001
+  max_grad_norm: 1.0
+  output_path: results/gas_hybrid_{input_window}_{output_window}
+  prediction_interval: 1
+  seed: 0
+  wandb: multimodal_forecasting_hybrid
