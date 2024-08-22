@@ -66,9 +66,11 @@ def find_num_parts(text, num_pattern, window_size):
         return  [[float(temp)] for temp in num_matches]
 
 def split_text(text, text_pattern):
-    text_matches = re.findall(text_pattern, text)
+    text_matches = re.findall(text_pattern, text, re.DOTALL)
+    cleaned_matches = [match.replace('\n', ' ').replace('\r', '').replace('```', '').strip() for match in text_matches]
+    # print(cleaned_matches)
 
-    return text_matches
+    return cleaned_matches
 
 def load_config(yaml_path):
     with open(yaml_path, 'r') as yaml_file:

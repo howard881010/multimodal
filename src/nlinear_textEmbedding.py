@@ -41,18 +41,18 @@ def nlinear_darts(train_input, test_input, train_text, test_text, window_size):
     
     return pred_value
 
-def getLLMTIMEOutput(dataset, unit, window_size, split, hf_dataset, text_pattern):
+def getLLMTIMEOutput(dataset, unit, window_size, split, hf_dataset, text_pattern, num_pattern):
     # filename for train
     data_all = load_dataset(hf_dataset)
 
     data = pd.DataFrame(data_all['train'])
     train_input_arr = data['input_time'].apply(lambda x: x[0]).to_list()
-    train_text_arr = data['input'].apply(lambda x: split_text(x, text_pattern)[0]).to_list()
+    train_text_arr = data['input'].apply(lambda x: find_text_parts(x, num_pattern)).apply(lambda x: split_text(x, text_pattern)[0]).to_list()
 
     data = pd.DataFrame(data_all[split])
     test_input_arr = data['input_time'].to_list()
     test_output_arr = data['output_time'].to_list()
-    test_text_arr = data['input'].apply(lambda x: split_text(x, text_pattern)).to_list()
+    test_text_arr = data['input'].apply(lambda x: find_text_parts(x, num_pattern)).apply(lambda x: split_text(x, text_pattern)).to_list()
 
     log_path, res_path = open_record_directory(
         dataset=dataset, sub_dir='mixed', unit=unit, filename=split, model_name="nlinear_text", window_size=window_size)
@@ -89,27 +89,30 @@ if __name__ == "__main__":
     if dataset == "climate":
         unit = "day"
         text_key_name = "weather_forecast"
+        num_key_name = "temp"
     elif dataset == "medical":
         unit = "day"
     elif dataset == "gas":
         unit = "week"
 
     hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-mixed"
-    text_pattern = fr'(<{unit}_\d+_date>[^<]*<{unit}_\d+_{text_key_name}>[^<]*)'
+    num_pattern = fr"{unit}_\d+_{num_key_name}: '([\d.]+)'"
+    text_pattern =fr'({unit}_\d+_date:\s*\S+\s+{unit}_\d+_{text_key_name}:.*?)(?=\s{unit}_\d+_date|\Z)'
+    print(text_pattern)
 
-    wandb.init(project="Inference-new",
-               config={"window_size": f"{window_size}-{window_size}",
-                       "dataset": dataset,
-                       "model": model_name})
+    # wandb.init(project="Inference-new",
+    #            config={"window_size": f"{window_size}-{window_size}",
+    #                    "dataset": dataset,
+    #                    "model": model_name})
     start_time = time.time()
     
     out_filename = getLLMTIMEOutput(
-        dataset, unit, window_size, split, hf_dataset,text_pattern)
+        dataset, unit, window_size, split, hf_dataset,text_pattern, num_pattern)
     out_rmse = numberEval(
         out_filename
     )
     print("RMSE Scores: ", out_rmse)
-    wandb.log({"RMSE Scores": out_rmse})
+    # wandb.log({"RMSE Scores": out_rmse})
 
     end_time = time.time()
     print("Total Time: " + str(end_time - start_time))
