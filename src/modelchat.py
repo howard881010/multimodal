@@ -9,13 +9,14 @@ import os
 
 
 class ChatModel:
-    def __init__(self, model_name, token, dataset, zeroshot):
+    def __init__(self, model_name, token, dataset, zeroshot, window_size):
         self.model_name = model_name
         self.zeroshot = zeroshot
         self.token = token
         self.tokenizer = self.load_tokenizer()
         self.tokenizer.pad_token = self.tokenizer.eos_token
         self.dataset = dataset
+        self.window_size = window_size
 
     def load_model(self):
         raise NotImplementedError("Subclasses must implement this method")
@@ -27,8 +28,8 @@ class ChatModel:
         raise NotImplementedError("Subclasses must implement this method")
 
 class LLMChatModel(ChatModel):
-    def __init__(self, model_name, token, dataset, zeroshot):
-        super().__init__(model_name, token, dataset, zeroshot)
+    def __init__(self, model_name, token, dataset, zeroshot, window_size):
+        super().__init__(model_name, token, dataset, zeroshot, window_size)
         self.model = self.load_model()
         self.tokenizer = self.load_tokenizer()
         self.tokenizer.pad_token = self.tokenizer.eos_token
@@ -40,7 +41,7 @@ class LLMChatModel(ChatModel):
         if self.zeroshot == True:
             return base_model
         else:
-            return PeftModel.from_pretrained(base_model, f"Howard881010/{self.dataset}")
+            return PeftModel.from_pretrained(base_model, f"Howard881010/{self.dataset}-{self.window_size}day-mixed")
     def load_tokenizer(self):
         return AutoTokenizer.from_pretrained(self.model_name, device_map="auto", padding_side="left")
     def chat(self, prompt):

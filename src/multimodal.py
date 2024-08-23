@@ -112,12 +112,12 @@ if __name__ == "__main__":
     num_pattern = fr"{unit}_\d+_{num_key_name}: '([\d.]+)'"
     text_pattern = fr'(?={unit}_\d+_date:)'
     
-    model_chat = LLMChatModel("unsloth/Meta-Llama-3.1-8B-Instruct", token, dataset, False)
+    model_chat = LLMChatModel("unsloth/Meta-Llama-3.1-8B-Instruct", token, dataset, False, window_size)
     
     wandb.init(project="Inference-new",
                config={"window_size": f"{window_size}-{window_size}",
                        "dataset": dataset,
-                       "model": model_name + ("-mixed" if case == 2 else "")})
+                       "model": model_name + ("-mixed" if case == 2 else "") + "-separate",})
     start_time = time.time()
 
     getSummaryOutput(
