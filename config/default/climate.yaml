@@ -1,15 +1,16 @@
 dataset:
   batch_size: 4
-  dataset_path: Data/climate_data.csv
+  dataset_path: Data/climate_2014_2023_final.csv
   date_template: '{timestep}_{index}_date'
-  hf_repo: Howard881010/climate-7day
+  hf_repo: Howard881010/climate-7day-mixed
   input_window: 7
-  instruction_template: 'Given the weather forecast of the first {input_window} {timestep},
-    predict the weather forecast of the next {output_window} {timestep}. Output the
-    result **ONLY** in the following YAML format:
+  instruction_template: 'Given the weather forecast and Washington,DC temperature
+    of the first {input_window} {timestep}, predict the weather forecast and Washington,DC
+    temperature of the next {output_window} {timestep}. Output the result **ONLY**
+    in the following YAML format:
 
     '
-  model_type: text_text
+  model_type: text_time_text_time
   name: climate
   normalization: window_last
   numerical_columns:
