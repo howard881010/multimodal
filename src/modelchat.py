@@ -41,8 +41,8 @@ class LLMChatModel(ChatModel):
         if self.zeroshot == True:
             return base_model
         else:
-            return PeftModel.from_pretrained(base_model, f"Howard881010/{self.dataset}-{self.window_size}day-mixed")
-            # return PeftModel.from_pretrained(base_model, f"howard881010/{self.dataset}")
+            # return PeftModel.from_pretrained(base_model, f"Howard881010/{self.dataset}-{self.window_size}day-mixed")
+            return PeftModel.from_pretrained(base_model, f"howard881010/{self.dataset}")
     def load_tokenizer(self):
         return AutoTokenizer.from_pretrained(self.model_name, device_map="auto", padding_side="left")
     def chat(self, prompt):
