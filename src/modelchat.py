@@ -41,7 +41,8 @@ class LLMChatModel(ChatModel):
         if self.zeroshot == True:
             return base_model
         else:
-            return PeftModel.from_pretrained(base_model, f"Howard881010/{self.dataset}-{self.window_size}day-mixed")
+            # return PeftModel.from_pretrained(base_model, f"Howard881010/{self.dataset}-{self.window_size}day-mixed")
+            return PeftModel.from_pretrained(base_model, f"howard881010/{self.dataset}")
     def load_tokenizer(self):
         return AutoTokenizer.from_pretrained(self.model_name, device_map="auto", padding_side="left")
     def chat(self, prompt):
@@ -59,7 +60,7 @@ class LLMChatModel(ChatModel):
         # Generate text using the model
         with torch.no_grad():
             generate_ids = self.model.generate(
-                model_inputs.input_ids, max_new_tokens=2500, eos_token_id=terminators, attention_mask=model_inputs.attention_mask)
+                model_inputs.input_ids, max_new_tokens=4096, eos_token_id=terminators, attention_mask=model_inputs.attention_mask)
 
         output = self.tokenizer.batch_decode(
             generate_ids, skip_special_tokens=True)
