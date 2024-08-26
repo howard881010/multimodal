@@ -92,8 +92,7 @@ def get_max_token_size(dataset, model_name="meta-llama/Meta-Llama-3.1-8B-Instruc
     tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side='left')
     for split in ['train', 'valid', 'test']:
         tokens_split = max([apply_chat_template(tokenizer, row['instruction'], 
-                                        row['input_text'], 
-                                        row['output_text']) for row in dataset[split]])
+                                        row['input_text'], row['output_text']) for row in dataset[split]])
         if tokens_split > max_tokens:
             max_tokens = tokens_split
 

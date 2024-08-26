@@ -22,7 +22,7 @@ test_datasets:
 adapter: lora
 lora_model_dir:
 
-sequence_len: 540
+sequence_len: 900
 sample_packing: false
 pad_to_sequence_len: true
 
