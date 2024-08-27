@@ -14,6 +14,7 @@ from batch_inference_chat import batch_inference
 from text_evaluation import getMeteorScore, getCosineSimilarity, getROUGEScore, getRMSEScore, getGPTScore
 from datasets import load_dataset, DatasetDict, Dataset
 import torch
+import multiprocessing
 
 def runModelChat(dataset_part, window_size, device, num_pattern):
     model_chat = LLMChatModel("unsloth/Meta-Llama-3.1-8B-Instruct", token, dataset_part, False, window_size, device)
@@ -74,6 +75,7 @@ def getTextScore(case, split, hf_dataset, text_pattern, number_pattern, window_s
     return meteor_score, cosine_similarity_score, rouge1, rouge2, rougeL, rmse_loss, gpt_score, drop_rate
 
 if __name__ == "__main__":
+    multiprocessing.set_start_method('spawn')
     # add seed
     np.random.seed(42)
     set_seed(42)
