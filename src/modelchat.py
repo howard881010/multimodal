@@ -9,7 +9,7 @@ import os
 
 
 class ChatModel:
-    def __init__(self, model_name, token, dataset, zeroshot, window_size):
+    def __init__(self, model_name, token, dataset, zeroshot, window_size, device):
         self.model_name = model_name
         self.zeroshot = zeroshot
         self.token = token
@@ -17,6 +17,7 @@ class ChatModel:
         self.tokenizer.pad_token = self.tokenizer.eos_token
         self.dataset = dataset
         self.window_size = window_size
+        self.device = device
 
     def load_model(self):
         raise NotImplementedError("Subclasses must implement this method")
@@ -28,23 +29,22 @@ class ChatModel:
         raise NotImplementedError("Subclasses must implement this method")
 
 class LLMChatModel(ChatModel):
-    def __init__(self, model_name, token, dataset, zeroshot, window_size):
-        super().__init__(model_name, token, dataset, zeroshot, window_size)
+    def __init__(self, model_name, token, dataset, zeroshot, window_size, device):
+        super().__init__(model_name, token, dataset, zeroshot, window_size, device)
         self.model = self.load_model()
         self.tokenizer = self.load_tokenizer()
-        self.tokenizer.pad_token = self.tokenizer.eos_token
-        self.device = next(self.model.parameters()).device
+        # self.device = next(self.model.parameters()).device
 
     def load_model(self):
         base_model = AutoModelForCausalLM.from_pretrained(
-            self.model_name, token=self.token, device_map="auto")
+            self.model_name, token=self.token).to(self.device)
         if self.zeroshot == True:
             return base_model
         else:
             return PeftModel.from_pretrained(base_model, f"Howard881010/{self.dataset}-{self.window_size}day-mixed")
             # return PeftModel.from_pretrained(base_model, f"howard881010/{self.dataset}")
     def load_tokenizer(self):
-        return AutoTokenizer.from_pretrained(self.model_name, device_map="auto", padding_side="left")
+        return AutoTokenizer.from_pretrained(self.model_name, padding_side="left")
     def chat(self, prompt):
         new_prompt = self.tokenizer.apply_chat_template(
             prompt, tokenize=False)
@@ -81,7 +81,7 @@ if __name__ == "__main__":
     # model_chat = MistralChatModel(
     #     "mistralai/Mistral-7B-Instruct-v0.1", token, "climate")
     # fine-tuned model
-    model_chat = LLMChatModel("meta-llama/Meta-Llama-3.1-8B-Instruct", token=token, dataset="climate")
+    model_chat = LLMChatModel("meta-llama/Meta-Llama-3.1-8B-Instruct", token=token, dataset="climate").to("cuda:0")
 
     output = model_chat.chat(prompt)
     # print(output)
