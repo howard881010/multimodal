@@ -5,7 +5,6 @@ import os
 import pandas as pd
 import numpy as np
 import wandb
-import time
 from loguru import logger
 from utils import open_record_directory, find_text_parts, find_num_parts
 from modelchat import LLMChatModel
@@ -19,11 +18,16 @@ import multiprocessing
 def runModelChat(dataset_part, window_size, device, num_pattern, token, dataset):
     model_chat = LLMChatModel("unsloth/Meta-Llama-3.1-8B-Instruct", token, dataset, True, window_size, device)
     getSummaryOutput(
-        dataset_part, model_chat, num_pattern
+        dataset_part, model_chat, num_pattern, dataset
     )
 
-def getSummaryOutput(data, model_chat, num_pattern):
+def getSummaryOutput(data, model_chat, num_pattern, dataset):
     data['idx'] = data.index
+
+    log_path = "climate_log.csv"
+
+    logger.remove()
+    logger.add(log_path, rotation="10 MB", mode="w")
 
     results = [{"pred_output": "Wrong output format", "pred_time": "Wrong output format"} for _ in range(len(data))]
     batch_inference(results, model_chat, data, logger, num_pattern)
@@ -125,6 +129,8 @@ if __name__ == "__main__":
     data_all = load_dataset(hf_dataset)
     data = pd.DataFrame(data_all[split])
     dataset_parts = np.array_split(data, num_gpus)
+    dataset_parts = [part.reset_index(drop=True) for part in dataset_parts]
+    # print(dataset_parts[1].iloc[0].name)
         
     with concurrent.futures.ProcessPoolExecutor(max_workers=num_gpus) as executor:
         futures = [
