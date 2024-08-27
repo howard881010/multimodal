@@ -143,7 +143,7 @@ if __name__ == "__main__":
         for future in concurrent.futures.as_completed(futures):
             results.append(future.result())
     
-    results = pd.concat(results, axis=0)
+    results = pd.concat(results, axis=0).reset_index(drop=True)
     # results.to_csv(f"results.csv", index=False)
     # results = pd.read_csv("results.csv")
     
