@@ -16,7 +16,7 @@ from datasets import load_dataset, DatasetDict, Dataset
 import torch
 import multiprocessing
 
-def runModelChat(dataset_part, window_size, device, num_pattern):
+def runModelChat(dataset_part, window_size, device, num_pattern, token):
     model_chat = LLMChatModel("unsloth/Meta-Llama-3.1-8B-Instruct", token, dataset_part, False, window_size, device)
     getSummaryOutput(
         dataset_part, model_chat, num_pattern
@@ -128,7 +128,7 @@ if __name__ == "__main__":
         
     with concurrent.futures.ProcessPoolExecutor(max_workers=num_gpus) as executor:
         futures = [
-            executor.submit(runModelChat, dataset_parts[i], window_size, devices[i], num_pattern)
+            executor.submit(runModelChat, dataset_parts[i], window_size, devices[i], num_pattern, token)
             for i in range(num_gpus)
         ]
         for future in concurrent.futures.as_completed(futures):
