@@ -120,10 +120,10 @@ if __name__ == "__main__":
     num_pattern = fr"{unit}_\d+_{num_key_name}: '([\d.]+)'"
     text_pattern = fr'(?={unit}_\d+_date:)'
 
-    # wandb.init(project="Inference-new",
-    #             config={"window_size": f"{window_size}-{window_size}",
-    #                     "dataset": dataset,
-    #                     "model": model_name + ("-mixed" if case == 2 else "") + "-separate"})
+    wandb.init(project="Inference-new",
+                config={"window_size": f"{window_size}-{window_size}",
+                        "dataset": dataset,
+                        "model": model_name + ("-mixed" if case == 2 else "") + "-separate"})
     
     start_time = time.time()
     # Run models in parallel
@@ -144,8 +144,6 @@ if __name__ == "__main__":
             results.append(future.result())
     
     results = pd.concat(results, axis=0).reset_index(drop=True)
-    # results.to_csv(f"results.csv", index=False)
-    # results = pd.read_csv("results.csv")
     
     uploadToHuf(results, hf_dataset, split)
     
@@ -153,14 +151,14 @@ if __name__ == "__main__":
         case, split, hf_dataset, text_pattern, num_pattern, window_size
     )
 
-    # wandb.log({"Meteor Scores": meteor_score})
-    # wandb.log({"Cos Sim Scores": cos_sim_score})
-    # wandb.log({"Rouge1 Scores": rouge1})
-    # wandb.log({"Rouge2 Scores": rouge2})
-    # wandb.log({"RougeL Scores": rougeL})
-    # wandb.log({"RMSE Scores": rmse_loss})
-    # wandb.log({"GPT Scores": np.mean(gpt_score)})
-    # wandb.log({"Drop Rate": f"{drop_rate*100:.2f}%"})
+    wandb.log({"Meteor Scores": meteor_score})
+    wandb.log({"Cos Sim Scores": cos_sim_score})
+    wandb.log({"Rouge1 Scores": rouge1})
+    wandb.log({"Rouge2 Scores": rouge2})
+    wandb.log({"RougeL Scores": rougeL})
+    wandb.log({"RMSE Scores": rmse_loss})
+    wandb.log({"GPT Scores": np.mean(gpt_score)})
+    wandb.log({"Drop Rate": f"{drop_rate*100:.2f}%"})
     
     end_time = time.time()
     print("Total Time: " + str(end_time - start_time))
