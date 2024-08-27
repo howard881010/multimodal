@@ -145,6 +145,7 @@ if __name__ == "__main__":
     
     results = pd.concat(results)
     results.to_csv(f"results.csv", index=False)
+    results = pd.DataFrame(results)
     
     uploadToHuf(results, hf_dataset, split)
     
