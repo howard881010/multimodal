@@ -1,38 +1,37 @@
+import concurrent.futures
+import time
 import sys
 import os
 import pandas as pd
 import numpy as np
 import wandb
-import time
 from loguru import logger
-from utils import open_record_directory, find_text_parts, find_num_parts
+from utils import find_text_parts, find_num_parts
 from modelchat import LLMChatModel
 from transformers import set_seed
 from batch_inference_chat import batch_inference_inContext
-from text_evaluation import getMeteorScore, getCosineSimilarity, getROUGEScore, getRMSEScore, getGPTScore
+from text_evaluation import getMeteorScore, getCosineSimilarity, getROUGEScore, getRMSEScore
 from datasets import load_dataset, DatasetDict, Dataset
+import torch
+import multiprocessing
 
-def getSummaryOutput(dataset, unit, model_name, model_chat, sub_dir, window_size, split, hf_dataset, num_pattern):
-    data_all = load_dataset(hf_dataset)
-
-    data = pd.DataFrame(data_all[split])
+def runModelChat(data, window_size, device, num_pattern, token, dataset, data_train):
+    model_chat = LLMChatModel("unsloth/Meta-Llama-3.1-8B-Instruct", token, dataset, False, window_size, device)
     data['idx'] = data.index
-
-    log_path, res_path = open_record_directory(
-        dataset, unit, split, model_name, sub_dir, window_size)
-
+    log_path = "climate_log.csv"
     logger.remove()
     logger.add(log_path, rotation="10 MB", mode="w")
 
     results = [{"pred_output": "Wrong output format", "pred_time": "Wrong output format"} for _ in range(len(data))]
-    batch_inference_inContext(results, model_chat, data, logger, num_pattern)
+    batch_inference_inContext(results, model_chat, data, logger, num_pattern, data_train)
 
     results = pd.DataFrame(results, columns=['pred_output'])
-    results['fut_summary'] = data['output'].apply(str)
-    results.to_csv(res_path)
-    data['pred_output'] = results['pred_output']
-    data.drop(columns=['idx'], inplace=True)
+    return results
 
+def uploadToHuf(results, hf_dataset, split):
+    data_all = load_dataset(hf_dataset)
+    data = pd.DataFrame(data_all[split])
+    data['pred_output'] = results['pred_output']
     updated_data = Dataset.from_pandas(data)
     if split == 'validation':
         updated_dataset = DatasetDict({
@@ -74,6 +73,7 @@ def getTextScore(case, split, hf_dataset, text_pattern, number_pattern, window_s
     return meteor_score, cosine_similarity_score, rouge1, rouge2, rougeL, rmse_loss, gpt_score, drop_rate
 
 if __name__ == "__main__":
+    multiprocessing.set_start_method('spawn')
     # add seed
     np.random.seed(42)
     set_seed(42)
@@ -83,12 +83,12 @@ if __name__ == "__main__":
         sys.exit(1)
 
     token = os.environ.get("HF_TOKEN")
-
     dataset = sys.argv[1]
     window_size = int(sys.argv[2])
     case = int(sys.argv[4])
     model_name = sys.argv[3]
     split = sys.argv[5]
+    num_gpus = torch.cuda.device_count()
 
     if dataset == "climate":
         unit = "day"
@@ -102,29 +102,50 @@ if __name__ == "__main__":
         num_key_name = "gas_price"
     
     if case == 2:
-        hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-mixed-inContext"
+        hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-mixed"
         sub_dir = "mixed"
     elif case == 1:
-        hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-inContext"
+        hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}"
         sub_dir = "text"
 
     num_pattern = fr"{unit}_\d+_{num_key_name}: '([\d.]+)'"
     text_pattern = fr'(?={unit}_\d+_date:)'
-    
-    model_chat = LLMChatModel("unsloth/Meta-Llama-3.1-8B-Instruct", token, dataset, True, window_size)
-    
-    wandb.init(project="Inference-new",
-               config={"window_size": f"{window_size}-{window_size}",
-                       "dataset": dataset,
-                       "model": model_name + "-InContext" + ("-mixed" if case == 2 else "")})
-    start_time = time.time()
 
-    getSummaryOutput(
-        dataset, unit, model_name, model_chat, sub_dir, window_size, split, hf_dataset, num_pattern
-    )
+    wandb.init(project="Inference-new",
+                config={"window_size": f"{window_size}-{window_size}",
+                        "dataset": dataset,
+                        "model": model_name + ("-mixed" if case == 2 else "") + "-separate"})
+    
+    start_time = time.time()
+    # Run models in parallel
+    results = [pd.DataFrame() for _ in range(num_gpus)]
+    devices = [f"cuda:{i}" for i in range(num_gpus)]
+    data_all = load_dataset(hf_dataset)
+    data = pd.DataFrame(data_all[split])
+    data_train = pd.DataFrame(data_all['train'])
+    dataset_parts = np.array_split(data, num_gpus)
+    dataset_parts = [part.reset_index(drop=True) for part in dataset_parts]
+    # print(dataset_parts[1].iloc[0].name)
+        
+    with concurrent.futures.ProcessPoolExecutor(max_workers=num_gpus) as executor:
+    # Create a dictionary to map each future to its corresponding index
+        future_to_index = {
+            executor.submit(runModelChat, dataset_parts[i], window_size, devices[i], num_pattern, token, dataset, data_train): i
+            for i in range(num_gpus)
+        }
+        # Iterate over the completed futures
+        for future in concurrent.futures.as_completed(future_to_index):
+            index = future_to_index[future]
+            results[index] = future.result()
+    
+    results = pd.concat(results, axis=0).reset_index(drop=True)
+    
+    uploadToHuf(results, hf_dataset, split)
+    
     meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, gpt_score, drop_rate = getTextScore(
         case, split, hf_dataset, text_pattern, num_pattern, window_size
     )
+
 
     wandb.log({"Meteor Scores": meteor_score})
     wandb.log({"Cos Sim Scores": cos_sim_score})

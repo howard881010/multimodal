@@ -14,7 +14,7 @@ def getTextScore(case, split, hf_dataset, num_pattern):
     data_all = load_dataset(hf_dataset)
     data = pd.DataFrame(data_all[split])
     data['pred_time'] = data['input_time']
-    data['pred_text'] = data['input'].apply(lambda x: find_text_parts(x, num_pattern))
+    # data['pred_text'] = data['input'].apply(lambda x: find_text_parts(x, num_pattern))
 
     if case == 2:
         rmse_loss = getRMSEScore(data)
@@ -57,10 +57,10 @@ if __name__ == "__main__":
     num_pattern = fr"<{unit}_\d+_{num_key_name}> : '([\d.]+)'"    
 
     
-    # wandb.init(project="Inference-new",
-    #            config={"window_size": f"{window_size}-{window_size}",
-    #                    "dataset": dataset,
-    #                    "model": model_name})
+    wandb.init(project="Inference-new",
+               config={"window_size": f"{window_size}-{window_size}",
+                       "dataset": dataset,
+                       "model": model_name})
     
     start_time = time.time()
     rmse_loss = getTextScore(
@@ -72,7 +72,7 @@ if __name__ == "__main__":
     # wandb.log({"Rouge1 Scores": rouge1})
     # wandb.log({"Rouge2 Scores": rouge2})
     # wandb.log({"RougeL Scores": rougeL})
-    # wandb.log({"RMSE Scores": rmse_loss})
+    wandb.log({"RMSE Scores": rmse_loss})
     # wandb.log({"GPT Scores": np.mean(gpt_score)})
     
     end_time = time.time()
