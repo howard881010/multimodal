@@ -39,7 +39,7 @@ def getSummaryOutput(data, model_chat, num_pattern, dataset):
 
 def uploadToHuf(results, hf_dataset, split):
     data_all = load_dataset(hf_dataset)
-    data = data_all[split]
+    data = pd.DataFrame(data_all[split])
     data['pred_output'] = results['pred_output']
     updated_data = Dataset.from_pandas(data)
     if split == 'validation':
