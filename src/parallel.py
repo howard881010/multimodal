@@ -72,8 +72,8 @@ def getTextScore(case, split, hf_dataset, text_pattern, number_pattern, window_s
 
     
     meteor_score = getMeteorScore(data)
-    # cosine_similarity_score = getCosineSimilarity(data)
-    cosine_similarity_score = np.nan
+    cosine_similarity_score = getCosineSimilarity(data)
+    # cosine_similarity_score = np.nan
     rouge1, rouge2, rougeL = getROUGEScore(data)
     # gpt_score = getGPTScore(data)
     gpt_score = np.nan
