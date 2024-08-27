@@ -16,8 +16,8 @@ from datasets import load_dataset, DatasetDict, Dataset
 import torch
 import multiprocessing
 
-def runModelChat(dataset_part, window_size, device, num_pattern, token):
-    model_chat = LLMChatModel("unsloth/Meta-Llama-3.1-8B-Instruct", token, dataset_part, False, window_size, device)
+def runModelChat(dataset_part, window_size, device, num_pattern, token, dataset):
+    model_chat = LLMChatModel("unsloth/Meta-Llama-3.1-8B-Instruct", token, dataset, True, window_size, device)
     getSummaryOutput(
         dataset_part, model_chat, num_pattern
     )
@@ -33,8 +33,8 @@ def getSummaryOutput(data, model_chat, num_pattern):
 
 
 def uploadToHuf(results, hf_dataset, split):
-
-    updated_data = Dataset.from_pandas(data)
+    data_all = load_dataset(hf_dataset)
+    updated_data = Dataset.from_pandas(results)
     if split == 'validation':
         updated_dataset = DatasetDict({
             'train': data_all['train'], 
@@ -128,19 +128,20 @@ if __name__ == "__main__":
         
     with concurrent.futures.ProcessPoolExecutor(max_workers=num_gpus) as executor:
         futures = [
-            executor.submit(runModelChat, dataset_parts[i], window_size, devices[i], num_pattern, token)
+            executor.submit(runModelChat, dataset_parts[i], window_size, devices[i], num_pattern, token, dataset)
             for i in range(num_gpus)
         ]
         for future in concurrent.futures.as_completed(futures):
             results.append(future.result())
     
     results = pd.concat(results)
+    results.to_csv(f"results.csv", index=False)
     
-    uploadToHuf(results, hf_dataset)
+    # uploadToHuf(results, hf_dataset, split)
     
-    meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, gpt_score, drop_rate = getTextScore(
-        case, split, hf_dataset, text_pattern, num_pattern, window_size
-    )
+    # meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, gpt_score, drop_rate = getTextScore(
+    #     case, split, hf_dataset, text_pattern, num_pattern, window_size
+    # )
 
     # wandb.log({"Meteor Scores": meteor_score})
     # wandb.log({"Cos Sim Scores": cos_sim_score})

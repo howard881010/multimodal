@@ -78,13 +78,8 @@ def load_config(yaml_path):
     return cfg
 
 def apply_chat_template(tokenizer, instruction, input_text, output_text):
-    prompt = [
-        {"role": "system", "content": instruction},
-        {"role": "user", "content": input_text},
-        {"role": "assistant", "content": output_text}
-    ]
-    new_prompt = tokenizer.apply_chat_template(prompt, tokenize=False, add_generation_prompt=False)
-    input_tokens = tokenizer(new_prompt, return_tensors="pt")
+    alpaca_text = f"Instruction: {instruction}\nInput: {input_text}\nResponse: {output_text}"
+    input_tokens = tokenizer(alpaca_text, return_tensors="pt")
     return input_tokens.input_ids.shape[1]
 
 def get_max_token_size(dataset, model_name="meta-llama/Meta-Llama-3.1-8B-Instruct"):
