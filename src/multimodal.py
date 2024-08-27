@@ -125,7 +125,6 @@ if __name__ == "__main__":
     data = pd.DataFrame(data_all[split])
     dataset_parts = np.array_split(data, num_gpus)
     dataset_parts = [part.reset_index(drop=True) for part in dataset_parts]
-    # print(dataset_parts[1].iloc[0].name)
         
     with concurrent.futures.ProcessPoolExecutor(max_workers=num_gpus) as executor:
     # Create a dictionary to map each future to its corresponding index

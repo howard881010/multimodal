@@ -16,7 +16,7 @@ import torch
 import multiprocessing
 
 def runModelChat(data, window_size, device, num_pattern, token, dataset, data_train):
-    model_chat = LLMChatModel("unsloth/Meta-Llama-3.1-8B-Instruct", token, dataset, False, window_size, device)
+    model_chat = LLMChatModel("unsloth/Meta-Llama-3.1-8B-Instruct", token, dataset, True, window_size, device)
     data['idx'] = data.index
     log_path = "climate_log.csv"
     logger.remove()
@@ -102,10 +102,10 @@ if __name__ == "__main__":
         num_key_name = "gas_price"
     
     if case == 2:
-        hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-mixed"
+        hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-mixed-inContext"
         sub_dir = "mixed"
     elif case == 1:
-        hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}"
+        hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-inContext"
         sub_dir = "text"
 
     num_pattern = fr"{unit}_\d+_{num_key_name}: '([\d.]+)'"
@@ -114,7 +114,7 @@ if __name__ == "__main__":
     wandb.init(project="Inference-new",
                 config={"window_size": f"{window_size}-{window_size}",
                         "dataset": dataset,
-                        "model": model_name + ("-mixed" if case == 2 else "") + "-separate"})
+                        "model": model_name + ("-mixed" if case == 2 else "") + "-inContext"})
     
     start_time = time.time()
     # Run models in parallel
@@ -125,7 +125,6 @@ if __name__ == "__main__":
     data_train = pd.DataFrame(data_all['train'])
     dataset_parts = np.array_split(data, num_gpus)
     dataset_parts = [part.reset_index(drop=True) for part in dataset_parts]
-    # print(dataset_parts[1].iloc[0].name)
         
     with concurrent.futures.ProcessPoolExecutor(max_workers=num_gpus) as executor:
     # Create a dictionary to map each future to its corresponding index
