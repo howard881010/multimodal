@@ -72,8 +72,8 @@ def getTextScore(case, split, hf_dataset, text_pattern, number_pattern, window_s
 
     
     meteor_score = getMeteorScore(data)
-    cosine_similarity_score = getCosineSimilarity(data)
-    # cosine_similarity_score = np.nan
+    # cosine_similarity_score = getCosineSimilarity(data)
+    cosine_similarity_score = np.nan
     rouge1, rouge2, rougeL = getROUGEScore(data)
     # gpt_score = getGPTScore(data)
     gpt_score = np.nan
@@ -127,7 +127,7 @@ if __name__ == "__main__":
     
     start_time = time.time()
     # Run models in parallel
-    results = []
+    results = [pd.DataFrame() for _ in range(num_gpus)]
     devices = [f"cuda:{i}" for i in range(num_gpus)]
     data_all = load_dataset(hf_dataset)
     data = pd.DataFrame(data_all[split])
@@ -136,12 +136,15 @@ if __name__ == "__main__":
     # print(dataset_parts[1].iloc[0].name)
         
     with concurrent.futures.ProcessPoolExecutor(max_workers=num_gpus) as executor:
-        futures = [
-            executor.submit(runModelChat, dataset_parts[i], window_size, devices[i], num_pattern, token, dataset)
+    # Create a dictionary to map each future to its corresponding index
+        future_to_index = {
+            executor.submit(runModelChat, dataset_parts[i], window_size, devices[i], num_pattern, token, dataset): i
             for i in range(num_gpus)
-        ]
-        for future in concurrent.futures.as_completed(futures):
-            results.append(future.result())
+        }
+        # Iterate over the completed futures
+        for future in concurrent.futures.as_completed(future_to_index):
+            index = future_to_index[future]
+            results[index] = future.result()
     
     results = pd.concat(results, axis=0).reset_index(drop=True)
     
@@ -150,6 +153,8 @@ if __name__ == "__main__":
     meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, gpt_score, drop_rate = getTextScore(
         case, split, hf_dataset, text_pattern, num_pattern, window_size
     )
+
+    print(rmse_loss)
 
     wandb.log({"Meteor Scores": meteor_score})
     wandb.log({"Cos Sim Scores": cos_sim_score})
