@@ -17,9 +17,10 @@ import multiprocessing
 
 def runModelChat(dataset_part, window_size, device, num_pattern, token, dataset):
     model_chat = LLMChatModel("unsloth/Meta-Llama-3.1-8B-Instruct", token, dataset, True, window_size, device)
-    getSummaryOutput(
+    results = getSummaryOutput(
         dataset_part, model_chat, num_pattern, dataset
     )
+    return results
 
 def getSummaryOutput(data, model_chat, num_pattern, dataset):
     data['idx'] = data.index
