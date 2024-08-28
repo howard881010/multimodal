@@ -9,14 +9,14 @@ import os
 
 
 class ChatModel:
-    def __init__(self, model_name, token, dataset, zeroshot, window_size, device):
+    def __init__(self, model_name, token, dataset, zeroshot, case, device):
         self.model_name = model_name
         self.zeroshot = zeroshot
         self.token = token
         self.tokenizer = self.load_tokenizer()
         self.tokenizer.pad_token = self.tokenizer.eos_token
         self.dataset = dataset
-        self.window_size = window_size
+        self.case = case
         self.device = device
 
     def load_model(self):
@@ -29,8 +29,8 @@ class ChatModel:
         raise NotImplementedError("Subclasses must implement this method")
 
 class LLMChatModel(ChatModel):
-    def __init__(self, model_name, token, dataset, zeroshot, window_size, device):
-        super().__init__(model_name, token, dataset, zeroshot, window_size, device)
+    def __init__(self, model_name, token, dataset, zeroshot, case, device):
+        super().__init__(model_name, token, dataset, zeroshot, case, device)
         self.model = self.load_model()
         self.tokenizer = self.load_tokenizer()
         # self.device = next(self.model.parameters()).device
@@ -41,8 +41,7 @@ class LLMChatModel(ChatModel):
         if self.zeroshot == True:
             return base_model
         else:
-            # return PeftModel.from_pretrained(base_model, f"Howard881010/{self.dataset}-{self.window_size}day-mixed")
-            return PeftModel.from_pretrained(base_model, f"howard881010/{self.dataset}")
+            return PeftModel.from_pretrained(base_model, f"howard881010/{self.dataset}" + ("-mixed" if self.case == 2 else ""))
     def load_tokenizer(self):
         return AutoTokenizer.from_pretrained(self.model_name, padding_side="left")
     def chat(self, prompt):
