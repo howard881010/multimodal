@@ -10,7 +10,7 @@ def batch_inference(
     logger,
     num_pattern,
 ):
-    batches = list(create_batched(data, 24))
+    batches = list(create_batched(data, 16))
 
     for batch in tqdm(batches):
         prompt, cur_idx = create_batch_prompt(batch)
