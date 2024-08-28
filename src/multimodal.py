@@ -115,7 +115,7 @@ if __name__ == "__main__":
     wandb.init(project="Inference-new",
                 config={"window_size": f"{window_size}-{window_size}",
                         "dataset": dataset,
-                        "model": model_name + ("-mixed" if case == 2 else "") + "-separate"})
+                        "model": model_name + ("-mixed" if case == 2 else "")})
     
     start_time = time.time()
     # Run models in parallel
