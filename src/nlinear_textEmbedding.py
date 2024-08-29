@@ -92,8 +92,6 @@ if __name__ == "__main__":
         num_key_name = "temp"
     elif dataset == "medical":
         unit = "day"
-    elif dataset == "gas":
-        unit = "week"
 
     hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-mixed"
     num_pattern = fr"{unit}_\d+_{num_key_name}: '([\d.]+)'"
