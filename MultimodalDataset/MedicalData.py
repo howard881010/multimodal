@@ -17,23 +17,22 @@ class MedicalDataProcessor(DatasetProcessor):
         valid_split = cfg['valid_split']
 
         instruction = self.get_instruction()
+        print(instruction)
         dataset_paths = glob(cfg['dataset_path'] + "/*.csv")
 
         datasets_list = []
         for dataset_path in dataset_paths:
             df = self.get_dataframe(dataset_path)
-            input_text = df.apply(lambda x: self.create_flattened_text(
-                x.name, input_window, df), axis=1)
-            output_text = df.apply(lambda x: self.create_flattened_text(
-                x.name+input_window, output_window, df, input_window+1), axis=1)
+            input_text = self.get_text(df, 'input')
+            output_text = self.get_text(df, 'output')
             input_time = self.get_time(df, "input")
             output_time = self.get_time(df, "output")
 
             new_df = pd.DataFrame({
                 'input_text': pd.Series(input_text).reindex(df.index, fill_value=np.nan),
                 'output_text': pd.Series(output_text).reindex(df.index, fill_value=np.nan),
-                # 'input_time': pd.Series(input_time, dtype=object).reindex(index=np.arange(len(input_time)), fill_value=np.nan),
-                # 'output_time': pd.Series(output_time, dtype=object).reindex(index=np.arange(len(output_time)), fill_value=np.nan),
+                'input_time': pd.Series(input_time, dtype=object).reindex(index=np.arange(len(input_time)), fill_value=np.nan),
+                'output_time': pd.Series(output_time, dtype=object).reindex(index=np.arange(len(output_time)), fill_value=np.nan),
             })
             new_df['instruction'] = instruction
 
@@ -70,8 +69,9 @@ class MedicalDataProcessor(DatasetProcessor):
 
     def get_dataframe(self, dataset_path):
         df = pd.read_csv(dataset_path)
-        df = df.drop(columns=['TEXT'])
-        df = df.rename(columns={'CHARTTIME': 'date', 'summary': 'text'})
+        # print(df.columns)
+        # df = df.drop(columns=['TEXT'])
+        # df = df.rename(columns={'CHARTTIME': 'date', 'summary': 'text'})
         numerical_columns = self.cfg['numerical_columns']
         df[numerical_columns] = df[numerical_columns].round(3)
         return df

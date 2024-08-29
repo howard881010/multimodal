@@ -3,6 +3,8 @@ import os
 import pandas as pd
 from ast import literal_eval
 import json
+import numpy as np
+import re
 
 """
 
@@ -99,6 +101,12 @@ class OpeanAIBatchProcessor():
         Creates json batch from results dataframe containing ['output_text', 'pred_text']
         """
         batch_jsons = []
+        response_format = None
+        if self.json_schema is not None:
+            response_format = {
+                "type": "json_schema",
+                "json_schema": self.json_schema
+            }
         for idx, row in results.iterrows():
             messages = self.get_messages(
                 row[output_text_column], row[pred_text_column])
@@ -109,10 +117,7 @@ class OpeanAIBatchProcessor():
                 "body": {
                     "model": "gpt-4o-mini",
                     "messages": messages,
-                    # "response_format": {
-                    #     "type": "json_schema",
-                    #     "json_schema": self.json_schema
-                    # }
+                    "response_format": response_format
                 }
             }
             batch_jsons.append(batch_json)
@@ -154,7 +159,7 @@ class OpeanAIBatchProcessor():
 
     def gpt_call(self, target_text, pred_text):
         response = self.client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4o-2024-08-06",
             messages=self.get_messages(target_text, pred_text),
             response_format={"type": "json_schema",
                              "json_schema": self.json_schema}
@@ -166,14 +171,14 @@ class OpeanAIBatchProcessor():
 class GPT4Semantic(OpeanAIBatchProcessor):
     def __init__(self):
         instruction = \
-"""You are a helpful assistant capable of evaluating the semantic similarity between two summaries. 
+            """You are a helpful assistant capable of evaluating the semantic similarity between two summaries. 
 The semantic score you provide should be a number between 1 and 10, where 10 represents the highest level of semantic similarity 
 (meaning the summaries convey almost identical information), and 1 represents the lowest level of semantic similarity (meaning the summaries convey entirely different or unrelated information). 
 The score should reflect how closely the meanings and key details of the two summaries align. You should only give me the number, nothing else."""
 
 #         instruction = \
 #                     """You are a helpful assistant capable of evaluating the semantic accuracy of a predicted weather forecast compared to the ground truth weather forecast for the same day.
-# Your task is to assess how closely the meaning of the predicted forecast aligns with the ground truth. Consider factors such as the overall weather conditions, temperature ranges, precipitation chances, and any other relevant details. 
+# Your task is to assess how closely the meaning of the predicted forecast aligns with the ground truth. Consider factors such as the overall weather conditions, temperature ranges, precipitation chances, and any other relevant details.
 
 # Output a semantic accuracy score between 0 and 100, where 100 represents perfect alignment and 0 represents no alignment. Also, include a brief explanation for your evaluation.
 # """
@@ -196,17 +201,34 @@ The score should reflect how closely the meanings and key details of the two sum
         prompt = "Ground truth weather forecast: {target_text} \n\n\n Predicted weather forecast: {pred_text}"
         super().__init__(instruction, json_schema, prompt)
 
+    def calculate_metrics(self, outputs):
+        semantic_score = []
+        count_none = 0
+        for row in outputs:
+            if row["score"] == 1:
+                count_none += 1
+            else:
+                semantic_score.append(row["score"])
+        return np.mean(semantic_score), count_none
+
 class GPT4Accuracy(OpeanAIBatchProcessor):
 
     def __init__(self):
 
         instruction = \
             """You are a helpful assistant capable of evaluating the similarity, accuracy, and consistency of a ground truth weather forecast, and predicted weather forecast for the same day.
-By comparing each sentences step by step, output the following number of true_positive, false_positive, and false_negative number of facts:
-- (True Positive): Correct information presented in the prediction,
-- (False Postivie): Incorrect information presented in the prediction,
-- (False Negative): Information not presented in the prediction.
+By comparing the semantic meaning of each sentences line by line, count the number of
+1) (True Positive): Correct information presented in the prediction,
+2) (False Postivie): Incorrect information presented in the prediction,
+3) (False Negative): Information not presented in the prediction.
+Make sure to include explanation for each step.
+The end of the output should contain the counts of true positives, false positives, and false negatives.
+The total count:
+  - TP total count: 
+  - FP total count: 
+  - FN total count: 
 """
+
 
         json_schema = {
             "name": "evaluate_weather_forecast",
@@ -240,9 +262,10 @@ By comparing each sentences step by step, output the following number of true_po
         recalls = []
         f1_scores = []
         for row in outputs:
-            tp = row['true_positive']
-            fp = row['false_positive']
-            fn = row['false_negative']
+            numbers = [float(num) for num in re.findall(r'\d+', row)]
+            tp = float(numbers[-3])
+            fp = float(numbers[-2])
+            fn = float(numbers[-1]) 
 
             if (tp + fp) > 0:
                 precision = tp / (tp + fp)
@@ -262,100 +285,20 @@ By comparing each sentences step by step, output the following number of true_po
             precisions.append(precision)
             recalls.append(recall)
             f1_scores.append(f1_score)
-        return precisions, recalls, f1_scores
-
-class ClimateProcessor(OpeanAIBatchProcessor):
-
-    def __init__(self):
-
-        instruction = \
-            """
-Summarize the following climate report by identifying the following key elements in a JSON format with key as category and value as a list. Return empty string if not explicitly stated:
-
-1) Temperature Trend: [Recent observations and fluctuations in temperature with relevant context, time, and location.],
-2) Precipitation Trend: [Recent observations and fluctuations in precipitation with relevant context, time, and location.],
-3) Humidity Trend: [Recent observations and fluctuations in humidity with relevant context, time, and location.],
-4) Wind Speed Trend: [Recent observations and fluctuations in wind speed with relevant context, time, and location.],
-5) Overall Summary: [A comprehensive summary of the climate conditions, trends observed in temperature, precipitation, humidity, and wind speed, and any relevant future forecast for the climate.]
-"""
-
-        json_schema = {
-            "name": "evaluate_climate_report",
-            "description": "Summarizes the climate report by identifying the key elements in a JSON format with key as category and value as a list.",
-            "strict": True,
-            "schema": {
-                "type": "object",
-                "properties": {
-                    "temperature_trend": {
-                        "type": "array",
-                        "items": {
-                            "type": "string",
-                        },
-                    },
-                    "precipitation_trend": {
-                        "type": "array",
-                        "items": {
-                            "type": "string",
-                        },
-                    },
-                    "humidity_trend": {
-                        "type": "array",
-                        "items": {
-                            "type": "string",
-                        },
-                    },
-                    "wind_speed_trend": {
-                        "type": "array",
-                        "items": {
-                            "type": "string",
-                        },
-                    },
-                    "overall_summary": {
-                        "type": "array",
-                        "items": {
-                            "type": "string",
-                        },
-                    },
-                },
-                "additionalProperties": False,
-                "required": ["temperature_trend", "precipitation_trend", "humidity_trend", "wind_speed_trend", "overall_summary"]
-            },
-        }
-        prompt = "Climate report: {target_text}"
-        super().__init__(instruction, json_schema, prompt)
-    
-    def get_messages(self, target_text) -> list[dict]:
-        prompt = self.prompt.format(
-            target_text=target_text)
-        messages = [
-            {"role": "system", "content": self.instruction},
-            {"role": "user", "content": prompt},
-        ]
-        return messages
-
-    def create_and_run_batch_job(self, results: pd.DataFrame, jsonl_path: str,
-                                 input_text_column: str) -> str:
-        """
-            Creates json batch from results dataframe containing ['output_text', 'pred_text']
-        """
-
-        assert ".jsonl" in jsonl_path
-        batch_jsons = self.create_batch_jsons(
-            results, input_text_column)
-        self.save_batch_json(batch_jsons, jsonl_path)
-
-        batch_object_id = self.create_batch(jsonl_path)
-        return batch_object_id
+        
+        return np.mean(precisions), np.mean(recalls), np.mean(f1_scores)
 
     def create_batch_jsons(self, results: pd.DataFrame,
-                           input_text_column,) -> list[dict]:
+                           output_text_column,
+                           pred_text_column) -> list[dict]:
         """
         Creates json batch from results dataframe containing ['output_text', 'pred_text']
         """
         batch_jsons = []
+        response_format = None
         for idx, row in results.iterrows():
             messages = self.get_messages(
-                row[input_text_column])
+                row[output_text_column], row[pred_text_column])
             batch_json = {
                 "custom_id": f"{idx}",
                 "method": "POST",
@@ -363,21 +306,20 @@ Summarize the following climate report by identifying the following key elements
                 "body": {
                     "model": "gpt-4o-mini",
                     "messages": messages,
-                    "response_format": {
-                        "type": "json_schema",
-                        "json_schema": self.json_schema
-                    }
                 }
             }
             batch_jsons.append(batch_json)
         return batch_jsons
 
-    def gpt_call(self, target_text):
-            response = self.client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=self.get_messages(target_text),
-                response_format={"type": "json_schema",
-                                "json_schema": self.json_schema}
-
-            )
-            return response.choices[0].message.content
+    def parse_output(self, output_path: str) -> list[dict]:
+        """
+        Parse the output content from batch job by reading output_path.txt file
+        """
+        # parse output
+        parsed_contents = []
+        with open(output_path, 'r') as f:
+            for line in f:
+                output = json.loads(line)
+                content = output['response']['body']['choices'][0]['message']['content']
+                parsed_contents.append(content)
+        return parsed_contents
