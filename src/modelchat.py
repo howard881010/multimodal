@@ -58,7 +58,7 @@ class LLMChatModel(ChatModel):
         # Generate text using the model
         with torch.no_grad():
             generate_ids = self.model.generate(
-                model_inputs.input_ids, max_new_tokens=2048, eos_token_id=terminators, attention_mask=model_inputs.attention_mask)
+                model_inputs.input_ids, max_new_tokens=3000, eos_token_id=terminators, attention_mask=model_inputs.attention_mask)
 
         output = self.tokenizer.batch_decode(
             generate_ids, skip_special_tokens=True)
