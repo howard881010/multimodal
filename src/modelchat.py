@@ -1,15 +1,13 @@
-from transformers import AutoModelForCausalLM, AutoTokenizer
-from transformers import LlamaTokenizer, LlamaForCausalLM, set_seed
+from transformers import AutoModelForCausalLM, AutoTokenizer, set_seed
 import numpy as np
 import torch
-from torch.cuda.amp import autocast
 import time
 from peft import PeftModel
 import os
 
 
 class ChatModel:
-    def __init__(self, model_name, token, dataset, zeroshot, case, device):
+    def __init__(self, model_name, token, dataset, zeroshot, case, device, window_size):
         self.model_name = model_name
         self.zeroshot = zeroshot
         self.token = token
@@ -18,6 +16,7 @@ class ChatModel:
         self.dataset = dataset
         self.case = case
         self.device = device
+        self.window_size = window_size
 
     def load_model(self):
         raise NotImplementedError("Subclasses must implement this method")
@@ -29,8 +28,8 @@ class ChatModel:
         raise NotImplementedError("Subclasses must implement this method")
 
 class LLMChatModel(ChatModel):
-    def __init__(self, model_name, token, dataset, zeroshot, case, device):
-        super().__init__(model_name, token, dataset, zeroshot, case, device)
+    def __init__(self, model_name, token, dataset, zeroshot, case, device, window_size):
+        super().__init__(model_name, token, dataset, zeroshot, case, device, window_size)
         self.model = self.load_model()
         self.tokenizer = self.load_tokenizer()
         # self.device = next(self.model.parameters()).device
@@ -40,8 +39,8 @@ class LLMChatModel(ChatModel):
             self.model_name, token=self.token).to(self.device)
         if self.zeroshot == True:
             return base_model
-        else:
-            return PeftModel.from_pretrained(base_model, f"howard881010/{self.dataset}" + ("-mixed" if self.case == 2 else ""))
+        if self.dataset == "climate":
+            return PeftModel.from_pretrained(base_model, f"howard881010-climate-{self.window_size}day" + ("-mixed" if self.case == 2 else ""))
     def load_tokenizer(self):
         return AutoTokenizer.from_pretrained(self.model_name, padding_side="left")
     def chat(self, prompt):
