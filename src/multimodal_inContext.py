@@ -15,8 +15,8 @@ from datasets import load_dataset, DatasetDict, Dataset
 import torch
 import multiprocessing
 
-def runModelChat(data, window_size, device, num_pattern, token, dataset, data_train):
-    model_chat = LLMChatModel("unsloth/Meta-Llama-3.1-8B-Instruct", token, dataset, True, window_size, device)
+def runModelChat(data, window_size, device, num_pattern, token, dataset, data_train, case):
+    model_chat = LLMChatModel("unsloth/Meta-Llama-3.1-8B-Instruct", token, dataset, True, case, device, window_size)
     data['idx'] = data.index
     log_path = "climate_log.csv"
     logger.remove()
@@ -129,7 +129,7 @@ if __name__ == "__main__":
     with concurrent.futures.ProcessPoolExecutor(max_workers=num_gpus) as executor:
     # Create a dictionary to map each future to its corresponding index
         future_to_index = {
-            executor.submit(runModelChat, dataset_parts[i], window_size, devices[i], num_pattern, token, dataset, data_train): i
+            executor.submit(runModelChat, dataset_parts[i], window_size, devices[i], num_pattern, token, dataset, data_train, case): i
             for i in range(num_gpus)
         }
         # Iterate over the completed futures
