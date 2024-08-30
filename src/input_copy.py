@@ -17,23 +17,18 @@ def getTextScore(split, hf_dataset):
     data['pred_time'] = data['input_time']
     data['pred_output'] = data['input']
     # data['pred_text'] = data['input'].apply(lambda x: find_text_parts(x, num_pattern))
-
-    data_all = load_dataset(hf_dataset)
-    data = pd.DataFrame(data_all[split])
-    data_clean = data.dropna()
-    drop_rate = (len(data) - len(data_clean)) / len(data)
-    rmse_loss = getRMSEScore(data_clean)
+    drop_rate = 0
+    rmse_loss = getRMSEScore(data)
 
     
     meteor_score = getMeteorScore(data)
     cosine_similarity_score = getCosineSimilarity(data)
     # cosine_similarity_score = np.nan
     rouge1, rouge2, rougeL = getROUGEScore(data)
-    # gpt_score = getGPTScore(data)
     gpt_score = np.nan
     
 
-    return meteor_score, cosine_similarity_score, rouge1, rouge2, rougeL, rmse_loss, gpt_score, drop_rate
+    return meteor_score, cosine_similarity_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate
 
 if __name__ == "__main__":
     # add seed
@@ -70,7 +65,7 @@ if __name__ == "__main__":
                        "model": model_name})
     
     start_time = time.time()
-    meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, gpt_score, drop_rate = getTextScore(
+    meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate = getTextScore(
         split, hf_dataset
     )
 
@@ -80,7 +75,6 @@ if __name__ == "__main__":
     wandb.log({"Rouge2 Scores": rouge2})
     wandb.log({"RougeL Scores": rougeL})
     wandb.log({"RMSE Scores": rmse_loss})
-    # wandb.log({"GPT Scores": np.mean(gpt_score)})
     
     end_time = time.time()
     print("Total Time: " + str(end_time - start_time))
