@@ -6,24 +6,34 @@ import wandb
 import time
 from loguru import logger
 from transformers import set_seed
-from text_evaluation import getRMSEScore
+from utils import find_text_parts, find_num_parts
+from text_evaluation import getMeteorScore, getCosineSimilarity, getROUGEScore, getRMSEScore
 from datasets import load_dataset
 from utils import find_text_parts
 
-def getTextScore(case, split, hf_dataset, num_pattern):
+def getTextScore(split, hf_dataset):
     data_all = load_dataset(hf_dataset)
     data = pd.DataFrame(data_all[split])
     data['pred_time'] = data['input_time']
+    data['pred_output'] = data['input']
     # data['pred_text'] = data['input'].apply(lambda x: find_text_parts(x, num_pattern))
 
-    if case == 2:
-        rmse_loss = getRMSEScore(data)
-        print(rmse_loss)
-    else:
-        rmse_loss = np.nan
+    data_all = load_dataset(hf_dataset)
+    data = pd.DataFrame(data_all[split])
+    data_clean = data.dropna()
+    drop_rate = (len(data) - len(data_clean)) / len(data)
+    rmse_loss = getRMSEScore(data_clean)
+
+    
+    meteor_score = getMeteorScore(data)
+    cosine_similarity_score = getCosineSimilarity(data)
+    # cosine_similarity_score = np.nan
+    rouge1, rouge2, rougeL = getROUGEScore(data)
+    # gpt_score = getGPTScore(data)
+    gpt_score = np.nan
     
 
-    return rmse_loss
+    return meteor_score, cosine_similarity_score, rouge1, rouge2, rougeL, rmse_loss, gpt_score, drop_rate
 
 if __name__ == "__main__":
     # add seed
@@ -50,10 +60,7 @@ if __name__ == "__main__":
     elif dataset == "gas":
         unit = "week"
 
-    if case == 2:
-        hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-mixed"
-    elif case == 1:
-        hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}"
+    hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}"
     num_pattern = fr"<{unit}_\d+_{num_key_name}> : '([\d.]+)'"    
 
     
@@ -63,15 +70,15 @@ if __name__ == "__main__":
                        "model": model_name})
     
     start_time = time.time()
-    rmse_loss = getTextScore(
-        case, split, hf_dataset, num_pattern
+    meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, gpt_score, drop_rate = getTextScore(
+        split, hf_dataset
     )
 
-    # wandb.log({"Meteor Scores": meteor_score})
-    # wandb.log({"Cos Sim Scores": cos_sim_score})
-    # wandb.log({"Rouge1 Scores": rouge1})
-    # wandb.log({"Rouge2 Scores": rouge2})
-    # wandb.log({"RougeL Scores": rougeL})
+    wandb.log({"Meteor Scores": meteor_score})
+    wandb.log({"Cos Sim Scores": cos_sim_score})
+    wandb.log({"Rouge1 Scores": rouge1})
+    wandb.log({"Rouge2 Scores": rouge2})
+    wandb.log({"RougeL Scores": rougeL})
     wandb.log({"RMSE Scores": rmse_loss})
     # wandb.log({"GPT Scores": np.mean(gpt_score)})
     
