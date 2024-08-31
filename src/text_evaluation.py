@@ -21,27 +21,27 @@ def getRMSEScore(df):
     
     return rmse_loss
 
-def getMeteorScore(df):
-    scores = [meteor([word_tokenize(x['output'])], word_tokenize(x['pred_output'])) for idx, x in df.iterrows()]
+def getMeteorScore(outputs, pred_outputs):
+    scores = [meteor([word_tokenize(output)], word_tokenize(pred_output)) for output, pred_output in zip(outputs, pred_outputs)]
     mean_score=np.mean(scores)
     
     return mean_score
 
-def getCosineSimilarity(df):
+def getCosineSimilarity(outputs, pred_outputs):
     model = SentenceTransformer('sentence-transformers/paraphrase-MiniLM-L6-v2')
-    cos_sims = [cos_sim(x, y) for x, y in zip(model.encode(df['output'].tolist()), model.encode(df['pred_output'].tolist()))]
+    cos_sims = [cos_sim(x, y) for x, y in zip(model.encode(outputs), model.encode(pred_outputs))]
 
     return np.mean(cos_sims)
 
-def getROUGEScore(df):
+def getROUGEScore(outputs, pred_outputs):
     scorer = rouge_scorer.RougeScorer(['rouge1', 'rouge2', 'rougeL'], use_stemmer=True)
     
     rouge1_scores = []
     rouge2_scores = []
     rougeL_scores = []
     
-    for idx, row in df.iterrows():
-        scores = scorer.score(row['output'], row['pred_output'])
+    for output, pred_output in zip(outputs, pred_outputs):
+        scores = scorer.score(output, pred_output)
         rouge1_scores.append(scores['rouge1'].fmeasure)
         rouge2_scores.append(scores['rouge2'].fmeasure)
         rougeL_scores.append(scores['rougeL'].fmeasure)
@@ -51,23 +51,3 @@ def getROUGEScore(df):
     mean_rougeL = np.mean(rougeL_scores)
     
     return mean_rouge1, mean_rouge2, mean_rougeL
-
-def getGPTScore(df):
-    key = os.environ.get("OPENAI_API_KEY")
-    client = OpenAI(api_key=key)
-
-    df.replace("Wrong output format", np.nan, inplace=True)
-    
-    gpt_scores = []    
-    for idx, row in df.iterrows():
-        question = f"summary1: {row['output']} summary2: {row['pred_output']}"
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant capable of evaluating the semantic similarity between two summaries. The semantic score you provide should be a number between 1 and 10, where 10 represents the highest level of semantic similarity (meaning the summaries convey almost identical information), and 1 represents the lowest level of semantic similarity (meaning the summaries convey entirely different or unrelated information). The score should reflect how closely the meanings and key details of the two summaries align. You should only give me the number, nothing else."},
-                {"role": "user", "content": question},
-            ]
-        )
-        if len(response.choices[0].message.content) <= 2:
-            gpt_scores.append(float(response.choices[0].message.content))
-    return gpt_scores

@@ -6,11 +6,11 @@ import pandas as pd
 import numpy as np
 import wandb
 from loguru import logger
-from utils import find_text_parts, find_num_parts
+from utils import find_text_parts, find_num_parts, split_text
 from modelchat import LLMChatModel
 from transformers import set_seed
 from batch_inference_chat import batch_inference
-from text_evaluation import getMeteorScore, getCosineSimilarity, getROUGEScore, getRMSEScore, getGPTScore
+from text_evaluation import getMeteorScore, getCosineSimilarity, getROUGEScore, getRMSEScore
 from datasets import load_dataset, DatasetDict, Dataset
 import torch
 import multiprocessing
@@ -49,7 +49,7 @@ def uploadToHuf(results, hf_dataset, split):
     updated_dataset.push_to_hub(hf_dataset)
 
 
-def getTextScore(case, split, hf_dataset, text_pattern, number_pattern, window_size):
+def getTextScore(case, split, hf_dataset, number_pattern, window_size, text_pattern):
     data_all = load_dataset(hf_dataset)
     data = pd.DataFrame(data_all[split])
     if case == 2:
@@ -62,16 +62,24 @@ def getTextScore(case, split, hf_dataset, text_pattern, number_pattern, window_s
         rmse_loss = np.nan
         drop_rate = np.nan
 
+    output_texts = data['output'].apply(lambda x: find_text_parts(x, num_pattern)).apply(lambda x: split_text(x, text_pattern)).to_list()
+    pred_texts = data['pred_output'].apply(lambda x: find_text_parts(x, num_pattern)).apply(lambda x: split_text(x, text_pattern)).to_list()
+    for idx, pred_text in enumerate(pred_texts):
+        if len(pred_text) > window_size:
+            pred_texts[idx] = pred_text[:window_size]
+        while len(pred_text) < window_size:
+            pred_texts[idx].append("No prediction")
+
+    output_texts = np.reshape(output_texts, -1)
+    pred_texts = np.reshape(pred_texts, -1)
     
-    meteor_score = getMeteorScore(data)
-    cosine_similarity_score = getCosineSimilarity(data)
+    meteor_score = getMeteorScore(output_texts, pred_texts)
+    cosine_similarity_score = getCosineSimilarity(output_texts, pred_texts)
     # cosine_similarity_score = np.nan
-    rouge1, rouge2, rougeL = getROUGEScore(data)
-    # gpt_score = getGPTScore(data)
-    gpt_score = np.nan
+    rouge1, rouge2, rougeL = getROUGEScore(output_texts, pred_texts)
     
 
-    return meteor_score, cosine_similarity_score, rouge1, rouge2, rougeL, rmse_loss, gpt_score, drop_rate
+    return meteor_score, cosine_similarity_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate
 
 if __name__ == "__main__":
     multiprocessing.set_start_method('spawn')
@@ -98,9 +106,8 @@ if __name__ == "__main__":
     elif dataset == "medical":
         unit = "day"
         num_key_name = "Heart_Rate"
-    elif dataset == "gas":
-        unit = "week"
-        num_key_name = "gas_price"
+        text_key_name = "medical_notes"
+
     
     if case == 2:
         hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-mixed"
@@ -110,7 +117,7 @@ if __name__ == "__main__":
         sub_dir = "text"
 
     num_pattern = fr"{unit}_\d+_{num_key_name}: '([\d.]+)'"
-    text_pattern = fr'(?={unit}_\d+_date:)'
+    text_pattern =fr'({unit}_\d+_date:\s*\S+\s+{unit}_\d+_{text_key_name}:.*?)(?=\s{unit}_\d+_date|\Z)'
 
     wandb.init(project="Inference-new",
                 config={"window_size": f"{window_size}-{window_size}",
@@ -119,30 +126,30 @@ if __name__ == "__main__":
     
     start_time = time.time()
     # Run models in parallel
-    results = [pd.DataFrame() for _ in range(num_gpus)]
-    devices = [f"cuda:{i}" for i in range(num_gpus)]
-    data_all = load_dataset(hf_dataset)
-    data = pd.DataFrame(data_all[split])
-    dataset_parts = np.array_split(data, num_gpus)
-    dataset_parts = [part.reset_index(drop=True) for part in dataset_parts]
+    # results = [pd.DataFrame() for _ in range(num_gpus)]
+    # devices = [f"cuda:{i}" for i in range(num_gpus)]
+    # data_all = load_dataset(hf_dataset)
+    # data = pd.DataFrame(data_all[split])
+    # dataset_parts = np.array_split(data, num_gpus)
+    # dataset_parts = [part.reset_index(drop=True) for part in dataset_parts]
         
-    with concurrent.futures.ProcessPoolExecutor(max_workers=num_gpus) as executor:
-    # Create a dictionary to map each future to its corresponding index
-        future_to_index = {
-            executor.submit(runModelChat, dataset_parts[i], case, devices[i], num_pattern, token, dataset, window_size): i
-            for i in range(num_gpus)
-        }
-        # Iterate over the completed futures
-        for future in concurrent.futures.as_completed(future_to_index):
-            index = future_to_index[future]
-            results[index] = future.result()
+    # with concurrent.futures.ProcessPoolExecutor(max_workers=num_gpus) as executor:
+    # # Create a dictionary to map each future to its corresponding index
+    #     future_to_index = {
+    #         executor.submit(runModelChat, dataset_parts[i], case, devices[i], num_pattern, token, dataset, window_size): i
+    #         for i in range(num_gpus)
+    #     }
+    #     # Iterate over the completed futures
+    #     for future in concurrent.futures.as_completed(future_to_index):
+    #         index = future_to_index[future]
+    #         results[index] = future.result()
     
-    results = pd.concat(results, axis=0).reset_index(drop=True)
+    # results = pd.concat(results, axis=0).reset_index(drop=True)
     
-    uploadToHuf(results, hf_dataset, split)
+    # uploadToHuf(results, hf_dataset, split)
     
-    meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, gpt_score, drop_rate = getTextScore(
-        case, split, hf_dataset, text_pattern, num_pattern, window_size
+    meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate = getTextScore(
+        case, split, hf_dataset, num_pattern, window_size, text_pattern
     )
 
 
@@ -152,7 +159,6 @@ if __name__ == "__main__":
     wandb.log({"Rouge2 Scores": rouge2})
     wandb.log({"RougeL Scores": rougeL})
     wandb.log({"RMSE Scores": rmse_loss})
-    wandb.log({"GPT Scores": np.mean(gpt_score)})
     wandb.log({"Drop Rate": f"{drop_rate*100:.2f}%"})
     
     end_time = time.time()

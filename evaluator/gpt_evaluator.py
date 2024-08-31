@@ -263,9 +263,14 @@ The total count:
         f1_scores = []
         for row in outputs:
             numbers = [float(num) for num in re.findall(r'\d+', row)]
+            if len(numbers) < 3:
+                continue
             tp = float(numbers[-3])
             fp = float(numbers[-2])
-            fn = float(numbers[-1]) 
+            fn = float(numbers[-1])
+            # Since that is the result for pred output = none, we do not count it
+            if tp == 0 and fp == 0 and fn == 1:
+                continue
 
             if (tp + fp) > 0:
                 precision = tp / (tp + fp)
