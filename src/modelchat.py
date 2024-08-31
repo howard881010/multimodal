@@ -39,8 +39,8 @@ class LLMChatModel(ChatModel):
             self.model_name, token=self.token).to(self.device)
         if self.zeroshot == True:
             return base_model
-        if self.dataset == "climate":
-            return PeftModel.from_pretrained(base_model, f"Howard881010/climate-{self.window_size}day" + ("-mixed" if self.case == 2 else ""))
+        else: 
+            return PeftModel.from_pretrained(base_model, f"Howard881010/{self.dataset}-{self.window_size}day" + ("-mixed" if self.case == 2 else ""))
     def load_tokenizer(self):
         return AutoTokenizer.from_pretrained(self.model_name, padding_side="left")
     def chat(self, prompt):
