@@ -160,19 +160,19 @@ if __name__ == "__main__":
     
     uploadToHuf(results, hf_dataset, split, case)
     
-    meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, gpt_score, drop_rate = getTextScore(
-        case, split, hf_dataset, text_pattern, num_pattern, window_size
-    )
+    # meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, gpt_score, drop_rate = getTextScore(
+    #     case, split, hf_dataset, text_pattern, num_pattern, window_size
+    # )
 
 
-    wandb.log({"Meteor Scores": meteor_score})
-    wandb.log({"Cos Sim Scores": cos_sim_score})
-    wandb.log({"Rouge1 Scores": rouge1})
-    wandb.log({"Rouge2 Scores": rouge2})
-    wandb.log({"RougeL Scores": rougeL})
-    wandb.log({"RMSE Scores": rmse_loss})
-    wandb.log({"GPT Scores": np.mean(gpt_score)})
-    wandb.log({"Drop Rate": f"{drop_rate*100:.2f}%"})
+    # wandb.log({"Meteor Scores": meteor_score})
+    # wandb.log({"Cos Sim Scores": cos_sim_score})
+    # wandb.log({"Rouge1 Scores": rouge1})
+    # wandb.log({"Rouge2 Scores": rouge2})
+    # wandb.log({"RougeL Scores": rougeL})
+    # wandb.log({"RMSE Scores": rmse_loss})
+    # wandb.log({"GPT Scores": np.mean(gpt_score)})
+    # wandb.log({"Drop Rate": f"{drop_rate*100:.2f}%"})
     
     end_time = time.time()
     print("Total Time: " + str(end_time - start_time))
