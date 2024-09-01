@@ -25,12 +25,6 @@ test_datasets:
       field_input: input_text_time
       field_output: output_time
 
-- path: repo
-  type:
-    # The below are defaults. only set what's needed if you use a different column name.
-    field_instruction: instruction-4
-    field_input: input_text_time
-    field_output: output_text
 adapter: lora
 lora_model_dir:
 
