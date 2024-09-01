@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 import wandb
 from loguru import logger
-from utils import find_text_parts, find_num_parts
+from utils import find_text_parts, find_num_parts, split_text
 from modelchat import LLMChatModel
 from transformers import set_seed
 from batch_inference_chat import batch_inference_inContext
@@ -23,15 +23,16 @@ def runModelChat(data, window_size, device, num_pattern, token, dataset, data_tr
     logger.add(log_path, rotation="10 MB", mode="w")
 
     results = [{"pred_output": "Wrong output format", "pred_time": "Wrong output format"} for _ in range(len(data))]
-    batch_inference_inContext(results, model_chat, data, logger, num_pattern, data_train)
+    batch_inference_inContext(results, model_chat, data, logger, num_pattern, data_train, case)
 
     results = pd.DataFrame(results, columns=['pred_output'])
     return results
 
-def uploadToHuf(results, hf_dataset, split):
+def uploadToHuf(results, hf_dataset, split, case):
     data_all = load_dataset(hf_dataset)
     data = pd.DataFrame(data_all[split])
-    data['pred_output'] = results['pred_output']
+    pred_output_column = f'pred_output_case{case}'
+    data[pred_output_column] = results['pred_output']
     updated_data = Dataset.from_pandas(data)
     if split == 'validation':
         updated_dataset = DatasetDict({
@@ -48,29 +49,44 @@ def uploadToHuf(results, hf_dataset, split):
     updated_dataset.push_to_hub(hf_dataset)
 
 
-def getTextScore(case, split, hf_dataset, text_pattern, number_pattern, window_size):
+def getTextScore(case, split, hf_dataset, number_pattern, window_size, text_pattern):
     data_all = load_dataset(hf_dataset)
     data = pd.DataFrame(data_all[split])
-    if case == 2:
-        data['pred_time'] = data['pred_output'].apply(lambda x: find_num_parts(x, number_pattern, window_size))
-        data['pred_output'] = data['pred_output'].apply(lambda x: find_text_parts(x, number_pattern))
+    pred_output_column = f'pred_output_case{case}'
+    # number part evaluation
+    if case in [2, 4]:
+        data['pred_time'] = data[pred_output_column].apply(lambda x: find_num_parts(x, number_pattern, window_size))
         data_clean = data.dropna()
         drop_rate = (len(data) - len(data_clean)) / len(data)
         rmse_loss = getRMSEScore(data_clean)
     else:
         rmse_loss = np.nan
         drop_rate = np.nan
+        
+    # text part evaluation
+    if case in [1, 2, 3]:
+        output_texts = data['output_text'].apply(lambda x: find_text_parts(x, num_pattern)).apply(lambda x: split_text(x, text_pattern)).to_list()
+        pred_texts = data[pred_output_column].apply(lambda x: find_text_parts(x, num_pattern)).apply(lambda x: split_text(x, text_pattern)).to_list()
+        for idx, pred_text in enumerate(pred_texts):
+            if len(pred_text) > window_size:
+                pred_texts[idx] = pred_text[:window_size]
+            while len(pred_text) < window_size:
+                pred_texts[idx].append("No prediction")
 
+        output_texts = np.reshape(output_texts, -1)
+        pred_texts = np.reshape(pred_texts, -1)
+        
+        meteor_score = getMeteorScore(output_texts, pred_texts)
+        cosine_similarity_score = getCosineSimilarity(output_texts, pred_texts)
+        rouge1, rouge2, rougeL = getROUGEScore(output_texts, pred_texts)
+    else:
+        meteor_score = np.nan
+        cosine_similarity_score = np.nan
+        rouge1 = np.nan
+        rouge2 = np.nan
+        rougeL = np.nan
     
-    meteor_score = getMeteorScore(data)
-    cosine_similarity_score = getCosineSimilarity(data)
-    # cosine_similarity_score = np.nan
-    rouge1, rouge2, rougeL = getROUGEScore(data)
-    # gpt_score = getGPTScore(data)
-    gpt_score = np.nan
-    
-
-    return meteor_score, cosine_similarity_score, rouge1, rouge2, rougeL, rmse_loss, gpt_score, drop_rate
+    return meteor_score, cosine_similarity_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate
 
 if __name__ == "__main__":
     multiprocessing.set_start_method('spawn')
@@ -101,20 +117,24 @@ if __name__ == "__main__":
         unit = "week"
         num_key_name = "gas_price"
     
-    if case == 2:
-        hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-mixed-inContext"
-        sub_dir = "mixed"
-    elif case == 1:
-        hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-inContext"
-        sub_dir = "text"
+    if case == 1:
+        model = "text2text"
+    elif case == 2:
+        model = "textTime2textTime"
+    elif case == 3:
+        model = "textTime2text"
+    elif case == 4:
+        model = "textTime2time"
+    
+    hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-inContext"
 
     num_pattern = fr"{unit}_\d+_{num_key_name}: '([\d.]+)'"
-    text_pattern = fr'(?={unit}_\d+_date:)'
+    text_pattern =fr'({unit}_\d+_date:\s*\S+\s+{unit}_\d+_{text_key_name}:.*?)(?=\s{unit}_\d+_date|\Z)'
 
     wandb.init(project="Inference-new",
                 config={"window_size": f"{window_size}-{window_size}",
                         "dataset": dataset,
-                        "model": model_name + ("-mixed" if case == 2 else "") + "-inContext"})
+                        "model":  model + "-inContext"})
     
     start_time = time.time()
     # Run models in parallel
@@ -139,7 +159,7 @@ if __name__ == "__main__":
     
     results = pd.concat(results, axis=0).reset_index(drop=True)
     
-    uploadToHuf(results, hf_dataset, split)
+    uploadToHuf(results, hf_dataset, split, case)
     
     meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, gpt_score, drop_rate = getTextScore(
         case, split, hf_dataset, text_pattern, num_pattern, window_size
