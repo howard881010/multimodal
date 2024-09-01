@@ -9,7 +9,10 @@ strict: false
 chat_template: chatml
 datasets:
   - path: Howard881010/climate-2day-finetuned
-    type: alpaca
+    type: 
+      field_instruction: instruction-3
+      field_input: input_text_time
+      field_output: output_text
     train_on_split: train
 dataset_prepared_path:
 output_dir: ./finetune/output/climate-2day-tT2t
@@ -17,14 +20,11 @@ output_dir: ./finetune/output/climate-2day-tT2t
 test_datasets:
   - path: Howard881010/climate-2day-finetuned
     split: valid
-    type: alpaca
+    type: 
+      field_instruction: instruction-3
+      field_input: input_text_time
+      field_output: output_text
 
-- path: repo
-  type:
-    # The below are defaults. only set what's needed if you use a different column name.
-    field_instruction: instruction-3
-    field_input: input_text_time
-    field_output: output_text
 adapter: lora
 lora_model_dir:
 
