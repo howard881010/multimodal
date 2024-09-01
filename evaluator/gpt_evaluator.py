@@ -157,15 +157,6 @@ class OpeanAIBatchProcessor():
         with open(output_path, "w") as file:
             file.write(file_response.text)
 
-    def gpt_call(self, target_text, pred_text):
-        response = self.client.chat.completions.create(
-            model="gpt-4o-2024-08-06",
-            messages=self.get_messages(target_text, pred_text),
-            response_format={"type": "json_schema",
-                             "json_schema": self.json_schema}
-
-        )
-        return response.choices[0].message.content
 
 
 class GPT4Semantic(OpeanAIBatchProcessor):
@@ -175,14 +166,6 @@ class GPT4Semantic(OpeanAIBatchProcessor):
 The semantic score you provide should be a number between 1 and 10, where 10 represents the highest level of semantic similarity 
 (meaning the summaries convey almost identical information), and 1 represents the lowest level of semantic similarity (meaning the summaries convey entirely different or unrelated information). 
 The score should reflect how closely the meanings and key details of the two summaries align. You should only give me the number, nothing else."""
-
-#         instruction = \
-#                     """You are a helpful assistant capable of evaluating the semantic accuracy of a predicted weather forecast compared to the ground truth weather forecast for the same day.
-# Your task is to assess how closely the meaning of the predicted forecast aligns with the ground truth. Consider factors such as the overall weather conditions, temperature ranges, precipitation chances, and any other relevant details.
-
-# Output a semantic accuracy score between 0 and 100, where 100 represents perfect alignment and 0 represents no alignment. Also, include a brief explanation for your evaluation.
-# """
-
         json_schema = {
             "name": "evaluate_semantic_accuracy",
             "description": "Assesses the semantic accuracy of predicted weather forecasts compared to the ground truth and categorizes the accuracy.",
@@ -228,33 +211,8 @@ The total count:
   - FP total count: 
   - FN total count: 
 """
-
-
-        json_schema = {
-            "name": "evaluate_weather_forecast",
-            "description": "Compares ground truth and predicted weather forecasts and counts the number of true positive, false positive, false negative facts.",
-            "strict": True,
-            "schema": {
-                "type": "object",
-                "properties": {
-                    "explanation": {
-                        "type": "string",
-                    },
-                    "true_positive": {
-                        "type": "number",
-                    },
-                    "false_positive": {
-                        "type": "number",
-                    },
-                    "false_negative": {
-                        "type": "number",
-                    },
-                },
-                "additionalProperties": False,
-                "required": ["explanation", "true_positive", "false_positive", "false_negative"]
-            },
-        }
         prompt = "Ground truth weather forecast: {target_text} \n\n\n Predicted weather forecast: {pred_text}"
+        json_schema = None
         super().__init__(instruction, json_schema, prompt)
 
     def calculate_metrics(self, outputs):
@@ -292,29 +250,52 @@ The total count:
             f1_scores.append(f1_score)
         
         return np.mean(precisions), np.mean(recalls), np.mean(f1_scores)
+    def parse_output(self, output_path: str) -> list[dict]:
+        """
+        Parse the output content from batch job by reading output_path.txt file
+        """
+        # parse output
+        parsed_contents = []
+        with open(output_path, 'r') as f:
+            for line in f:
+                output = json.loads(line)
+                content = output['response']['body']['choices'][0]['message']['content']
+                parsed_contents.append(content)
+        return parsed_contents
 
-    def create_batch_jsons(self, results: pd.DataFrame,
-                           output_text_column,
-                           pred_text_column) -> list[dict]:
+class FinancialDataProcessor(OpeanAIBatchProcessor):
+    def __init__(self):
+
+        instruction = \
+            """You are a helpful assistant skilled in filtering irrelevant information from text and extracting relevant stock-related details. 
+            Here is a text from a webpage that contains irrelevant information. Filter out the unnecessary parts as much as possible.
+            """
+        prompt = "Text: {input_text}"
+        json_schema = None
+        super().__init__(instruction, json_schema, prompt)
+    
+    def get_messages(self, input_text) -> list[dict]:
+        prompt = self.prompt.format(
+            input_text=input_text)
+        messages = [
+            {"role": "system", "content": self.instruction},
+            {"role": "user", "content": prompt},
+        ]
+        return messages
+
+    def create_and_run_batch_job(self, results: pd.DataFrame, jsonl_path: str,
+                                 input_text_column = "input_text") -> str:
         """
-        Creates json batch from results dataframe containing ['output_text', 'pred_text']
+            Creates json batch from results dataframe containing ['output_text', 'pred_text']
         """
-        batch_jsons = []
-        response_format = None
-        for idx, row in results.iterrows():
-            messages = self.get_messages(
-                row[output_text_column], row[pred_text_column])
-            batch_json = {
-                "custom_id": f"{idx}",
-                "method": "POST",
-                "url": "/v1/chat/completions",
-                "body": {
-                    "model": "gpt-4o-mini",
-                    "messages": messages,
-                }
-            }
-            batch_jsons.append(batch_json)
-        return batch_jsons
+
+        assert ".jsonl" in jsonl_path
+        batch_jsons = self.create_batch_jsons(
+            results, input_text_column)
+        self.save_batch_json(batch_jsons, jsonl_path)
+
+        batch_object_id = self.create_batch(jsonl_path)
+        return batch_object_id
 
     def parse_output(self, output_path: str) -> list[dict]:
         """
@@ -328,3 +309,31 @@ The total count:
                 content = output['response']['body']['choices'][0]['message']['content']
                 parsed_contents.append(content)
         return parsed_contents
+
+    def create_batch_jsons(self, results: pd.DataFrame,
+                           input_text_column) -> list[dict]:
+        """
+        Creates json batch from results dataframe containing ['output_text', 'pred_text']
+        """
+        batch_jsons = []
+        response_format = None
+        if self.json_schema is not None:
+            response_format = {
+                "type": "json_schema",
+                "json_schema": self.json_schema
+            }
+        for idx, row in results.iterrows():
+            messages = self.get_messages(
+                row[input_text_column])
+            batch_json = {
+                "custom_id": f"{idx}",
+                "method": "POST",
+                "url": "/v1/chat/completions",
+                "body": {
+                    "model": "gpt-4o-mini",
+                    "messages": messages,
+                    "response_format": response_format
+                }
+            }
+            batch_jsons.append(batch_json)
+        return batch_jsons

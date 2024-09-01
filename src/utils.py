@@ -82,12 +82,12 @@ def apply_chat_template(tokenizer, instruction, input_text, output_text):
     input_tokens = tokenizer(alpaca_text, return_tensors="pt")
     return input_tokens.input_ids.shape[1]
 
-def get_max_token_size(dataset, model_name="meta-llama/Meta-Llama-3.1-8B-Instruct"):
+def get_max_token_size(dataset, input_column, output_column, instruction_column, model_name="meta-llama/Meta-Llama-3.1-8B-Instruct", ):
     max_tokens = 0
     tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side='left')
     for split in ['train', 'valid', 'test']:
-        tokens_split = max([apply_chat_template(tokenizer, row['instruction'], 
-                                        row['input_text'], row['output_text']) for row in dataset[split]])
+        tokens_split = max([apply_chat_template(tokenizer, row[instruction_column], 
+                                        row[input_column], row[output_column]) for row in dataset[split]])
         if tokens_split > max_tokens:
             max_tokens = tokens_split
 
