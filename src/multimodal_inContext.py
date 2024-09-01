@@ -49,7 +49,7 @@ def uploadToHuf(results, hf_dataset, split, case):
     updated_dataset.push_to_hub(hf_dataset)
 
 
-def getTextScore(case, split, hf_dataset, number_pattern, window_size, text_pattern):
+def getTextScore(case, split, hf_dataset,text_pattern, number_pattern, window_size):
     data_all = load_dataset(hf_dataset)
     data = pd.DataFrame(data_all[split])
     pred_output_column = f'pred_output_case{case}'
@@ -65,7 +65,7 @@ def getTextScore(case, split, hf_dataset, number_pattern, window_size, text_patt
         
     # text part evaluation
     if case in [1, 2, 3]:
-        output_texts = data['output_text'].apply(lambda x: find_text_parts(x, num_pattern)).apply(lambda x: split_text(x, text_pattern)).to_list()
+        output_texts = data['output_text'].apply(lambda x: split_text(x, text_pattern)).to_list()
         pred_texts = data[pred_output_column].apply(lambda x: find_text_parts(x, num_pattern)).apply(lambda x: split_text(x, text_pattern)).to_list()
         for idx, pred_text in enumerate(pred_texts):
             if len(pred_text) > window_size:
