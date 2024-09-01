@@ -102,7 +102,7 @@ if __name__ == "__main__":
     dataset = sys.argv[1]
     window_size = int(sys.argv[2])
     case = int(sys.argv[3])
-    split = sys.argv[3]
+    split = sys.argv[4]
     num_gpus = torch.cuda.device_count()
 
     if dataset == "climate":
