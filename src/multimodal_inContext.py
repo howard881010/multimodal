@@ -94,16 +94,15 @@ if __name__ == "__main__":
     np.random.seed(42)
     set_seed(42)
 
-    if len(sys.argv) != 6:
-        print("Usage: python models/lltime_test.py <dataset> <window_size> <model_name> <case> <split>")
+    if len(sys.argv) != 5:
+        print("Usage: python models/lltime_test.py <dataset> <window_size> <case> <split>")
         sys.exit(1)
 
     token = os.environ.get("HF_TOKEN")
     dataset = sys.argv[1]
     window_size = int(sys.argv[2])
-    case = int(sys.argv[4])
-    model_name = sys.argv[3]
-    split = sys.argv[5]
+    case = int(sys.argv[3])
+    split = sys.argv[3]
     num_gpus = torch.cuda.device_count()
 
     if dataset == "climate":
