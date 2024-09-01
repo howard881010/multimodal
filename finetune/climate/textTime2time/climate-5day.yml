@@ -9,7 +9,10 @@ strict: false
 chat_template: chatml
 datasets:
   - path: Howard881010/climate-5day-finetuned
-    type: alpaca
+    type:
+      field_instruction: instruction-4
+      field_input: input_text_time
+      field_output: output_time
     train_on_split: train
 dataset_prepared_path:
 output_dir: ./finetune/output/climate-5day-tT2T
@@ -17,7 +20,10 @@ output_dir: ./finetune/output/climate-5day-tT2T
 test_datasets:
   - path: Howard881010/climate-5day-finetuned
     split: valid
-    type: alpaca
+    type:
+      field_instruction: instruction-4
+      field_input: input_text_time
+      field_output: output_time
 
 - path: repo
   type:
