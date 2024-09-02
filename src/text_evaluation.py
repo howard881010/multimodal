@@ -5,11 +5,10 @@ from nltk import word_tokenize
 from sentence_transformers import SentenceTransformer
 from sentence_transformers.util import cos_sim
 from rouge_score import rouge_scorer
-import json
 from utils import rmse, find_text_parts
 import nltk
-from openai import OpenAI
-import os
+from datasets import load_dataset
+from utils import find_num_parts, split_text, find_text_parts
 nltk.download('punkt')
 nltk.download('wordnet')
 
@@ -51,3 +50,42 @@ def getROUGEScore(outputs, pred_outputs):
     mean_rougeL = np.mean(rougeL_scores)
     
     return mean_rouge1, mean_rouge2, mean_rougeL
+
+def getTextScore(case, split, hf_dataset,text_pattern, number_pattern, window_size):
+    data_all = load_dataset(hf_dataset)
+    data = pd.DataFrame(data_all[split])
+    pred_output_column = f'pred_output_case{case}'
+    # number part evaluation
+    if case in [2, 4]:
+        data['pred_time'] = data[pred_output_column].apply(lambda x: find_num_parts(x, number_pattern, window_size))
+        data_clean = data.dropna()
+        drop_rate = (len(data) - len(data_clean)) / len(data)
+        rmse_loss = getRMSEScore(data_clean)
+    else:
+        rmse_loss = np.nan
+        drop_rate = np.nan
+        
+    # text part evaluation
+    if case in [1, 2, 3]:
+        output_texts = data['output_text'].apply(lambda x: split_text(x, text_pattern)).to_list()
+        pred_texts = data[pred_output_column].apply(lambda x: find_text_parts(x, number_pattern)).apply(lambda x: split_text(x, text_pattern)).to_list()
+        for idx, pred_text in enumerate(pred_texts):
+            if len(pred_text) > window_size:
+                pred_texts[idx] = pred_text[:window_size]
+            while len(pred_text) < window_size:
+                pred_texts[idx].append("No prediction")
+
+        output_texts = np.reshape(output_texts, -1)
+        pred_texts = np.reshape(pred_texts, -1)
+        
+        meteor_score = getMeteorScore(output_texts, pred_texts)
+        cosine_similarity_score = getCosineSimilarity(output_texts, pred_texts)
+        rouge1, rouge2, rougeL = getROUGEScore(output_texts, pred_texts)
+    else:
+        meteor_score = np.nan
+        cosine_similarity_score = np.nan
+        rouge1 = np.nan
+        rouge2 = np.nan
+        rougeL = np.nan
+    
+    return meteor_score, cosine_similarity_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate

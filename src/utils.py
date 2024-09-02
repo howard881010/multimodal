@@ -3,6 +3,8 @@ import numpy as np
 import os
 import yaml
 from transformers import AutoTokenizer
+from datasets import load_dataset, DatasetDict, Dataset
+import pandas as pd
 
 
     
@@ -92,3 +94,23 @@ def get_max_token_size(dataset, input_column, output_column, instruction_column,
             max_tokens = tokens_split
 
     return max_tokens + 10 # add 10 extra tokens for safety
+
+def uploadToHuf(results, hf_dataset, split, case):
+    data_all = load_dataset(hf_dataset)
+    data = pd.DataFrame(data_all[split])
+    pred_output_column = f'pred_output_case{case}'
+    data[pred_output_column] = results['pred_output']
+    updated_data = Dataset.from_pandas(data)
+    if split == 'validation':
+        updated_dataset = DatasetDict({
+            'train': data_all['train'], 
+            'test': data_all['test'],
+            'valid': updated_data
+        })
+    elif split == 'test':
+        updated_dataset = DatasetDict({
+            'train': data_all['train'], 
+            'valid': data_all['valid'],
+            'test': updated_data
+        })
+    updated_dataset.push_to_hub(hf_dataset)

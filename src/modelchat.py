@@ -37,10 +37,11 @@ class LLMChatModel(ChatModel):
     def load_model(self):
         base_model = AutoModelForCausalLM.from_pretrained(
             self.model_name, token=self.token).to(self.device)
+
         if self.zeroshot == True:
             return base_model
         else: 
-            return PeftModel.from_pretrained(base_model, f"Howard881010/{self.dataset}-{self.window_size}day" + ("-mixed" if self.case == 2 else ""))
+            return PeftModel.from_pretrained(base_model, f"Howard881010/{self.dataset}-{self.window_size}day")
     def load_tokenizer(self):
         return AutoTokenizer.from_pretrained(self.model_name, padding_side="left")
     def chat(self, prompt):
