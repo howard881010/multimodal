@@ -65,13 +65,9 @@ def batch_inference_inContext(
 def create_batch_prompt(data, case):
     prompt = []
     cur_idx = []
-    if case == 1:
+    if case in [1]:
         input_column = 'input_text'
-    elif case == 2:
-        input_column = 'input_text_time'
-    elif case == 3:
-        input_column = 'input_text_time'
-    elif case == 4:
+    elif case in [2, 3, 4]:
         input_column = 'input_text_time'
     instruction_column = f'instruction-{case}'
 
