@@ -158,7 +158,7 @@ if __name__ == "__main__":
     
     results = pd.concat(results, axis=0).reset_index(drop=True)
     
-    uploadToHuf(results, hf_dataset, split)
+    uploadToHuf(results, hf_dataset, split, case)
     
     # meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate = getTextScore(
     #     case, split, hf_dataset, num_pattern, window_size, text_pattern
