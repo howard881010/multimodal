@@ -23,7 +23,7 @@ def runModelChat(data, case, device, num_pattern, token, dataset, window_size):
     logger.add(log_path, rotation="10 MB", mode="w")
 
     results = [{"pred_output": "Wrong output format", "pred_time": "Wrong output format"} for _ in range(len(data))]
-    batch_inference(results, model_chat, data, logger, num_pattern)
+    batch_inference(results, model_chat, data, logger, num_pattern, case)
 
     results = pd.DataFrame(results, columns=['pred_output'])
     return results
