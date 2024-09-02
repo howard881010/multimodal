@@ -6,12 +6,21 @@ model:
       git pull &&
       sudo apt update &&
       sudo apt install -y libaio-dev &&
-      python -m axolotl.cli.preprocess finetune/climate/climate.yml &&
-      accelerate launch -m axolotl.cli.train finetune/climate/climate.yml && 
-      s5cmd cp finetune/output/climate-A100 s3://multimodal_fine_tuning
-    cpu_count: 12
+      python src/multimodal.py climate 4 1 test &&
+      python src/multimodal.py climate 4 2 test &&
+      python src/multimodal.py climate 4 3 test &&
+      python src/multimodal.py climate 4 4 test &&
+      python src/multimodal.py climate 5 1 test &&
+      python src/multimodal.py climate 5 2 test &&
+      python src/multimodal.py climate 5 3 test &&
+      python src/multimodal.py climate 5 4 test &&
+      python src/multimodal.py climate 6 1 test &&
+      python src/multimodal.py climate 6 2 test &&
+      python src/multimodal.py climate 6 3 test &&
+      python src/multimodal.py climate 6 4 test
+    cpu_count: 20
     gpu_count: 4
-    memory: 200
+    memory: 250
 # irrelevant:
 dataset:
   climate:
@@ -28,7 +37,7 @@ run:
 #   - ./axolotl/examples/llama-2/myconfig.yml
 # hostname_whitelist:
 #   - hcc-chase-shor-c4715.unl.edu
-prefix: climate7a5
+prefix: climateday456
 special_gpu: a100
-# file: [src/multimodal_inContext.py, src/utils.py, src/dart.py, src/modelchat.py, src/hybrid.py, src/batch_inference_chat.py]
+file: [src/utils.py, src/modelchat.py, src/batch_inference_chat.py, src/multimodal.py]
 # gpu_count: 2

@@ -11,7 +11,7 @@ def batch_inference(
     num_pattern,
     case
 ):
-    batches = list(create_batched(data, 12))
+    batches = list(create_batched(data, 6))
 
     for batch in tqdm(batches):
         prompt, cur_idx = create_batch_prompt(batch, case)
