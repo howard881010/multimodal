@@ -16,7 +16,7 @@ import torch
 import multiprocessing
 
 def runModelChat(data, case, device, num_pattern, token, dataset, window_size):
-    model_chat = LLMChatModel("unsloth/Meta-Llama-3.1-8B-Instruct", token, dataset, False, case, device, window_size)
+    model_chat = LLMChatModel("unsloth/Meta-Llama-3.1-8B-Instruct", token, dataset, True, case, device, window_size)
     data['idx'] = data.index
     log_path = "climate_log.csv"
     logger.remove()
@@ -126,7 +126,7 @@ if __name__ == "__main__":
     elif case == 4:
         model = "textTime2time"
 
-    hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-finetuned"
+    hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-zeroshot"
 
     num_pattern = fr"{unit}_\d+_{num_key_name}: '([\d.]+)'"
     text_pattern =fr'({unit}_\d+_date:\s*\S+\s+{unit}_\d+_{text_key_name}:.*?)(?=\s{unit}_\d+_date|\Z)'
@@ -134,7 +134,7 @@ if __name__ == "__main__":
     wandb.init(project="Inference-new",
                 config={"window_size": f"{window_size}-{window_size}",
                         "dataset": dataset,
-                        "model": model})
+                        "model": model + "-zeroshot"})
     
     start_time = time.time()
     # Run models in parallel
@@ -160,18 +160,18 @@ if __name__ == "__main__":
     
     uploadToHuf(results, hf_dataset, split)
     
-    meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate = getTextScore(
-        case, split, hf_dataset, num_pattern, window_size, text_pattern
-    )
+    # meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate = getTextScore(
+    #     case, split, hf_dataset, num_pattern, window_size, text_pattern
+    # )
 
 
-    wandb.log({"Meteor Scores": meteor_score})
-    wandb.log({"Cos Sim Scores": cos_sim_score})
-    wandb.log({"Rouge1 Scores": rouge1})
-    wandb.log({"Rouge2 Scores": rouge2})
-    wandb.log({"RougeL Scores": rougeL})
-    wandb.log({"RMSE Scores": rmse_loss})
-    wandb.log({"Drop Rate": f"{drop_rate*100:.2f}%"})
+    # wandb.log({"Meteor Scores": meteor_score})
+    # wandb.log({"Cos Sim Scores": cos_sim_score})
+    # wandb.log({"Rouge1 Scores": rouge1})
+    # wandb.log({"Rouge2 Scores": rouge2})
+    # wandb.log({"RougeL Scores": rougeL})
+    # wandb.log({"RMSE Scores": rmse_loss})
+    # wandb.log({"Drop Rate": f"{drop_rate*100:.2f}%"})
     
     end_time = time.time()
     print("Total Time: " + str(end_time - start_time))
