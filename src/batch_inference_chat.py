@@ -9,11 +9,12 @@ def batch_inference(
     data,
     logger,
     num_pattern,
+    case
 ):
     batches = list(create_batched(data, 12))
 
     for batch in tqdm(batches):
-        prompt, cur_idx = create_batch_prompt(batch)
+        prompt, cur_idx = create_batch_prompt(batch, case)
         output_texts = model_chat.chat(prompt)
 
         for index, output_text in enumerate(output_texts):
@@ -61,12 +62,21 @@ def batch_inference_inContext(
             results[cur_idx[index]] = (
                     {"pred_output": response, "pred_time": formatted_nums})
 
-def create_batch_prompt(data):
+def create_batch_prompt(data, case):
     prompt = []
     cur_idx = []
+    if case == 1:
+        input_column = 'input_text'
+    elif case == 2:
+        input_column = 'input_text_time'
+    elif case == 3:
+        input_column = 'input_text_time'
+    elif case == 4:
+        input_column = 'input_text_time'
+    instruction_column = f'instruction-{case}'
 
     for index, row in data.iterrows():
-        content = [{"role": "system", "content": row['instruction']}, {"role": "user", "content": row['input']}]
+        content = [{"role": "system", "content": row[instruction_column]}, {"role": "user", "content": row[input_column]}]
         prompt.append(content)
         cur_idx.append(row['idx'])
 
