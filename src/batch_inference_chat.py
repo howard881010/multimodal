@@ -72,7 +72,8 @@ def create_batch_prompt(data, case):
     instruction_column = f'instruction-{case}'
 
     for index, row in data.iterrows():
-        content = [{"role": "system", "content": row[instruction_column]}, {"role": "user", "content": row[input_column]}]
+        content = [{"role": "system", "content": "You are a weather forecast assistant. Given the weather data from a recent day, predict the weather conditions for the following days"}, 
+                   {"role": "user", "content": row[instruction_column] + row[input_column]}]
         prompt.append(content)
         cur_idx.append(row['idx'])
 
