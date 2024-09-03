@@ -67,7 +67,7 @@ if __name__ == "__main__":
     
     hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-inContext"
 
-    num_pattern = fr"{unit}_\d+_{num_key_name}: '([\d.]+)'"
+    num_pattern = fr"{unit}_\d+_{num_key_name}: ?'?([\d.]+)'?"
     text_pattern =fr'({unit}_\d+_date:\s*\S+\s+{unit}_\d+_{text_key_name}:.*?)(?=\s{unit}_\d+_date|\Z)'
 
     wandb.init(project="Inference-inContext",

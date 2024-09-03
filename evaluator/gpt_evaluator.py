@@ -267,16 +267,37 @@ class FinancialDataProcessor(OpeanAIBatchProcessor):
     def __init__(self):
 
         instruction = \
-            """You are a helpful assistant skilled in filtering irrelevant information from text and extracting relevant stock-related details. 
-            Here is a text from a webpage that contains irrelevant information. Filter out the unnecessary parts as much as possible.
-            """
-        prompt = "Text: {input_text}"
-        json_schema = None
+            """You are a skilled assistant at filtering irrelevant information from text and extracting only the relevant stock-related details for a given ticker. 
+            Provided with text from a webpage that includes extraneous information, filter out all unnecessary parts and output only the relevant details for the specified ticker.
+            If there is no relevant information, you can leave the text part empty."""
+        prompt = "Ticker: {input_ticker} Date: {input_date} Text: {input_text}"
+        json_schema = {
+            "name": "filter_irrelevant_information",
+            "description": "Filter irrelevant information from text and extract relevant stock-related details for a specified ticker.",
+            "strict": True,
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "ticker": {
+                        "type": "string"
+                    },
+                    "date": {
+                        "type": "string"
+                    },
+                    "text": {
+                        "type": "string"
+                    }
+                },
+                "additionalProperties": False,
+                "required": ["ticker", "date", "text"]
+            }
+        }
+
         super().__init__(instruction, json_schema, prompt)
     
-    def get_messages(self, input_text) -> list[dict]:
+    def get_messages(self, input_text, input_ticker, input_date) -> list[dict]:
         prompt = self.prompt.format(
-            input_text=input_text)
+            input_text=input_text, input_ticker=input_ticker, input_date=input_date)
         messages = [
             {"role": "system", "content": self.instruction},
             {"role": "user", "content": prompt},
@@ -284,14 +305,14 @@ class FinancialDataProcessor(OpeanAIBatchProcessor):
         return messages
 
     def create_and_run_batch_job(self, results: pd.DataFrame, jsonl_path: str,
-                                 input_text_column = "input_text") -> str:
+                                 ticker_column, date_column, input_text_column) -> str:
         """
             Creates json batch from results dataframe containing ['output_text', 'pred_text']
         """
 
         assert ".jsonl" in jsonl_path
         batch_jsons = self.create_batch_jsons(
-            results, input_text_column)
+            results, input_text_column, ticker_column, date_column)
         self.save_batch_json(batch_jsons, jsonl_path)
 
         batch_object_id = self.create_batch(jsonl_path)
@@ -311,7 +332,7 @@ class FinancialDataProcessor(OpeanAIBatchProcessor):
         return parsed_contents
 
     def create_batch_jsons(self, results: pd.DataFrame,
-                           input_text_column) -> list[dict]:
+                           input_text_column, ticker_column, date_column) -> list[dict]:
         """
         Creates json batch from results dataframe containing ['output_text', 'pred_text']
         """
@@ -324,7 +345,7 @@ class FinancialDataProcessor(OpeanAIBatchProcessor):
             }
         for idx, row in results.iterrows():
             messages = self.get_messages(
-                row[input_text_column])
+                row[input_text_column], row[ticker_column], row[date_column])
             batch_json = {
                 "custom_id": f"{idx}",
                 "method": "POST",
@@ -337,3 +358,13 @@ class FinancialDataProcessor(OpeanAIBatchProcessor):
             }
             batch_jsons.append(batch_json)
         return batch_jsons
+    
+    def gpt_call(self, input_text, ticker, date):
+        response = self.client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=self.get_messages(input_text, ticker, date),
+            response_format={"type": "json_schema",
+                             "json_schema": self.json_schema}
+
+        )
+        return response.choices[0].message.content
