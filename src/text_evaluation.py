@@ -74,9 +74,13 @@ def getTextScore(case, split, hf_dataset,text_pattern, number_pattern, window_si
                 pred_texts[idx] = pred_text[:window_size]
             while len(pred_text) < window_size:
                 pred_texts[idx].append("No prediction")
-
+        
         output_texts = np.reshape(output_texts, -1)
         pred_texts = np.reshape(pred_texts, -1)
+        indices_to_drop = [idx for idx, pred_text in enumerate(pred_texts) if "No prediction" in pred_text]
+        output_texts = np.delete(output_texts, indices_to_drop)
+        pred_texts = np.delete(pred_texts, indices_to_drop)
+
         
         meteor_score = getMeteorScore(output_texts, pred_texts)
         cosine_similarity_score = getCosineSimilarity(output_texts, pred_texts)
