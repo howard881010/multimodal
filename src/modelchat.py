@@ -5,7 +5,7 @@ import time
 from peft import PeftModel
 import os
 from pydantic import BaseModel
-from lmformatenforcer import RegexParser
+from lmformatenforcer import JsonSchemaParser, RegexParser
 from lmformatenforcer.integrations.transformers import build_transformers_prefix_allowed_tokens_fn
 
 
@@ -64,8 +64,8 @@ class LLMChatModel(ChatModel):
             self.tokenizer.eos_token_id,
             self.tokenizer.convert_tokens_to_ids("<|eot_id|>")
         ]
-        parser = RegexParser(
-            AnswerFormat
+        parser = JsonSchemaParser(
+            AnswerFormat.model_json_schema()
         )
         prefix_function = build_transformers_prefix_allowed_tokens_fn(
             self.tokenizer, parser
@@ -86,8 +86,20 @@ if __name__ == "__main__":
     start = time.time()
 
     input = str({"temp": 169.9})
-    content = [{"role": "system", "content": "Given the medical notes and heart rates of the first 3 day, predict the medical notes and heart rates of the next 3 day.Output the result **ONLY** in the following YAML format: ``` day_4_date: day_4_medical_notes: day_4_Heart_Rate: day_5_date: day_5_medical_notes: day_5_Heart_Rate: day_6_date: day_6_medical_notes: day_6_Heart_Rate: ```"}, 
-               {"role": "user", "content": "``` day_1_date: 2131-08-07 day_1_medical_notes: **Respiratory Rate:** - Ranges from 36-64 breaths per minute. - Mild subcostal retractions noted. - No apnea spells. **Heart Rate:** - 150-182 bpm, elevated but stable. **SaO2:** - Oxygen saturations >95% initially, transitioning to room air with saturations >93%. - Occasionally dips to the high 80s but self-resolves. **FiO2:** - Initially 100% oxygen, transitioned to room air at 2200. **Plan:** - Continue monitoring respiratory status maintaining saturations >93%. - Monitor heart rate and blood pressure closely. day_1_Heart_Rate: '158.955' day_2_date: 2131-08-08 day_2_medical_notes: **Respiratory:** - Respiratory Rate: 40-60 breaths per minute - Oxygen Saturation: Initially >94%, drifted to 90% - Breath Sounds: Clear, mild subcostal retractions noted - Assessment: Breathing comfortably despite saturation drift - Plan: Continue monitoring respiratory status **Cardiovascular:** - Heart Rate: Not explicitly documented in notes - Blood Pressure: 86/54 (mean 65) - Glucose: D-stick 83, Electrolytes: Sodium 137, Potassium 4.6 - Assessment: Well perfused, no heart murmur detected - Plan: Monitor vital signs regularly **Oxygenation:** - FiO2: Patient on room air - SaO2: Initially >92%, some mild desaturations observed - Assessment: Stable in room air - Plan: Continue monitoring oxygen saturation **Nutritional Support:** - Enteral feeds: Currently receiving 40 cc/kg/day of BM20, tolerated well - Total Fluid: Administering 150 cc/kg - Assessment: Patient tolerating feeds, abdomen soft and full with active bowel sounds - Plan: Advance feeds as tolerated and monitor closely day_2_Heart_Rate: '168.08' day_3_date: 2131-08-09 day_3_medical_notes: **Respiratory Status:** - Patient on nasal cannula at 100% FiO2. - Flow rate: 13-25 cc. - Respiratory Rate (RR): 40-60 breaths per minute, with mild subcostal retractions. - Lungs clear; no episodes of apnea, bradycardia, or desaturation. - Current SaO2: above 93%. - Plan to wean off oxygen as tolerated; Diuril restarted. **Cardiovascular Status:** - Heart Rate (HR): 160 beats per minute. - No murmurs or cardiovascular issues observed. **Interventions:** - Diuretic (Diuril) and potassium chloride (KCl) supplementation restarted. - Monitoring for readiness to discontinue oxygen and Diuril in the coming days. **Assessment:** - Patient appears active and engaged, with stable vital signs. - Monitoring for respiratory and nutritional status ongoing. day_3_Heart_Rate: '163.667' ```"}]
+    content = [{"role": "system", "content": """Given the weather forecast of the first 2 day, predict the weather forecast of the next 2 day. Output the result **ONLY** in the following JSON format: {
+  "day_3_date": "",
+  "day_3_weather_forecast": "",
+  "day_4_date": "",
+  "day_4_weather_forecast": ""
+}
+"""}, 
+               {"role": "user", "content": """{
+  "day_3_date": "2022-12-07",
+  "day_3_weather_forecast": "Heavy coastal rains and significant mountain snow are expected across the West and Rockies this weekend through Monday, with heavy rainfall and severe weather threats in the Mississippi Valley, along with snow, ice, and freezing rain in the north-central U.S. Rain and snow are anticipated for the Great Lakes region into the northern Mid-Atlantic and Northeast starting Saturday night. A dynamic system will form, bringing widespread and significant precipitation over the West and enhancing rainfall in the Mississippi Valley early next week. Temperatures will be mostly below normal over the West, with 10-15°F below normal highs, while the eastern U.S. will experience near to above normal temperatures, especially in morning lows with anomalies of 15-25°F in the southern tier. Highs in the central and east-central U.S. may reach 10-15°F above normal. Precipitation includes moderate to heavy rainfall in the southeastern U.S. and potential local flooding. Heavy snowfall is expected in higher elevations like the Sierra Nevada and Rockies, with significant snow probability increasing in the Northern Plains and Upper Midwest. Severe weather, including strong convection, is likely in the Lower and Middle Mississippi Valley starting Monday. Expected hazards include heavy precipitation across the Great Lakes and Upper Mississippi Valley, heavy rain in California and the Southwest, and heavy snow across various regions on specified dates from December 10 to December 14.",
+  "day_4_date": "2022-12-08",
+  "day_4_weather_forecast": "Heavy coastal rains and widespread mountain snow are expected across the West and Rockies from Sunday into Monday. A significant rainfall and severe weather threat will spread eastward from the southern U.S. next week. Rain and snow are anticipated from the Great Lakes into the northern Mid-Atlantic and Northeast due to an amplified trough. Moderate to heavy rainfall is likely in the southeastern U.S. over the weekend, while plowable snow is expected in the northern regions. A deep storm will lead to significant terrain-enhanced rain and snow in the West, with a potential blizzard threat in the north-central U.S. Heavy precipitation is expected in the Lower and Middle Mississippi Valley starting Monday and intensifying through midweek, along with severe convection possible. Below normal high temperatures (10-15°F below) are expected in the West, while the southern and eastern regions will see near to above normal temperatures, particularly warmer morning lows. Significant snowfall, ice, and freezing rain risks are forecast for the Northern Plains, Upper Midwest, Great Lakes, and Northeast. Winds associated with winter weather conditions will impact several regions. Potential for severe weather exists from the Middle to Lower Mississippi Valley and Southern Plains, especially next week."
+}
+"""}]
     prompt = [content]
     prompt.append(content)
     token = os.getenv("HF_TOKEN")
@@ -95,12 +107,11 @@ if __name__ == "__main__":
     # model_chat = MistralChatModel(
     #     "mistralai/Mistral-7B-Instruct-v0.1", token, "climate")
     # fine-tuned model
-    model_chat = LLMChatModel("unsloth/Meta-Llama-3.1-8B-Instruct", token, "climate", False, 2, "cuda:0", 3)
+    model_chat = LLMChatModel("unsloth/Meta-Llama-3.1-8B-Instruct", token, "climate", True, 1, "cuda:0", 3)
 
     output = model_chat.chat(prompt)
     # print(output)
-    for i in range(len(output)):
-        print("Out of ", i, ": ", output[0])
+    print(output[0])
 
     end = time.time()
     print("Time taken: ", end - start)

@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from ast import literal_eval
 import os
+import json
 
 
 class ClimateDataProcessor(DatasetProcessor):
@@ -51,13 +52,13 @@ class ClimateDataProcessor(DatasetProcessor):
             'output_num': pd.Series(output_num, dtype=object).reindex(index=np.arange(len(output_num)), fill_value=np.nan),
         })
         new_df['instruction-1'] = instruction_1
-        # print('instruction_1: ', instruction_1)
+        print('instruction_1: ', instruction_1)
         new_df['instruction-2'] = instruction_2
-        # print('instruction_2: ', instruction_2)
+        print('instruction_2: ', instruction_2)
         new_df['instruction-3'] = instruction_3
-        # print('instruction_3: ', instruction_3)
+        print('instruction_3: ', instruction_3)
         new_df['instruction-4'] = instruction_4
-        # print('instruction_4: ', instruction_4)
+        print('instruction_4: ', instruction_4)
         
         # get rid of nan tails
         new_df = new_df.iloc[:-(input_window + output_window-1)]
@@ -92,24 +93,38 @@ class ClimateDataProcessor(DatasetProcessor):
             curr_day_range = range(input_window, output_window+input_window)
             curr_window_range = range(
                 len(df) - input_window - output_window + 1)
+        row_text = {}
+        # for t in curr_window_range:
+        #     row_text = ""
 
+        #     for curr_day_idx in curr_day_range:
+        #         row_text += f"{date_template.format(timestep=timestep, index=curr_day_idx+1)}: {df.loc[t+curr_day_idx, 'date']}" + "\n"
+        #         if case not in ['time']:
+        #             row_text += f"{text_template.format(timestep=timestep, index=curr_day_idx+1)}: {df.loc[t+curr_day_idx, 'text']}"
+
+        #         if case in ['text_time', 'time']:
+        #             time_in_text = []
+        #             for col in numerical_columns:
+        #                 time_in_text.append(
+        #                     f"{time_template.format(timestep=timestep, index=curr_day_idx+1, col=col)}: '{df.loc[t+curr_day_idx, col]}'")
+        #             row_text += "\n" + " ".join(time_in_text)
+        #         row_text += '\n'
+        #     row_text = '```' + '\n' + row_text + '```'
+
+        #     results.append(row_text)
         for t in curr_window_range:
-            row_text = ""
-
+            row_text = {}
             for curr_day_idx in curr_day_range:
-                row_text += f"{date_template.format(timestep=timestep, index=curr_day_idx+1)}: {df.loc[t+curr_day_idx, 'date']}" + "\n"
+                row_text[date_template.format(timestep=timestep, index=curr_day_idx+1)] = df.loc[t+curr_day_idx, 'date']
                 if case not in ['time']:
-                    row_text += f"{text_template.format(timestep=timestep, index=curr_day_idx+1)}: {df.loc[t+curr_day_idx, 'text']}"
+                    row_text[text_template.format(timestep=timestep, index=curr_day_idx+1)] = df.loc[t+curr_day_idx, 'text']
 
                 if case in ['text_time', 'time']:
-                    time_in_text = []
                     for col in numerical_columns:
-                        time_in_text.append(
-                            f"{time_template.format(timestep=timestep, index=curr_day_idx+1, col=col)}: '{df.loc[t+curr_day_idx, col]}'")
-                    row_text += "\n" + " ".join(time_in_text)
-                row_text += '\n'
-            row_text = '```' + '\n' + row_text + '```'
-
+                        row_text[time_template.format(timestep=timestep, index=curr_day_idx+1, col=col)] = df.loc[t+curr_day_idx, col]
+                    
+            row_text = json.dumps(row_text, indent=4)
+            # print(row_text)
             results.append(row_text)
 
         return results
@@ -124,24 +139,21 @@ class ClimateDataProcessor(DatasetProcessor):
         text_template = cfg['text_template']
         time_template = cfg['time_template']
 
-        output_template = [
-            f"{date_template.format(timestep=timestep, index=i)}:" 
-            + ('\n' + f"{text_template.format(timestep=timestep, index=i)}:" if case in [1, 2, 3] else "") 
-            for i in range(input_window + 1, input_window + output_window + 1)
-        ]
-
-        if case in [2, 4]:
-            for i in range(len(output_template)):
-                time_in_text = "".join(
-                    [f"{time_template.format(timestep=timestep, index=i+input_window+1, col=col)}:"
-                     for col in cfg['numerical_columns']])
-                output_template[i] += '\n' + time_in_text
+        output_template = {}
+        for i in range(input_window + 1, input_window + output_window + 1):
+            output_template[date_template.format(timestep=timestep, index=i)] = ""
+            if case in [1, 2, 3]:
+                output_template[text_template.format(timestep=timestep, index=i)] = ""
+            if case in [2, 4]:
+                for col in cfg['numerical_columns']:
+                    output_template[time_template.format(timestep=timestep, index=i, col=col)] = ""
+        output_template = json.dumps(output_template, indent=4)
 
         instruction = instruction_template.format(
             input_window=input_window,
             timestep=timestep,
             output_window=output_window,
-        ) + "```" + "\n" +  "\n".join(output_template) + '\n' + "```"
+        ) + output_template
 
         return instruction
     

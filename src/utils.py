@@ -5,6 +5,7 @@ import yaml
 from transformers import AutoTokenizer
 from datasets import load_dataset, DatasetDict, Dataset
 import pandas as pd
+from pydantic import BaseModel, create_model
 
 
     
@@ -86,7 +87,7 @@ def apply_chat_template(tokenizer, instruction, input_text, output_text):
 
 def get_max_token_size(dataset, input_column, output_column, instruction_column, model_name="meta-llama/Meta-Llama-3.1-8B-Instruct", ):
     max_tokens = 0
-    tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side='left')
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
     for split in ['train', 'valid', 'test']:
         tokens_split = max([apply_chat_template(tokenizer, row[instruction_column], 
                                         row[input_column], row[output_column]) for row in dataset[split]])
@@ -114,3 +115,17 @@ def uploadToHuf(results, hf_dataset, split, case):
             'test': updated_data
         })
     updated_dataset.push_to_hub(hf_dataset)
+
+
+def create_answer_format(window_size, case, text_key_name, num_key_name):
+    # Dynamically generate fields for the class based on the window size
+    fields = {}
+    for i in range(window_size + 1, 2 * window_size + 1):
+        fields[f'day_{i}_date'] = (str, ...)
+        if case in [1, 2, 3]:
+            fields[f'day_{i}_{text_key_name}'] = (str, ...)
+        if case in [2, 4]:
+            fields[f'day_{i}_{num_key_name}'] = (float, ...)
+    
+    # Create a dynamic model with the generated fields
+    return create_model('AnswerFormat', **fields)
