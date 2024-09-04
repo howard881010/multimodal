@@ -33,6 +33,7 @@ torch = "2.4.0"
 xformers = "^0.0.27.post2"
 vllm = "^0.5.4"
 pygments = "^2.18.0"
+lm-format-enforcer = "^0.10.6"
 
 
 
