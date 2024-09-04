@@ -35,14 +35,13 @@ if __name__ == "__main__":
     set_seed(42)
 
     if len(sys.argv) != 5:
-        print("Usage: python models/lltime_test.py <dataset> <window_size> <case> <split>")
+        print("Usage: python models/lltime_test.py <dataset> <window_size> <case>")
         sys.exit(1)
 
     token = os.environ.get("HF_TOKEN")
     dataset = sys.argv[1]
     window_size = int(sys.argv[2])
     case = int(sys.argv[3])
-    split = sys.argv[4]
     num_gpus = torch.cuda.device_count()
 
     if dataset == "climate":
@@ -80,7 +79,7 @@ if __name__ == "__main__":
     results = [pd.DataFrame() for _ in range(num_gpus)]
     devices = [f"cuda:{i}" for i in range(num_gpus)]
     data_all = load_dataset(hf_dataset)
-    data = pd.DataFrame(data_all[split])
+    data = pd.DataFrame(data_all['test'])
     dataset_parts = np.array_split(data, num_gpus)
     dataset_parts = [part.reset_index(drop=True) for part in dataset_parts]
         
@@ -97,7 +96,7 @@ if __name__ == "__main__":
     
     results = pd.concat(results, axis=0).reset_index(drop=True)
     
-    uploadToHuf(results, hf_dataset, split, case)
+    uploadToHuf(results, hf_dataset, 'test', case)
     
     # meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate = getTextScore(
     #     case, split, hf_dataset, text_pattern, num_pattern, window_size
