@@ -87,7 +87,10 @@ def create_batch_prompt_in_Context(data, data_train, case):
     example_output = data_train.iloc[randaom_loc][output_column]
 
     for index, row in data.iterrows():
-        content = [{"role": "system", "content": row[instruction_column]}, {"role": "user", "content": example_input}, {"role": "assistant", "content": example_output}, {"role": "user", "content": row[input_column]}]
+        content = [{"role": "system", "content": "You are a weather forecast assistant. Given the weather data from a recent day, predict the weather conditions for the following days"}, 
+                   {"role": "user", "content": row[instruction_column] + example_input}, 
+                   {"role": "assistant", "content": example_output}, 
+                   {"role": "user", "content": row[instruction_column] + row[input_column]}]
         prompt.append(content)
         cur_idx.append(row['idx'])
 
