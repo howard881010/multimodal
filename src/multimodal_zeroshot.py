@@ -34,7 +34,7 @@ if __name__ == "__main__":
     np.random.seed(42)
     set_seed(42)
 
-    if len(sys.argv) != 5:
+    if len(sys.argv) != 4:
         print("Usage: python models/lltime_test.py <dataset> <window_size> <case>")
         sys.exit(1)
 
@@ -42,6 +42,7 @@ if __name__ == "__main__":
     dataset = sys.argv[1]
     window_size = int(sys.argv[2])
     case = int(sys.argv[3])
+    split = 'test'
     num_gpus = torch.cuda.device_count()
 
     if dataset == "climate":
@@ -66,8 +67,8 @@ if __name__ == "__main__":
 
     hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-zeroshot"
 
-    num_pattern = fr"{unit}_\d+_{num_key_name}: ?'?([\d.]+)'?"
-    text_pattern =fr'({unit}_\d+_date:\s*\S+\s+{unit}_\d+_{text_key_name}:.*?)(?=\s{unit}_\d+_date|\Z)'
+    # num_pattern = fr"{unit}_\d+_{num_key_name}: ?'?([\d.]+)'?"
+    # text_pattern =fr'({unit}_\d+_date:\s*\S+\s+{unit}_\d+_{text_key_name}:.*?)(?=\s{unit}_\d+_date|\Z)'
 
     wandb.init(project="Inference-zeroshot",
                 config={"window_size": f"{window_size}-{window_size}",
@@ -79,7 +80,7 @@ if __name__ == "__main__":
     results = [pd.DataFrame() for _ in range(num_gpus)]
     devices = [f"cuda:{i}" for i in range(num_gpus)]
     data_all = load_dataset(hf_dataset)
-    data = pd.DataFrame(data_all['test'])
+    data = pd.DataFrame(data_all[split])
     dataset_parts = np.array_split(data, num_gpus)
     dataset_parts = [part.reset_index(drop=True) for part in dataset_parts]
         
@@ -96,10 +97,10 @@ if __name__ == "__main__":
     
     results = pd.concat(results, axis=0).reset_index(drop=True)
     
-    uploadToHuf(results, hf_dataset, 'test', case)
+    uploadToHuf(results, hf_dataset, split, case)
     
     # meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate = getTextScore(
-    #     case, split, hf_dataset, text_pattern, num_pattern, window_size
+    #     case, split, hf_dataset, text_key_name, num_key_name, window_size
     # )
 
 
