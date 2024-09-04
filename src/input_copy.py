@@ -6,67 +6,67 @@ import wandb
 import time
 from loguru import logger
 from transformers import set_seed
-from utils import find_text_parts, find_num_parts
 from text_evaluation import getMeteorScore, getCosineSimilarity, getROUGEScore, getRMSEScore
 from datasets import load_dataset
-from utils import find_text_parts
+from utils import split_text
 
-def getTextScore(split, hf_dataset):
+def getTextScore(hf_dataset, text_pattern):
     data_all = load_dataset(hf_dataset)
-    data = pd.DataFrame(data_all[split])
-    data['pred_time'] = data['input_time']
-    data['pred_output'] = data['input']
-    # data['pred_text'] = data['input'].apply(lambda x: find_text_parts(x, num_pattern))
-    drop_rate = 0
+    data = pd.DataFrame(data_all['test'])
+    # number part evaluation
+    data['pred_time'] = data['input_num']
     rmse_loss = getRMSEScore(data)
+        
+    # text part evaluation
+    output_texts = data['output_text'].apply(lambda x: split_text(x, text_pattern)).to_list()
+    pred_texts = data['input_text'].apply(lambda x: split_text(x, text_pattern)).to_list()
+    output_texts = np.reshape(output_texts, -1)
+    pred_texts = np.reshape(pred_texts, -1)
 
-    
-    meteor_score = getMeteorScore(data)
-    cosine_similarity_score = getCosineSimilarity(data)
-    # cosine_similarity_score = np.nan
-    rouge1, rouge2, rougeL = getROUGEScore(data)
-    gpt_score = np.nan
-    
+    meteor_score = getMeteorScore(output_texts, pred_texts)
+    cosine_similarity_score = getCosineSimilarity(output_texts, pred_texts)
+    rouge1, rouge2, rougeL = getROUGEScore(output_texts, pred_texts)
 
-    return meteor_score, cosine_similarity_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate
+    return meteor_score, cosine_similarity_score, rouge1, rouge2, rougeL, rmse_loss
 
 if __name__ == "__main__":
     # add seed
     np.random.seed(42)
     set_seed(42)
 
-    if len(sys.argv) != 6:
-        print("Usage: python models/lltime_test.py <dataset> <window_size> <model_name> <case> <split>")
+    if len(sys.argv) != 3:
+        print("Usage: python models/lltime_test.py <dataset> <window_size>")
         sys.exit(1)
 
     token = os.environ.get("HF_TOKEN")
 
     dataset = sys.argv[1]
     window_size = int(sys.argv[2])
-    case = int(sys.argv[4])
-    model_name = sys.argv[3]
-    split = sys.argv[5]
 
     if dataset == "climate":
         unit = "day"
         num_key_name = "temp"
+        text_key_name = "weather_forecast"
     elif dataset == "medical":
         unit = "day"
+        num_key_name = "Heart_Rate"
     elif dataset == "gas":
         unit = "week"
+        num_key_name = "gas_price"
 
-    hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}"
-    num_pattern = fr"<{unit}_\d+_{num_key_name}> : '([\d.]+)'"    
+    hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-finetuned"
 
-    
-    wandb.init(project="Inference-new",
-               config={"window_size": f"{window_size}-{window_size}",
-                       "dataset": dataset,
-                       "model": model_name})
+    num_pattern = fr"{unit}_\d+_{num_key_name}: ?'?([\d.]+)'?"
+    text_pattern =fr'({unit}_\d+_date:\s*\S+\s+{unit}_\d+_{text_key_name}:.*?)(?=\s{unit}_\d+_date|\Z)'
+
+    wandb.init(project="Inference-finetuned",
+                config={"window_size": f"{window_size}-{window_size}",
+                        "dataset": dataset,
+                        "model": "input-copy"})
     
     start_time = time.time()
-    meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate = getTextScore(
-        split, hf_dataset
+    meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss = getTextScore(
+        hf_dataset, text_pattern
     )
 
     wandb.log({"Meteor Scores": meteor_score})

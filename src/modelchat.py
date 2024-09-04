@@ -4,7 +4,16 @@ import torch
 import time
 from peft import PeftModel
 import os
+from pydantic import BaseModel
+from lmformatenforcer import RegexParser
+from lmformatenforcer.integrations.transformers import build_transformers_prefix_allowed_tokens_fn
 
+
+class AnswerFormat(BaseModel):
+    day_3_date: str
+    day_3_weather_forecast: str
+    day_4_date: str
+    day_4_weather_forecast: str
 
 class ChatModel:
     def __init__(self, model_name, token, dataset, zeroshot, case, device, window_size):
@@ -55,11 +64,16 @@ class LLMChatModel(ChatModel):
             self.tokenizer.eos_token_id,
             self.tokenizer.convert_tokens_to_ids("<|eot_id|>")
         ]
-
+        parser = RegexParser(
+            AnswerFormat
+        )
+        prefix_function = build_transformers_prefix_allowed_tokens_fn(
+            self.tokenizer, parser
+        )
         # Generate text using the model
         with torch.no_grad():
             generate_ids = self.model.generate(
-                model_inputs.input_ids, max_new_tokens=4096, eos_token_id=terminators, attention_mask=model_inputs.attention_mask)
+                model_inputs.input_ids, max_new_tokens=4096, eos_token_id=terminators, attention_mask=model_inputs.attention_mask, prefix_allowed_tokens_fn=prefix_function)
 
         output = self.tokenizer.batch_decode(
             generate_ids, skip_special_tokens=True)
