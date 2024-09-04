@@ -8,7 +8,6 @@ def batch_inference(
     model_chat,
     data,
     logger,
-    num_pattern,
     case
 ):
     batches = list(create_batched(data, 16))
@@ -23,21 +22,14 @@ def batch_inference(
             logger.info("Content for row: " + str(cur_idx[index]) + " Content: " + prompt[index][-1]['content'])
             logger.info("Response for row: " + str(cur_idx[index]) +  " Content: " + response)
 
-            num_matches = re.findall(num_pattern, response)
-            if len(num_matches) == 0:
-                formatted_nums = []
-            else:
-                formatted_nums = [[float(temp)] for temp in num_matches]
-            
             results[cur_idx[index]] = (
-                    {"pred_output": response, "pred_time": formatted_nums})
+                    {"pred_output": response})
 
 def batch_inference_inContext(
     results,
     model_chat,
     data,
     logger,
-    num_pattern,
     data_train,
     case
 ):
@@ -53,14 +45,8 @@ def batch_inference_inContext(
             logger.info("Content for row: " + str(cur_idx[index]) + " Content: " + prompt[index][-1]['content'])
             logger.info("Response for row: " + str(cur_idx[index]) +  " Content: " + response)
 
-            num_matches = re.findall(num_pattern, response)
-            if len(num_matches) == 0:
-                formatted_nums = []
-            else:
-                formatted_nums = [[float(temp)] for temp in num_matches]
-            
             results[cur_idx[index]] = (
-                    {"pred_output": response, "pred_time": formatted_nums})
+                    {"pred_output": response})
 
 def create_batch_prompt(data, case):
     prompt = []
