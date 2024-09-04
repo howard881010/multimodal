@@ -141,12 +141,12 @@ class ClimateDataProcessor(DatasetProcessor):
 
         output_template = {}
         for i in range(input_window + 1, input_window + output_window + 1):
-            output_template[date_template.format(timestep=timestep, index=i)] = ""
+            output_template[date_template.format(timestep=timestep, index=i)] = "YYYY-MM-DD"
             if case in [1, 2, 3]:
-                output_template[text_template.format(timestep=timestep, index=i)] = ""
+                output_template[text_template.format(timestep=timestep, index=i)] = "Weather description"
             if case in [2, 4]:
                 for col in cfg['numerical_columns']:
-                    output_template[time_template.format(timestep=timestep, index=i, col=col)] = ""
+                    output_template[time_template.format(timestep=timestep, index=i, col=col)] = "A Float Number"
         output_template = json.dumps(output_template, indent=4)
 
         instruction = instruction_template.format(
