@@ -6,6 +6,7 @@ from transformers import AutoTokenizer
 from datasets import load_dataset, DatasetDict, Dataset
 import pandas as pd
 from pydantic import BaseModel, create_model
+import json
 
 
     
@@ -61,19 +62,45 @@ def find_text_parts(text, num_pattern):
     
     return modified_text
 
-def find_num_parts(text, num_pattern, window_size):
-    num_matches = re.findall(num_pattern, text)
-    if len(num_matches) != window_size:
+def find_num_parts(text, num_key_name, window_size):
+    text = json.loads(text)
+    # Sort the dictionary by keys
+    text = dict(sorted(text.items()))
+    temps = []
+    for key, value in text.items():
+        if key.endswith(num_key_name):
+            temps.append(value)
+    if len(temps) != window_size:
         return np.nan
     else:
-        return  [[float(temp)] for temp in num_matches]
+        return  [[float(temp)] for temp in temps]
 
-def split_text(text, text_pattern):
-    text_matches = re.findall(text_pattern, text, re.DOTALL)
-    cleaned_matches = [match.replace('\n', ' ').replace('\r', '').replace('```', '').strip() for match in text_matches]
-    # print(cleaned_matches)
+def split_text(text, text_key_name, window_size):
+    day_counter = window_size + 1
+    data = json.loads(text)
+    result = []
+    while True:
+        # Construct dynamic keys
+        date_key = f"day_{day_counter}_date"
+        forecast_key = f"day_{day_counter}_{text_key_name}"
+        
+        # If the date or forecast key is not found, break the loop
+        if date_key not in data or forecast_key not in data:
+            break
+        # Create a dictionary to hold the current day's information
+        # day_info = {
+        #     "date": data[date_key],
+        #     "weather_forecast": data[forecast_key]
+        # }
+        day_info = f"""date: {data[date_key]}, weather_forecast: {data[forecast_key]}"""
 
-    return cleaned_matches
+        # Append the current day's data to the result list
+        result.append(day_info)
+
+        # Increment the day counter for the next day
+        day_counter += 1
+    
+    return result
 
 def load_config(yaml_path):
     with open(yaml_path, 'r') as yaml_file:

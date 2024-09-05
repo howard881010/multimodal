@@ -51,13 +51,13 @@ def getROUGEScore(outputs, pred_outputs):
     
     return mean_rouge1, mean_rouge2, mean_rougeL
 
-def getTextScore(case, split, hf_dataset,text_pattern, number_pattern, window_size):
+def getTextScore(case, split, hf_dataset, text_key_name, num_key_name, window_size):
     data_all = load_dataset(hf_dataset)
     data = pd.DataFrame(data_all[split])
     pred_output_column = f'pred_output_case{case}'
     # number part evaluation
     if case in [2, 4]:
-        data['pred_time'] = data[pred_output_column].apply(lambda x: find_num_parts(x, number_pattern, window_size))
+        data['pred_time'] = data[pred_output_column].apply(lambda x: find_num_parts(x, num_key_name, window_size))
         data_clean = data.dropna()
         drop_rate = (len(data) - len(data_clean)) / len(data)
         rmse_loss = getRMSEScore(data_clean)
@@ -67,8 +67,8 @@ def getTextScore(case, split, hf_dataset,text_pattern, number_pattern, window_si
         
     # text part evaluation
     if case in [1, 2, 3]:
-        output_texts = data['output_text'].apply(lambda x: split_text(x, text_pattern)).to_list()
-        pred_texts = data[pred_output_column].apply(lambda x: find_text_parts(x, number_pattern)).apply(lambda x: split_text(x, text_pattern)).to_list()
+        output_texts = data['output_text'].apply(lambda x: split_text(x, text_key_name, window_size)).to_list()
+        pred_texts = data[pred_output_column].apply(lambda x: split_text(x, text_key_name, window_size)).to_list()
         for idx, pred_text in enumerate(pred_texts):
             if len(pred_text) > window_size:
                 pred_texts[idx] = pred_text[:window_size]
@@ -77,7 +77,10 @@ def getTextScore(case, split, hf_dataset,text_pattern, number_pattern, window_si
         
         output_texts = np.reshape(output_texts, -1)
         pred_texts = np.reshape(pred_texts, -1)
+        print(len(output_texts), len(pred_texts))
         indices_to_drop = [idx for idx, pred_text in enumerate(pred_texts) if "No prediction" in pred_text]
+        text_drop_count = len(indices_to_drop)
+        print(text_drop_count)
         output_texts = np.delete(output_texts, indices_to_drop)
         pred_texts = np.delete(pred_texts, indices_to_drop)
 
@@ -92,4 +95,4 @@ def getTextScore(case, split, hf_dataset,text_pattern, number_pattern, window_si
         rouge2 = np.nan
         rougeL = np.nan
     
-    return meteor_score, cosine_similarity_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate
+    return meteor_score, cosine_similarity_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate, text_drop_count
