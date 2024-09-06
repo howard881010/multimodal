@@ -29,10 +29,6 @@ class ClimateDataProcessor(DatasetProcessor):
         instruction_4 = self.get_instruction(4)
         df = self.get_dataframe(cfg['dataset_path'])
 
-        # input_text = df.apply(lambda x: self.create_flattened_text(
-        #     x.name, input_window, df), axis=1)
-        # output_text = df.apply(lambda x: self.create_flattened_text(
-        #     x.name+input_window, output_window, df, input_window+1), axis=1)
         input_text = self.get_text(df, 'input', 'text')
         output_text = self.get_text(df, 'output', 'text')
         input_text_time  = self.get_text(df, 'input', 'text_time')
@@ -94,24 +90,6 @@ class ClimateDataProcessor(DatasetProcessor):
             curr_window_range = range(
                 len(df) - input_window - output_window + 1)
         row_text = {}
-        # for t in curr_window_range:
-        #     row_text = ""
-
-        #     for curr_day_idx in curr_day_range:
-        #         row_text += f"{date_template.format(timestep=timestep, index=curr_day_idx+1)}: {df.loc[t+curr_day_idx, 'date']}" + "\n"
-        #         if case not in ['time']:
-        #             row_text += f"{text_template.format(timestep=timestep, index=curr_day_idx+1)}: {df.loc[t+curr_day_idx, 'text']}"
-
-        #         if case in ['text_time', 'time']:
-        #             time_in_text = []
-        #             for col in numerical_columns:
-        #                 time_in_text.append(
-        #                     f"{time_template.format(timestep=timestep, index=curr_day_idx+1, col=col)}: '{df.loc[t+curr_day_idx, col]}'")
-        #             row_text += "\n" + " ".join(time_in_text)
-        #         row_text += '\n'
-        #     row_text = '```' + '\n' + row_text + '```'
-
-        #     results.append(row_text)
         for t in curr_window_range:
             row_text = {}
             for curr_day_idx in curr_day_range:

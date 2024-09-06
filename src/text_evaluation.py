@@ -15,7 +15,7 @@ nltk.download('wordnet')
 
 def getRMSEScore(df):
     fut_values = df['output_num'].tolist()
-    pred_values = df['pred_time'].tolist()
+    pred_values = df['pred_num'].tolist()
     rmse_loss = rmse(np.array(fut_values), np.array(pred_values))
     
     return rmse_loss
@@ -57,7 +57,7 @@ def getTextScore(case, split, hf_dataset, text_key_name, num_key_name, window_si
     pred_output_column = f'pred_output_case{case}'
     # number part evaluation
     if case in [2, 4]:
-        data['pred_time'] = data[pred_output_column].apply(lambda x: find_num_parts(x, num_key_name, window_size))
+        data['pred_num'] = data[pred_output_column].apply(lambda x: find_num_parts(x, num_key_name, window_size))
         data_clean = data.dropna()
         drop_rate = (len(data) - len(data_clean)) / len(data)
         rmse_loss = getRMSEScore(data_clean)

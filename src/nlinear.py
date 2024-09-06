@@ -33,25 +33,25 @@ def getLLMTIMEOutput(dataset, unit, window_size, split, hf_dataset):
     data_all = load_dataset(hf_dataset)
 
     data = pd.DataFrame(data_all['train'])
-    train_input_arr = data['input_time'].apply(lambda x: x[0]).to_list()
+    train_input_arr = data['input_num'].apply(lambda x: x[0]).to_list()
 
     data = pd.DataFrame(data_all[split])
-    test_input_arr = data['input_time'].to_list()
-    test_output_arr = data['output_time'].to_list()
+    test_input_arr = data['input_num'].to_list()
+    test_output_arr = data['output_num'].to_list()
 
     log_path, res_path = open_record_directory(
         dataset=dataset, sub_dir='mixed', unit=unit, filename=split, model_name="nlinear", window_size=window_size)
 
     pred_value = nlinear_darts(np.array(train_input_arr), test_input_arr, window_size)
-    results = [{"pred_time": pred_value[i], "output_time": test_output_arr[i]} for i in range(len(test_input_arr))]
-    results = pd.DataFrame(results, columns=['pred_time', 'output_time'])
+    results = [{"pred_num": pred_value[i], "output_num": test_output_arr[i]} for i in range(len(test_input_arr))]
+    results = pd.DataFrame(results, columns=['pred_num', 'output_num'])
     results.to_csv(res_path)
     return res_path
 
 def numberEval(filename):
     data = pd.read_csv(filename)
-    data['pred_time'] = data['pred_time'].apply(lambda x: ast.literal_eval(x))
-    data['output_time'] = data['output_time'].apply(lambda x: ast.literal_eval(x))
+    data['pred_num'] = data['pred_num'].apply(lambda x: ast.literal_eval(x))
+    data['output_num'] = data['output_num'].apply(lambda x: ast.literal_eval(x))
     rmse_loss = getRMSEScore(data)
     return rmse_loss
 

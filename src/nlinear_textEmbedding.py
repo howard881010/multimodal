@@ -41,32 +41,32 @@ def nlinear_darts(train_input, test_input, train_text, test_text, window_size):
     
     return pred_value
 
-def getLLMTIMEOutput(dataset, unit, window_size, split, hf_dataset, text_pattern, num_pattern):
+def getLLMTIMEOutput(dataset, unit, window_size, split, hf_dataset, text_key_name):
     # filename for train
     data_all = load_dataset(hf_dataset)
 
     data = pd.DataFrame(data_all['train'])
-    train_input_arr = data['input_time'].apply(lambda x: x[0]).to_list()
-    train_text_arr = data['input'].apply(lambda x: find_text_parts(x, num_pattern)).apply(lambda x: split_text(x, text_pattern)[0]).to_list()
+    train_input_arr = data['input_num'].apply(lambda x: x[0]).to_list()
+    train_text_arr = data['input_text'].apply(lambda x: split_text(x, text_key_name, window_size)[0]).to_list()
 
     data = pd.DataFrame(data_all[split])
-    test_input_arr = data['input_time'].to_list()
-    test_output_arr = data['output_time'].to_list()
-    test_text_arr = data['input'].apply(lambda x: find_text_parts(x, num_pattern)).apply(lambda x: split_text(x, text_pattern)).to_list()
+    test_input_arr = data['input_num'].to_list()
+    test_output_arr = data['output_num'].to_list()
+    test_text_arr = data['input_text'].apply(lambda x: split_text(x, text_key_name, window_size)).to_list()
 
     log_path, res_path = open_record_directory(
         dataset=dataset, sub_dir='mixed', unit=unit, filename=split, model_name="nlinear_text", window_size=window_size)
 
     pred_value = nlinear_darts(np.array(train_input_arr), test_input_arr, train_text_arr, test_text_arr, window_size)
-    results = [{"pred_time": pred_value[i], "output_time": test_output_arr[i]} for i in range(len(test_input_arr))]
-    results = pd.DataFrame(results, columns=['pred_time', 'output_time'])
+    results = [{"pred_num": pred_value[i], "output_num": test_output_arr[i]} for i in range(len(test_input_arr))]
+    results = pd.DataFrame(results, columns=['pred_num', 'output_num'])
     results.to_csv(res_path)
     return res_path
 
 def numberEval(filename):
     data = pd.read_csv(filename)
-    data['pred_time'] = data['pred_time'].apply(lambda x: ast.literal_eval(x))
-    data['output_time'] = data['output_time'].apply(lambda x: ast.literal_eval(x))
+    data['pred_num'] = data['pred_num'].apply(lambda x: ast.literal_eval(x))
+    data['output_num'] = data['output_num'].apply(lambda x: ast.literal_eval(x))
     rmse_loss = getRMSEScore(data)
     return rmse_loss
 
@@ -92,11 +92,10 @@ if __name__ == "__main__":
         num_key_name = "temp"
     elif dataset == "medical":
         unit = "day"
+        text_key_name = "medical_notes"
+        num_key_name = "Heart_Rate"
 
     hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-mixed"
-    num_pattern = fr"{unit}_\d+_{num_key_name}: '([\d.]+)'"
-    text_pattern =fr'({unit}_\d+_date:\s*\S+\s+{unit}_\d+_{text_key_name}:.*?)(?=\s{unit}_\d+_date|\Z)'
-    print(text_pattern)
 
     wandb.init(project="Inference-new",
                config={"window_size": f"{window_size}-{window_size}",
@@ -105,7 +104,7 @@ if __name__ == "__main__":
     start_time = time.time()
     
     out_filename = getLLMTIMEOutput(
-        dataset, unit, window_size, split, hf_dataset,text_pattern, num_pattern)
+        dataset, unit, window_size, split, hf_dataset, text_key_name)
     out_rmse = numberEval(
         out_filename
     )
