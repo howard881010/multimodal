@@ -22,7 +22,7 @@ test_datasets:
 adapter: lora
 lora_model_dir:
 
-sequence_len: 4070
+sequence_len: 4600
 sample_packing: false
 pad_to_sequence_len: true
 
@@ -41,7 +41,7 @@ wandb_log_model:
 
 gradient_accumulation_steps: 1
 micro_batch_size: 4
-num_epochs: 3
+num_epochs: 1
 optimizer: adamw_hf
 learning_rate: 0.00002
 max_grad_norm: 1.0

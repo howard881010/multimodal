@@ -8,21 +8,21 @@ strict: false
 
 chat_template: chatml
 datasets:
-  - path: Howard881010/climate-6day
+  - path: Howard881010/medical-6day
     type: alpaca
     train_on_split: train
 dataset_prepared_path:
-output_dir: ./finetune/output/climate-6day
+output_dir: ./finetune/output/medical-6day
 
 test_datasets:
-  - path: Howard881010/climate-6day
+  - path: Howard881010/medical-6day
     split: valid
     type: alpaca
 
 adapter: lora
 lora_model_dir:
 
-sequence_len: 4850
+sequence_len: 5500
 sample_packing: false
 pad_to_sequence_len: true
 
@@ -36,12 +36,12 @@ lora_fan_in_fan_out:
 wandb_project: finetune
 wandb_entity:
 wandb_watch:
-wandb_name: climate-6day
+wandb_name: medical-6day
 wandb_log_model:
 
 gradient_accumulation_steps: 1
 micro_batch_size: 4
-num_epochs: 3
+num_epochs: 1
 optimizer: adamw_hf
 learning_rate: 0.00002
 max_grad_norm: 1.0

@@ -62,31 +62,29 @@ if __name__ == "__main__":
     np.random.seed(42)
     set_seed(42)
 
-    if len(sys.argv) != 5:
-        print("Usage: python models/lltime_test.py <dataset> <window_size> <model_name> <split>")
+    if len(sys.argv) != 3:
+        print("Usage: python models/lltime_test.py <dataset> <window_size>")
         sys.exit(1)
 
     token = os.environ.get("HF_TOKEN")
 
     dataset = sys.argv[1]
     window_size = int(sys.argv[2])
-    model_name = sys.argv[3]
-    split = sys.argv[4]
+    split = "test"
     
     if dataset == "climate":
         unit = "day"
-        num_key_name = "temp"
     elif dataset == "medical":
         unit = "day"
     elif dataset == "gas":
         unit = "week"
 
-    hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-mixed"
+    hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-finetuned"
 
-    wandb.init(project="Inference-new",
+    wandb.init(project="Inference-nlinear",
                config={"window_size": f"{window_size}-{window_size}",
                        "dataset": dataset,
-                       "model": model_name})
+                       "model": "nlinear"})
     start_time = time.time()
     
     out_filename = getLLMTIMEOutput(dataset, unit, window_size, split, hf_dataset)

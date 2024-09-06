@@ -47,12 +47,12 @@ def getLLMTIMEOutput(dataset, unit, window_size, split, hf_dataset, text_key_nam
 
     data = pd.DataFrame(data_all['train'])
     train_input_arr = data['input_num'].apply(lambda x: x[0]).to_list()
-    train_text_arr = data['input_text'].apply(lambda x: split_text(x, text_key_name, window_size)[0]).to_list()
+    train_text_arr = data['input_text'].apply(lambda x: split_text(x, text_key_name, 0)[0]).to_list()
 
     data = pd.DataFrame(data_all[split])
     test_input_arr = data['input_num'].to_list()
     test_output_arr = data['output_num'].to_list()
-    test_text_arr = data['input_text'].apply(lambda x: split_text(x, text_key_name, window_size)).to_list()
+    test_text_arr = data['input_text'].apply(lambda x: split_text(x, text_key_name, 0)).to_list()
 
     log_path, res_path = open_record_directory(
         dataset=dataset, sub_dir='mixed', unit=unit, filename=split, model_name="nlinear_text", window_size=window_size)
@@ -75,17 +75,15 @@ if __name__ == "__main__":
     np.random.seed(42)
     set_seed(42)
 
-    if len(sys.argv) != 5:
-        print("Usage: python models/lltime_test.py <dataset> <window_size> <model_name> <split>")
+    if len(sys.argv) != 3:
+        print("Usage: python models/lltime_test.py <dataset> <window_size>")
         sys.exit(1)
 
     token = os.environ.get("HF_TOKEN")
 
     dataset = sys.argv[1]
     window_size = int(sys.argv[2])
-    model_name = sys.argv[3]
-    split = sys.argv[4]
-    
+    split = "test"
     if dataset == "climate":
         unit = "day"
         text_key_name = "weather_forecast"
@@ -95,12 +93,12 @@ if __name__ == "__main__":
         text_key_name = "medical_notes"
         num_key_name = "Heart_Rate"
 
-    hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-mixed"
+    hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-finetuned"
 
-    wandb.init(project="Inference-new",
-               config={"window_size": f"{window_size}-{window_size}",
-                       "dataset": dataset,
-                       "model": model_name})
+    # wandb.init(project="Inference-nlinear",
+    #            config={"window_size": f"{window_size}-{window_size}",
+    #                    "dataset": dataset,
+    #                    "model": "nlinear_textEmbedding"})
     start_time = time.time()
     
     out_filename = getLLMTIMEOutput(
@@ -109,7 +107,7 @@ if __name__ == "__main__":
         out_filename
     )
     print("RMSE Scores: ", out_rmse)
-    wandb.log({"RMSE Scores": out_rmse})
+    # wandb.log({"RMSE Scores": out_rmse})
 
     end_time = time.time()
     print("Total Time: " + str(end_time - start_time))
