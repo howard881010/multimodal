@@ -5,6 +5,7 @@ import pandas as pd
 from ast import literal_eval
 from datasets import DatasetDict, concatenate_datasets
 import json
+import os
 
 class MedicalDataProcessor(DatasetProcessor):
     def __init__(self, cfg):
@@ -150,3 +151,18 @@ class MedicalDataProcessor(DatasetProcessor):
         numerical_columns = self.cfg['numerical_columns']
         df[numerical_columns] = df[numerical_columns].round(3)
         return df
+
+    def push_to_huggingface(self, dataset_dict):
+        for split in dataset_dict:
+            new_column_output = ["Not Predicted"] * len(dataset_dict[split])
+
+            
+            dataset_dict[split] = dataset_dict[split].add_column('pred_output_case1', new_column_output)
+            dataset_dict[split] = dataset_dict[split].add_column('pred_output_case2', new_column_output)
+            dataset_dict[split] = dataset_dict[split].add_column('pred_output_case3', new_column_output)
+            dataset_dict[split] = dataset_dict[split].add_column('pred_output_case4', new_column_output)
+            # dataset_dict[split] = dataset_dict[split].add_column('pred_time', new_column_time)
+
+        token = os.getenv("HF_TOKEN")
+        # Push the dataset to the Hugging Face Hub
+        dataset_dict.push_to_hub(self.cfg['hf_repo'], token=token)

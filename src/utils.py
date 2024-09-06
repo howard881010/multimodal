@@ -87,11 +87,6 @@ def split_text(text, text_key_name, window_size):
         # If the date or forecast key is not found, break the loop
         if date_key not in data or forecast_key not in data:
             break
-        # Create a dictionary to hold the current day's information
-        # day_info = {
-        #     "date": data[date_key],
-        #     "weather_forecast": data[forecast_key]
-        # }
         day_info = f"""date: {data[date_key]}, weather_forecast: {data[forecast_key]}"""
 
         # Append the current day's data to the result list

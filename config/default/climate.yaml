@@ -2,8 +2,8 @@ dataset:
   batch_size: 4
   dataset_path: Data/climate_2014_2023_final.csv
   date_template: '{timestep}_{index}_date'
-  hf_repo: Howard881010/climate-7day-inContext
-  input_window: 7
+  hf_repo: Howard881010/climate-2day-inContext
+  input_window: 2
   instruction_template: 'Given the weather information of the first {input_window}
     {timestep}, predict the weather information of the next {output_window} {timestep}.
     Output the result strictly in the following JSON format and no additional text:
@@ -14,7 +14,7 @@ dataset:
   normalization: window_last
   numerical_columns:
   - temp
-  output_window: 7
+  output_window: 2
   repo: Howard881010/climate-7day-mixed
   text_template: '{timestep}_{index}_weather_forecast'
   time_template: '{timestep}_{index}_{col}'
