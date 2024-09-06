@@ -67,9 +67,6 @@ if __name__ == "__main__":
 
     hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-finetuned"
 
-    num_pattern = fr"{unit}_\d+_{num_key_name}: ?'?([\d.]+)'?"
-    text_pattern =fr'({unit}_\d+_date:\s*\S+\s+{unit}_\d+_{text_key_name}:.*?)(?=\s{unit}_\d+_date|\Z)'
-
     wandb.init(project="Inference-finetuned",
                 config={"window_size": f"{window_size}-{window_size}",
                         "dataset": dataset,
@@ -84,34 +81,34 @@ if __name__ == "__main__":
     dataset_parts = np.array_split(data, num_gpus)
     dataset_parts = [part.reset_index(drop=True) for part in dataset_parts]
         
-    with concurrent.futures.ProcessPoolExecutor(max_workers=num_gpus) as executor:
-    # Create a dictionary to map each future to its corresponding index
-        future_to_index = {
-            executor.submit(runModelChat, dataset_parts[i], case, devices[i], token, dataset, window_size): i
-            for i in range(num_gpus)
-        }
-        # Iterate over the completed futures
-        for future in concurrent.futures.as_completed(future_to_index):
-            index = future_to_index[future]
-            results[index] = future.result()
+    # with concurrent.futures.ProcessPoolExecutor(max_workers=num_gpus) as executor:
+    # # Create a dictionary to map each future to its corresponding index
+    #     future_to_index = {
+    #         executor.submit(runModelChat, dataset_parts[i], case, devices[i], token, dataset, window_size): i
+    #         for i in range(num_gpus)
+    #     }
+    #     # Iterate over the completed futures
+    #     for future in concurrent.futures.as_completed(future_to_index):
+    #         index = future_to_index[future]
+    #         results[index] = future.result()
     
-    results = pd.concat(results, axis=0).reset_index(drop=True)
+    # results = pd.concat(results, axis=0).reset_index(drop=True)
     
-    uploadToHuf(results, hf_dataset, split, case)
+    # uploadToHuf(results, hf_dataset, split, case)
     
-    # meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate, text_drop_count = getTextScore(
-    #     case, split, hf_dataset, text_key_name, num_key_name, window_size
-    # )
+    meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate, text_drop_count = getTextScore(
+        case, split, hf_dataset, text_key_name, num_key_name, window_size
+    )
 
 
-    # wandb.log({"Meteor Scores": meteor_score})
-    # wandb.log({"Cos Sim Scores": cos_sim_score})
-    # wandb.log({"Rouge1 Scores": rouge1})
-    # wandb.log({"Rouge2 Scores": rouge2})
-    # wandb.log({"RougeL Scores": rougeL})
-    # wandb.log({"RMSE Scores": rmse_loss})
-    # wandb.log({"Drop Rate": f"{drop_rate*100:.2f}%"})
-    # wandb.log({"Text Drop Count": text_drop_count})
+    wandb.log({"Meteor Scores": meteor_score})
+    wandb.log({"Cos Sim Scores": cos_sim_score})
+    wandb.log({"Rouge1 Scores": rouge1})
+    wandb.log({"Rouge2 Scores": rouge2})
+    wandb.log({"RougeL Scores": rougeL})
+    wandb.log({"RMSE Scores": rmse_loss})
+    wandb.log({"Drop Rate": f"{drop_rate*100:.2f}%"})
+    wandb.log({"Text Drop Count": text_drop_count})
     
     end_time = time.time()
     print("Total Time: " + str(end_time - start_time))

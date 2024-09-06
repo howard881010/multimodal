@@ -41,13 +41,6 @@ def normalize_together(pred, truth):
     truth_norm = (truth - min_val) / (max_val - min_val)
     return pred_norm, truth_norm
 
-
-def rmse(y_pred, y_true):
-    y_pred = np.reshape(y_pred, -1)
-    y_true = np.reshape(y_true, -1)
-    # pred_norm, ground_truth_norm = normalize_together(y_pred, y_true)
-    return np.sqrt(np.mean(np.square(y_pred - y_true)))
-
 def create_batched(data, batch_size):
     for i in range(0, len(data), batch_size):
         yield data[i: i + batch_size]
@@ -63,39 +56,40 @@ def find_text_parts(text, num_pattern):
     return modified_text
 
 def find_num_parts(text, num_key_name, window_size):
-    text = json.loads(text)
-    # Sort the dictionary by keys
-    text = dict(sorted(text.items()))
-    temps = []
-    for key, value in text.items():
-        if key.endswith(num_key_name):
-            temps.append(value)
-    if len(temps) != window_size:
+    try:
+        text = json.loads(text)
+        # Sort the dictionary by keys
+        text = dict(sorted(text.items()))
+        temps = []
+        for key, value in text.items():
+            if key.endswith(num_key_name):
+                temps.append(value)
+        if len(temps) != window_size:
+            return np.nan
+        else:
+            return  [[float(temp)] for temp in temps]
+    except:
         return np.nan
-    else:
-        return  [[float(temp)] for temp in temps]
 
 def split_text(text, text_key_name, window_size):
     day_counter = window_size + 1
-    data = json.loads(text)
-    result = []
-    while True:
-        # Construct dynamic keys
-        date_key = f"day_{day_counter}_date"
-        forecast_key = f"day_{day_counter}_{text_key_name}"
+    try:
+        data = json.loads(text)
+        result = []
+        while True:
+            date_key = f"day_{day_counter}_date"
+            forecast_key = f"day_{day_counter}_{text_key_name}"
+            if date_key not in data or forecast_key not in data:
+                break
+            day_info = f"""date: {data[date_key]}, weather_forecast: {data[forecast_key]}"""
+            result.append(day_info)
+
+            day_counter += 1
         
-        # If the date or forecast key is not found, break the loop
-        if date_key not in data or forecast_key not in data:
-            break
-        day_info = f"""date: {data[date_key]}, weather_forecast: {data[forecast_key]}"""
+        return result
+    except:
+        return ["No prediction" for _ in range(window_size)]
 
-        # Append the current day's data to the result list
-        result.append(day_info)
-
-        # Increment the day counter for the next day
-        day_counter += 1
-    
-    return result
 
 def load_config(yaml_path):
     with open(yaml_path, 'r') as yaml_file:

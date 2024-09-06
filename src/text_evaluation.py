@@ -5,20 +5,19 @@ from nltk import word_tokenize
 from sentence_transformers import SentenceTransformer
 from sentence_transformers.util import cos_sim
 from rouge_score import rouge_scorer
-from utils import rmse, find_text_parts
 import nltk
 from datasets import load_dataset
-from utils import find_num_parts, split_text, find_text_parts
+from utils import find_num_parts, split_text
 nltk.download('punkt')
 nltk.download('wordnet')
 
-
-def getRMSEScore(df):
-    fut_values = df['output_num'].tolist()
-    pred_values = df['pred_num'].tolist()
-    rmse_loss = rmse(np.array(fut_values), np.array(pred_values))
+def getRMSEScore(pred_values, fut_values):
+    y_pred = np.reshape(pred_values, -1)
+    y_true = np.reshape(fut_values, -1)
+    y_pred = np.array(y_pred, dtype=np.float64)
+    y_true = np.array(y_true, dtype=np.float64)
     
-    return rmse_loss
+    return np.sqrt(np.mean(np.square(y_pred - y_true)))
 
 def getMeteorScore(outputs, pred_outputs):
     scores = [meteor([word_tokenize(output)], word_tokenize(pred_output)) for output, pred_output in zip(outputs, pred_outputs)]
@@ -60,7 +59,9 @@ def getTextScore(case, split, hf_dataset, text_key_name, num_key_name, window_si
         data['pred_num'] = data[pred_output_column].apply(lambda x: find_num_parts(x, num_key_name, window_size))
         data_clean = data.dropna()
         drop_rate = (len(data) - len(data_clean)) / len(data)
-        rmse_loss = getRMSEScore(data_clean)
+        pred_values = data_clean['pred_num'].tolist()
+        output_values = data_clean['output_num'].tolist()
+        rmse_loss = getRMSEScore(pred_values, output_values)
     else:
         rmse_loss = np.nan
         drop_rate = np.nan
@@ -84,7 +85,6 @@ def getTextScore(case, split, hf_dataset, text_key_name, num_key_name, window_si
         output_texts = np.delete(output_texts, indices_to_drop)
         pred_texts = np.delete(pred_texts, indices_to_drop)
 
-        
         meteor_score = getMeteorScore(output_texts, pred_texts)
         cosine_similarity_score = getCosineSimilarity(output_texts, pred_texts)
         rouge1, rouge2, rougeL = getROUGEScore(output_texts, pred_texts)
