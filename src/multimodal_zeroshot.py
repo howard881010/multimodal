@@ -52,6 +52,7 @@ if __name__ == "__main__":
     elif dataset == "medical":
         unit = "day"
         num_key_name = "Heart_Rate"
+        text_key_name = "medical_notes"
     elif dataset == "gas":
         unit = "week"
         num_key_name = "gas_price"
@@ -66,9 +67,6 @@ if __name__ == "__main__":
         model = "textTime2time"
 
     hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-zeroshot"
-
-    # num_pattern = fr"{unit}_\d+_{num_key_name}: ?'?([\d.]+)'?"
-    # text_pattern =fr'({unit}_\d+_date:\s*\S+\s+{unit}_\d+_{text_key_name}:.*?)(?=\s{unit}_\d+_date|\Z)'
 
     wandb.init(project="Inference-zeroshot",
                 config={"window_size": f"{window_size}-{window_size}",
