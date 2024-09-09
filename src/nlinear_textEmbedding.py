@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 import wandb
 import time
-from utils import open_record_directory, find_text_parts, split_text
+from utils import open_record_directory, split_text
 from transformers import set_seed
 from datasets import load_dataset
 import ast
@@ -95,10 +95,10 @@ if __name__ == "__main__":
 
     hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-finetuned"
 
-    # wandb.init(project="Inference-nlinear",
-    #            config={"window_size": f"{window_size}-{window_size}",
-    #                    "dataset": dataset,
-    #                    "model": "nlinear_textEmbedding"})
+    wandb.init(project="Inference-nlinear",
+               config={"window_size": f"{window_size}-{window_size}",
+                       "dataset": dataset,
+                       "model": "nlinear_textEmbedding"})
     start_time = time.time()
     
     out_filename = getLLMTIMEOutput(
@@ -107,7 +107,7 @@ if __name__ == "__main__":
         out_filename
     )
     print("RMSE Scores: ", out_rmse)
-    # wandb.log({"RMSE Scores": out_rmse})
+    wandb.log({"RMSE Scores": out_rmse})
 
     end_time = time.time()
     print("Total Time: " + str(end_time - start_time))

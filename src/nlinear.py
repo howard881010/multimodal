@@ -76,8 +76,6 @@ if __name__ == "__main__":
         unit = "day"
     elif dataset == "medical":
         unit = "day"
-    elif dataset == "gas":
-        unit = "week"
 
     hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-finetuned"
 
