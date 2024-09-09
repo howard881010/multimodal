@@ -28,7 +28,7 @@ def nlinear_darts(train_input, test_input, train_text, test_text, window_size):
     train_series = TimeSeries.from_values(train_input)
     print(textEmbedding(train_text).shape)
     train_embedding = TimeSeries.from_values(textEmbedding(train_text))
-    model_NLinearModel = NLinearModel(input_chunk_length=window_size, output_chunk_length=window_size, pl_trainer_kwargs={"accelerator": "gpu", "devices": -1, "auto_select_gpus": True}, )
+    model_NLinearModel = NLinearModel(input_chunk_length=window_size, output_chunk_length=window_size, pl_trainer_kwargs={"accelerator": "gpu", "devices": "auto"})
     model_NLinearModel.fit(train_series, past_covariates=train_embedding)
 
     pred_value = []
@@ -36,7 +36,7 @@ def nlinear_darts(train_input, test_input, train_text, test_text, window_size):
     for i in range(len(test_input)):
         test_series = TimeSeries.from_values(np.array(test_input[i]))
         test_embedding = TimeSeries.from_values(textEmbedding(test_text[i]))
-        predictions = model_NLinearModel.predict(n=window_size, series=test_series, past_covariates=test_embedding).values().tolist()
+        predictions = model_NLinearModel.predict(n=window_size, series=test_series, past_covariates=test_embedding, njobs=-1).values().tolist()
         pred_value.append(predictions)
     
     return pred_value
