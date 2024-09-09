@@ -69,7 +69,11 @@ def find_num_parts(text, num_key_name, window_size):
         else:
             return  [[float(temp)] for temp in temps]
     except:
-        return np.nan
+        temps = re.findall(fr'"day_\d+_{num_key_name}":\s*(\d+\.?\d*)', text, re.DOTALL)
+# Convert the found values to float
+        if len(temps) != window_size:
+            return np.nan
+        return [[float(temp)] for temp in temps]
 
 def split_text(text, text_key_name, window_size):
     day_counter = window_size + 1
@@ -88,7 +92,12 @@ def split_text(text, text_key_name, window_size):
         
         return result
     except:
-        return ["No prediction" for _ in range(window_size)]
+        matches = re.findall(fr'("day_\d+_date":\s*"[^"]+").*?("day_\d+_{text_key_name}":\s*"[^"]+")', text, re.DOTALL)
+        if len(matches) == 0:
+            return ["No prediction" for _ in range(window_size)] 
+        else:
+            return [f"{date}, {forecast}" for date, forecast in matches]
+        
 
 
 def load_config(yaml_path):

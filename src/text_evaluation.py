@@ -66,6 +66,7 @@ def getTextScore(case, split, hf_dataset, text_key_name, num_key_name, window_si
         rmse_loss = np.nan
         drop_rate = np.nan
         
+        
     # text part evaluation
     if case in [1, 2, 3]:
         output_texts = data['output_text'].apply(lambda x: split_text(x, text_key_name, window_size)).to_list()
@@ -94,5 +95,6 @@ def getTextScore(case, split, hf_dataset, text_key_name, num_key_name, window_si
         rouge1 = np.nan
         rouge2 = np.nan
         rougeL = np.nan
+        text_drop_count = np.nan
     
     return meteor_score, cosine_similarity_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate, text_drop_count
