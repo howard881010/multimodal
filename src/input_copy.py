@@ -58,7 +58,7 @@ if __name__ == "__main__":
 
     hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-finetuned"
 
-    wandb.init(project="Inference-finetuned",
+    wandb.init(project="Inference-input-copy",
                 config={"window_size": f"{window_size}-{window_size}",
                         "dataset": dataset,
                         "model": "input-copy"})
