@@ -16,7 +16,7 @@ from text_evaluation import getRMSEScore
 def nlinear_darts(train_input, test_input, window_size):
     # Convert to TimeSeries object required by Darts
     train_series = TimeSeries.from_values(train_input)
-    model_NLinearModel = NLinearModel(input_chunk_length=window_size, output_chunk_length=window_size, pl_trainer_kwargs={"accelerator": "gpu", "devices": 0}, )
+    model_NLinearModel = NLinearModel(input_chunk_length=window_size, output_chunk_length=window_size, pl_trainer_kwargs={"accelerator": "gpu", "devices": 1}, )
     model_NLinearModel.fit(train_series)
 
     pred_value = []
