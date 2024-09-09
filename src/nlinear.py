@@ -50,9 +50,9 @@ def getLLMTIMEOutput(dataset, unit, window_size, split, hf_dataset):
 
 def numberEval(filename):
     data = pd.read_csv(filename)
-    data['pred_num'] = data['pred_num'].apply(lambda x: ast.literal_eval(x))
-    data['output_num'] = data['output_num'].apply(lambda x: ast.literal_eval(x))
-    rmse_loss = getRMSEScore(data)
+    pred_values = data['pred_num'].to_list()
+    fut_values = data['output_num'].to_list()
+    rmse_loss = getRMSEScore(pred_values, fut_values)
     return rmse_loss
 
 
