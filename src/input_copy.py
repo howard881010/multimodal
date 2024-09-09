@@ -10,16 +10,17 @@ from text_evaluation import getMeteorScore, getCosineSimilarity, getROUGEScore, 
 from datasets import load_dataset
 from utils import split_text
 
-def getTextScore(hf_dataset, text_pattern):
+def getTextScore(hf_dataset, text_key_name, window_size):
     data_all = load_dataset(hf_dataset)
     data = pd.DataFrame(data_all['test'])
     # number part evaluation
-    data['pred_time'] = data['input_num']
-    rmse_loss = getRMSEScore(data)
+    pred_values = data['input_num'].to_list()
+    fut_values = data['output_num'].to_list()
+    rmse_loss = getRMSEScore(pred_values, fut_values)
         
     # text part evaluation
-    output_texts = data['output_text'].apply(lambda x: split_text(x, text_pattern)).to_list()
-    pred_texts = data['input_text'].apply(lambda x: split_text(x, text_pattern)).to_list()
+    output_texts = data['output_text'].apply(lambda x: split_text(x, text_key_name, window_size)).to_list()
+    pred_texts = data['input_text'].apply(lambda x: split_text(x, text_key_name, window_size)).to_list()
     output_texts = np.reshape(output_texts, -1)
     pred_texts = np.reshape(pred_texts, -1)
 
@@ -50,14 +51,12 @@ if __name__ == "__main__":
     elif dataset == "medical":
         unit = "day"
         num_key_name = "Heart_Rate"
+        text_key_name = "medical_notes"
     elif dataset == "gas":
         unit = "week"
         num_key_name = "gas_price"
 
     hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-finetuned"
-
-    num_pattern = fr"{unit}_\d+_{num_key_name}: ?'?([\d.]+)'?"
-    text_pattern =fr'({unit}_\d+_date:\s*\S+\s+{unit}_\d+_{text_key_name}:.*?)(?=\s{unit}_\d+_date|\Z)'
 
     wandb.init(project="Inference-finetuned",
                 config={"window_size": f"{window_size}-{window_size}",
@@ -66,7 +65,7 @@ if __name__ == "__main__":
     
     start_time = time.time()
     meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss = getTextScore(
-        hf_dataset, text_pattern
+        hf_dataset, text_key_name, window_size
     )
 
     wandb.log({"Meteor Scores": meteor_score})
