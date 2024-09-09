@@ -20,7 +20,7 @@ def getTextScore(hf_dataset, text_key_name, window_size):
         
     # text part evaluation
     output_texts = data['output_text'].apply(lambda x: split_text(x, text_key_name, window_size)).to_list()
-    pred_texts = data['input_text'].apply(lambda x: split_text(x, text_key_name, window_size)).to_list()
+    pred_texts = data['input_text'].apply(lambda x: split_text(x, text_key_name, 0)).to_list()
     output_texts = np.reshape(output_texts, -1)
     pred_texts = np.reshape(pred_texts, -1)
 
