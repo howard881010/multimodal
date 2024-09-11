@@ -267,9 +267,9 @@ class FinancialDataProcessor(OpeanAIBatchProcessor):
     def __init__(self):
 
         instruction = \
-            """You are a skilled assistant at filtering irrelevant information from text and extracting only the relevant stock-related details for a given ticker. 
-            Provided with text from a webpage that includes extraneous information, filter out all unnecessary parts and output only the relevant details for the specified ticker.
-            If there is no relevant information, you can leave the text part empty."""
+            """You are a highly skilled assistant capable of filtering out irrelevant information from text and extracting only the key stock-related details for a given ticker. 
+            Provided with text from a webpage that includes extraneous information, filter out all unnecessary parts and provide a concise summary of the relevant details for the specified ticker. 
+            If there is no relevant information, leave the summary empty. Ensure that the summary captures only the most important and relevant stock-related information."""
         prompt = "Ticker: {input_ticker} Date: {input_date} Text: {input_text}"
         json_schema = {
             "name": "filter_irrelevant_information",
