@@ -33,7 +33,7 @@ def batch_inference_inContext(
     data_train,
     case
 ):
-    batches = list(create_batched(data, 1))
+    batches = list(create_batched(data, 3))
 
     for batch in tqdm(batches):
         prompt, cur_idx = create_batch_prompt_in_Context(batch, data_train, case)
