@@ -16,7 +16,7 @@ from sentence_transformers import SentenceTransformer
 
 
 def textEmbedding(summaries):
-    model = SentenceTransformer('sentence-transformers/paraphrase-MiniLM-L6-v2')
+    model = SentenceTransformer('sentence-transformers/all-MiniLM-L12-v2')
     embeddings = []
     for summary in summaries:
         embeddings.append(model.encode(summary))
