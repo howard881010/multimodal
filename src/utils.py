@@ -63,7 +63,8 @@ def find_num_parts(text, num_key_name, window_size):
         temps = []
         for key, value in text.items():
             if key.endswith(num_key_name):
-                temps.append(value)
+                if value is not None:
+                    temps.append(value)
         if len(temps) != window_size:
             return np.nan
         else:
