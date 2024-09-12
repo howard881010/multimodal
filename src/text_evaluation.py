@@ -56,12 +56,17 @@ def getTextScore(case, split, hf_dataset, text_key_name, num_key_name, window_si
     pred_output_column = f'pred_output_case{case}'
     # number part evaluation
     if case in [2, 4]:
-        data['pred_num'] = data[pred_output_column].apply(lambda x: find_num_parts(x, num_key_name, window_size))
-        data_clean = data.dropna()
-        drop_rate = (len(data) - len(data_clean)) / len(data)
-        pred_values = data_clean['pred_num'].tolist()
-        output_values = data_clean['output_num'].tolist()
+        output_values = data['output_num'].tolist()
+        input_values = data['input_num'].tolist()
+        pred_values = data[pred_output_column].apply(lambda x: find_num_parts(x, num_key_name, window_size)).tolist()
+        drop = 0
+        # if the prediction format is not correct, use the input value
+        for idx, pred_num in enumerate(pred_values):
+            if pred_num is np.nan:
+                drop += 1
+                pred_values[idx] = input_values[idx]
         rmse_loss = getRMSEScore(pred_values, output_values)
+        drop_rate = drop / len(pred_values)
     else:
         rmse_loss = np.nan
         drop_rate = np.nan
