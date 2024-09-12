@@ -16,26 +16,34 @@ from sentence_transformers import SentenceTransformer
 
 
 def textEmbedding(summaries):
-    model = SentenceTransformer('sentence-transformers/all-MiniLM-L12-v2')
+    model = SentenceTransformer('BAAI/bge-small-en-v1.5')
     embeddings = []
-    for summary in summaries:
-        embeddings.append(model.encode(summary))
+    if np.array(summaries).ndim == 1:
+        for summary in summaries:
+            embeddings.append(model.encode(summary))
+    elif np.array(summaries).ndim == 2:
+        for day_texts in summaries:
+            day_embeddings = []
+            for summary in day_texts:
+                day_embeddings.append(model.encode(summary))
+            embeddings.append(day_embeddings)
 
     return np.array(embeddings)
 
 def nlinear_darts(train_input, test_input, train_text, test_text, window_size):
     # Convert to TimeSeries object required by Darts
     train_series = TimeSeries.from_values(train_input)
-    print(textEmbedding(train_text).shape)
     train_embedding = TimeSeries.from_values(textEmbedding(train_text))
     model_NLinearModel = NLinearModel(input_chunk_length=window_size, output_chunk_length=window_size, pl_trainer_kwargs={"accelerator": "gpu", "devices": 1})
-    model_NLinearModel.fit(train_series, past_covariates=train_embedding)
+    model_NLinearModel.fit(train_series, past_covariates=train_embedding, epochs=100)
 
     pred_value = []
+    test_embeddings = textEmbedding(test_text)
     # Make predictions
     for i in range(len(test_input)):
         test_series = TimeSeries.from_values(np.array(test_input[i]))
-        test_embedding = TimeSeries.from_values(textEmbedding(test_text[i]))
+        # test_embedding = TimeSeries.from_values(textEmbedding(test_text[i]))
+        test_embedding = TimeSeries.from_values(test_embeddings[i])
         predictions = model_NLinearModel.predict(n=window_size, series=test_series, past_covariates=test_embedding).values().tolist()
         pred_value.append(predictions)
     

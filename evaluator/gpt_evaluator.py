@@ -270,7 +270,11 @@ class FinancialDataProcessor(OpeanAIBatchProcessor):
             """You are a highly skilled assistant capable of filtering out irrelevant information from text and extracting only the key stock-related details for a given ticker. 
             Provided with text from a webpage that includes extraneous information, filter out all unnecessary parts and provide a concise summary of the relevant details for the specified ticker. 
             If there is no relevant information, leave the summary empty. Ensure that the summary captures only the most important and relevant stock-related information."""
-        prompt = "Ticker: {input_ticker} Date: {input_date} Text: {input_text}"
+        prompt = """Please summarize the following noisy but possible news data extracted from
+            web page HTML, and extract keywords of the news. The news text can be very noisy due to it is HTML extraction. The news is supposed to be for {input_ticker} stock at {input_date}. You may leave the summary empty if the noisy text does
+            not have relevant information to extract.
+            News: {input_text}"""
+
         json_schema = {
             "name": "filter_irrelevant_information",
             "description": "Filter irrelevant information from text and extract relevant stock-related details for a specified ticker.",
@@ -284,12 +288,15 @@ class FinancialDataProcessor(OpeanAIBatchProcessor):
                     "date": {
                         "type": "string"
                     },
-                    "text": {
+                    "summary": {
+                        "type": "string"
+                    },
+                    "keywords": {
                         "type": "string"
                     }
                 },
                 "additionalProperties": False,
-                "required": ["ticker", "date", "text"]
+                "required": ["ticker", "date", "summary", "keywords"]
             }
         }
 
@@ -360,11 +367,16 @@ class FinancialDataProcessor(OpeanAIBatchProcessor):
         return batch_jsons
     
     def gpt_call(self, input_text, ticker, date):
+        response_format = None
+        if self.json_schema is not None:
+            response_format = {
+                "type": "json_schema",
+                "json_schema": self.json_schema
+            }
         response = self.client.chat.completions.create(
             model="gpt-4o-mini",
             messages=self.get_messages(input_text, ticker, date),
-            response_format={"type": "json_schema",
-                             "json_schema": self.json_schema}
+            response_format=response_format
 
         )
         return response.choices[0].message.content
