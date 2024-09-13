@@ -8,6 +8,7 @@ from rouge_score import rouge_scorer
 import nltk
 from datasets import load_dataset
 from utils import find_num_parts, split_text
+import ast
 nltk.download('punkt')
 nltk.download('wordnet')
 
@@ -61,12 +62,16 @@ def getTextScore(case, split, hf_dataset, text_key_name, num_key_name, window_si
         pred_values = data[pred_output_column].apply(lambda x: find_num_parts(x, num_key_name, window_size)).tolist()
         drop = 0
         # if the prediction format is not correct, use the input value
-        for idx, pred_num in enumerate(pred_values):
-            if pred_num is np.nan:
-                drop += 1
-                pred_values[idx] = input_values[idx]
+        for row, pred_nums in enumerate(pred_values):
+            print(pred_nums)
+            for idx, pred_num in enumerate(pred_nums):  
+                if np.nan in pred_num:
+                    print("is nan")
+                    drop += 1
+                    pred_values[row][idx] = input_values[row][idx]
+        # print(pred_values)
         rmse_loss = getRMSEScore(pred_values, output_values)
-        drop_rate = drop / len(pred_values)
+        drop_rate = drop / len(pred_values) / window_size
     else:
         rmse_loss = np.nan
         drop_rate = np.nan

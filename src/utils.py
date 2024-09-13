@@ -65,15 +65,21 @@ def find_num_parts(text, num_key_name, window_size):
             if key.endswith(num_key_name):
                 if value is not None:
                     temps.append(value)
-        if len(temps) != window_size:
-            return np.nan
-        else:
-            return  [[float(temp)] for temp in temps]
+        while len(temps)!= window_size:
+            if len(temps) < window_size:
+                temps.append(np.nan)
+            else:
+                temps = temps[:window_size]
+            
+        return  [[float(temp)] for temp in temps]
     except:
         temps = re.findall(fr'"day_\d+_{num_key_name}":\s*(\d+\.?\d*)', text, re.DOTALL)
 # Convert the found values to float
-        if len(temps) != window_size:
-            return np.nan
+        while len(temps)!= window_size:
+            if len(temps) < window_size:
+                temps.append(np.nan)
+            else:
+                temps = temps[:window_size]
         return [[float(temp)] for temp in temps]
 
 def split_text(text, text_key_name, window_size):
