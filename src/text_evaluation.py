@@ -63,10 +63,8 @@ def getTextScore(case, split, hf_dataset, text_key_name, num_key_name, window_si
         drop = 0
         # if the prediction format is not correct, use the input value
         for row, pred_nums in enumerate(pred_values):
-            print(pred_nums)
             for idx, pred_num in enumerate(pred_nums):  
                 if np.nan in pred_num:
-                    print("is nan")
                     drop += 1
                     pred_values[row][idx] = input_values[row][idx]
         # print(pred_values)
