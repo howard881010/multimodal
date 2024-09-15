@@ -11,7 +11,7 @@ import time
 import wandb
 import sys
 
-def processData(window_size, dataset, model, text_pattern, number_pattern, case):
+def processData(window_size, dataset, model, text_key_name, case):
     output_dir = f"/home/ubuntu/multimodal/Data/{dataset}-GPT4-Evaluation/{model}/{window_size}{unit}"
     filename = "processed.csv"
     hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-{model.split('-')[-1]}"
@@ -21,14 +21,16 @@ def processData(window_size, dataset, model, text_pattern, number_pattern, case)
     print(data.columns)
     pred_output_column = f'pred_output_case{case}'
 
-    output_texts = data['output_text'].apply(lambda x: split_text(x, text_pattern)).to_list()
-    pred_texts = data[pred_output_column].apply(lambda x: find_text_parts(x, number_pattern)).apply(lambda x: split_text(x, text_pattern)).to_list()
+    output_texts = data['output_text'].apply(lambda x: split_text(x, text_key_name, window_size)).to_list()
+    if model == "input-copy":
+        pred_texts = data['input_text'].apply(lambda x: split_text(x, text_key_name, 0)).to_list()
+    else:
+        pred_texts = data[pred_output_column].apply(lambda x: split_text(x, text_key_name, window_size)).to_list()
     for idx, pred_text in enumerate(pred_texts):
         if len(pred_text) > window_size:
             pred_texts[idx] = pred_text[:window_size]
         while len(pred_text) < window_size:
-            pred_texts[idx].append(None)
-
+            pred_texts[idx].append("No prediction")
     output_texts = np.reshape(output_texts, -1)
     pred_texts = np.reshape(pred_texts, -1)
 
@@ -46,8 +48,8 @@ def wait_for_completion(job_id, processor, poll_interval=100):
         status = processor.check_status(job_id)
     return status.status
 
-def calculate_metrics(window_size, unit, dataset, model, text_pattern, number_pattern, case):
-    processData(window_size, dataset, model, text_pattern, number_pattern, case)
+def calculate_metrics(window_size, unit, dataset, model, text_key_name, case):
+    processData(window_size, dataset, model, text_key_name, case)
 
     gpt4semantic = GPT4Semantic()
 
@@ -104,9 +106,9 @@ if __name__ == "__main__":
     elif dataset == "medical":
         unit = "day"
         num_key_name = "Heart_Rate"
-    elif dataset == "gas":
-        unit = "week"
-        num_key_name = "gas_price"
+        text_key_name = "medical_notes"
+    
+
     if case == 1:
         model = "text2text"
     elif case == 2:
@@ -117,17 +119,15 @@ if __name__ == "__main__":
         model = "textTime2time"
 
     model = model + "-" + method
-    number_pattern = fr"{unit}_\d+_{num_key_name}: ?'?([\d.]+)'?"
-    text_pattern =fr'({unit}_\d+_date:\s*\S+\s+{unit}_\d+_{text_key_name}:.*?)(?=\s{unit}_\d+_date|\Z)'
+    if method == "input-copy":
+        model = "input-copy"
 
-        
-    
     wandb.init(project="gpt-score",
                 config={"window_size": f"{window_size}-{window_size}",
                         "dataset": dataset,
                         "model": model})
 
-    semantic_score, count_none, precisions, recalls, f1_scores = calculate_metrics(window_size, unit, dataset, model, text_pattern, number_pattern, case)
+    semantic_score, count_none, precisions, recalls, f1_scores = calculate_metrics(window_size, unit, dataset, model, text_key_name, case)
 
     wandb.log({"semantic_score": semantic_score, "count_none": count_none, "precisions": precisions, "recalls": recalls, "f1_scores": f1_scores})
     wandb.finish()

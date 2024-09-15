@@ -271,7 +271,7 @@ class FinancialDataProcessor(OpeanAIBatchProcessor):
             Provided with text from a webpage that includes extraneous information, filter out all unnecessary parts and provide a concise summary of the relevant details for the specified ticker. 
             If there is no relevant information, leave the summary empty. Ensure that the summary captures only the most important and relevant stock-related information."""
         prompt = """Please summarize the following noisy but possible news data extracted from
-            web page HTML, and extract keywords of the news. The news text can be very noisy due to it is HTML extraction. The news is supposed to be for {input_ticker} stock at {input_date}. You may leave the summary empty if the noisy text does
+            web page HTML, and extract keywords of the news. The news text can be very noisy due to it is HTML extraction. The news is supposed to be for {input_ticker} stock at {input_date}. You may leave the summary and keywords as 'N/A' if the noisy text does
             not have relevant information to extract.
             News: {input_text}"""
 
@@ -291,7 +291,7 @@ class FinancialDataProcessor(OpeanAIBatchProcessor):
                     "summary": {
                         "type": "string"
                     },
-                    "keywords": {
+                    "keywords":{
                         "type": "string"
                     }
                 },
