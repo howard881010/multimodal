@@ -1,5 +1,5 @@
 from .Processor import DatasetProcessor
-from .GasData import GasDataProcessor
+from .FinanceData import GasDataProcessor
 
 from .ClimateData import ClimateDataProcessor
 from .MedicalData import MedicalDataProcessor

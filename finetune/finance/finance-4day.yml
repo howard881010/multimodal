@@ -8,21 +8,21 @@ strict: false
 
 chat_template: chatml
 datasets:
-  - path: Howard881010/gas-4week-mixed
+  - path: Howard881010/finance-4day
     type: alpaca
     train_on_split: train
 dataset_prepared_path:
-output_dir: ./finetune/output/gas-4week-mixed
+output_dir: ./finetune/output/finance-4day
 
 test_datasets:
-  - path: Howard881010/gas-4week-mixed
+  - path: Howard881010/finance-4day
     split: valid
     type: alpaca
 
 adapter: lora
 lora_model_dir:
 
-sequence_len: 1000
+sequence_len: 2800
 sample_packing: false
 pad_to_sequence_len: true
 
@@ -36,14 +36,14 @@ lora_fan_in_fan_out:
 wandb_project: finetune
 wandb_entity:
 wandb_watch:
-wandb_name: gas-4week-mixed
+wandb_name: finance-4day
 wandb_log_model:
 
 gradient_accumulation_steps: 1
 micro_batch_size: 4
-num_epochs: 10
-optimizer: paged_adamw_32bit
-learning_rate: 0.0001
+num_epochs: 1
+optimizer: adamw_hf
+learning_rate: 0.00002
 max_grad_norm: 1.0
 
 train_on_inputs: false
