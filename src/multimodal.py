@@ -102,6 +102,7 @@ if __name__ == "__main__":
             hf_dataset = f"Howard881010/{dataset}-{company}-{window_size}{unit}-finetuned"
             print(f"Running {hf_dataset}")
             results = asyncRunModelChat(case, num_gpus, token, dataset, window_size, hf_dataset, split)
+            uploadToHuf(results, hf_dataset, split, case)
             meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate, text_drop_count = getTextScore(
                 case, split, hf_dataset, text_key_name, num_key_name, window_size
             )

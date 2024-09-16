@@ -166,6 +166,8 @@ def logToWandb(wandb, meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_
         wandb.log({"Drop Rate": f"{drop_rate*100:.2f}%"})
     if not np.isnan(text_drop_count):
         wandb.log({"Text Drop Count": text_drop_count})
+    
+    wandb.finish()
 
     
 
