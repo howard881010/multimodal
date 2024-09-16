@@ -15,6 +15,28 @@ from datasets import load_dataset
 import torch
 import multiprocessing
 
+def asyncRunModelChat(case, num_gpus, token, dataset, window_size, hf_dataset, split):
+    results = [pd.DataFrame() for _ in range(num_gpus)]
+    devices = [f"cuda:{i}" for i in range(num_gpus)]
+    data_all = load_dataset(hf_dataset)
+    data = pd.DataFrame(data_all[split])
+    dataset_parts = np.array_split(data, num_gpus)
+    dataset_parts = [part.reset_index(drop=True) for part in dataset_parts]
+        
+    with concurrent.futures.ProcessPoolExecutor(max_workers=num_gpus) as executor:
+    # Create a dictionary to map each future to its corresponding index
+        future_to_index = {
+            executor.submit(runModelChat, dataset_parts[i], case, devices[i], token, dataset, window_size): i
+            for i in range(num_gpus)
+        }
+        # Iterate over the completed futures
+        for future in concurrent.futures.as_completed(future_to_index):
+            index = future_to_index[future]
+            results[index] = future.result()
+    results = pd.concat(results, axis=0).reset_index(drop=True)
+
+    return results
+
 def runModelChat(data, case, device, token, dataset, window_size):
     model_chat = LLMChatModel("unsloth/Meta-Llama-3.1-8B-Instruct", token, dataset, False, case, device, window_size)
     data['idx'] = data.index
@@ -53,9 +75,10 @@ if __name__ == "__main__":
         unit = "day"
         num_key_name = "Heart_Rate"
         text_key_name = "medical_notes"
-    elif dataset == "gas":
-        unit = "week"
-        num_key_name = "gas_price"
+    elif dataset == "finance":
+        unit = "day"
+        num_key_name = "Close"
+        text_key_name = "stock_news"
     
     if case == 1:
         model = "text2text"
@@ -65,43 +88,37 @@ if __name__ == "__main__":
         model = "textTime2text"
     elif case == 4:
         model = "textTime2time"
-
-    hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-finetuned"
-
-    wandb.init(project="Inference-finetuned",
+    
+    
+    start_time = time.time()
+    if dataset == "finance":
+        company_list = ['AAPL', 'AMZN', 'AVGO', 'AMD', 'NFLX']
+        for company in company_list:
+            wandb.init(project="Inference-finetuned",
+                config={"window_size": f"{window_size}-{window_size}",
+                        "dataset": dataset,
+                        "model": model,
+                        "company": company,})
+            hf_dataset = f"Howard881010/{dataset}-{company}-{window_size}{unit}-finetuned"
+            print(f"Running {hf_dataset}")
+            results = asyncRunModelChat(case, num_gpus, token, dataset, window_size, hf_dataset, split)
+            meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate, text_drop_count = getTextScore(
+                case, split, hf_dataset, text_key_name, num_key_name, window_size
+            )
+            logToWandb(wandb, meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate, text_drop_count)
+    else:
+        wandb.init(project="Inference-finetuned",
                 config={"window_size": f"{window_size}-{window_size}",
                         "dataset": dataset,
                         "model": model})
-    
-    start_time = time.time()
+        hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-finetuned"
     # Run models in parallel
-    results = [pd.DataFrame() for _ in range(num_gpus)]
-    devices = [f"cuda:{i}" for i in range(num_gpus)]
-    data_all = load_dataset(hf_dataset)
-    data = pd.DataFrame(data_all[split])
-    dataset_parts = np.array_split(data, num_gpus)
-    dataset_parts = [part.reset_index(drop=True) for part in dataset_parts]
-        
-    with concurrent.futures.ProcessPoolExecutor(max_workers=num_gpus) as executor:
-    # Create a dictionary to map each future to its corresponding index
-        future_to_index = {
-            executor.submit(runModelChat, dataset_parts[i], case, devices[i], token, dataset, window_size): i
-            for i in range(num_gpus)
-        }
-        # Iterate over the completed futures
-        for future in concurrent.futures.as_completed(future_to_index):
-            index = future_to_index[future]
-            results[index] = future.result()
-    
-    results = pd.concat(results, axis=0).reset_index(drop=True)
-    
-    uploadToHuf(results, hf_dataset, split, case)
-    
-    meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate, text_drop_count = getTextScore(
-        case, split, hf_dataset, text_key_name, num_key_name, window_size
-    )
-
-    logToWandb(wandb, meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate, text_drop_count)
+        results = asyncRunModelChat(case, num_gpus, token, dataset, window_size, hf_dataset, split)
+        uploadToHuf(results, hf_dataset, split, case)
+        meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate, text_drop_count = getTextScore(
+            case, split, hf_dataset, text_key_name, num_key_name, window_size
+        )
+        logToWandb(wandb, meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate, text_drop_count)
     
     end_time = time.time()
     print("Total Time: " + str(end_time - start_time))
