@@ -76,9 +76,10 @@ if __name__ == "__main__":
         unit = "day"
         num_key_name = "Heart_Rate"
         text_key_name = "medical_notes"
-    elif dataset == "gas":
-        unit = "week"
-        num_key_name = "gas_price"
+    elif dataset == "finance":
+        unit = "day"
+        num_key_name = "Close"
+        text_key_name = "stock_news"
     
     if case == 1:
         model = "text2text"
