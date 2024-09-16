@@ -14,7 +14,11 @@ import sys
 def processData(window_size, dataset, model, text_key_name, case):
     output_dir = f"/home/ubuntu/multimodal/Data/{dataset}-GPT4-Evaluation/{model}/{window_size}{unit}"
     filename = "processed.csv"
-    hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-{model.split('-')[-1]}"
+
+    if model == "input-copy":
+        hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-finetuned"
+    else:
+        hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-{model.split('-')[-1]}"
 
     data_all = load_dataset(hf_dataset)
     data = pd.DataFrame(data_all['test'])
