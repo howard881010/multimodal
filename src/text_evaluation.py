@@ -20,6 +20,14 @@ def getRMSEScore(pred_values, fut_values):
     
     return np.sqrt(np.mean(np.square(y_pred - y_true)))
 
+def getStdError(pred_values, fut_values):
+    y_pred = np.reshape(pred_values, -1)
+    y_true = np.reshape(fut_values, -1)
+    y_pred = np.array(y_pred, dtype=np.float64)
+    y_true = np.array(y_true, dtype=np.float64)
+
+    return np.std(y_pred - y_true, ddof=1) / np.sqrt(len(y_pred))
+
 def getMeteorScore(outputs, pred_outputs):
     scores = [meteor([word_tokenize(output)], word_tokenize(pred_output)) for output, pred_output in zip(outputs, pred_outputs)]
     mean_score=np.mean(scores)
@@ -68,11 +76,13 @@ def getTextScore(case, split, hf_dataset, text_key_name, num_key_name, window_si
                     drop += 1
                     pred_values[row][idx] = input_values[row][idx]
         # print(pred_values)
+        std_error = getStdError(pred_values, output_values)
         rmse_loss = getRMSEScore(pred_values, output_values)
         drop_rate = drop / len(pred_values) / window_size
     else:
         rmse_loss = np.nan
         drop_rate = np.nan
+        std_error = np.nan
         
         
     # text part evaluation
@@ -105,4 +115,4 @@ def getTextScore(case, split, hf_dataset, text_key_name, num_key_name, window_si
         rougeL = np.nan
         text_drop_count = np.nan
     
-    return meteor_score, cosine_similarity_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate, text_drop_count
+    return meteor_score, cosine_similarity_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate, text_drop_count, std_error

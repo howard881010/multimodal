@@ -113,12 +113,12 @@ if __name__ == "__main__":
                         "model": model})
         hf_dataset = f"Howard881010/{dataset}-{window_size}{unit}-zeroshot"
     # Run models in parallel
-        results = asyncRunModelChat(case, num_gpus, token, dataset, window_size, hf_dataset, split)
-        uploadToHuf(results, hf_dataset, split, case)
-        meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate, text_drop_count = getTextScore(
+        # results = asyncRunModelChat(case, num_gpus, token, dataset, window_size, hf_dataset, split)
+        # uploadToHuf(results, hf_dataset, split, case)
+        meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate, text_drop_count, std_error = getTextScore(
             case, split, hf_dataset, text_key_name, num_key_name, window_size
         )
-        logToWandb(wandb, meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate, text_drop_count)
+        logToWandb(wandb, meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate, text_drop_count, std_error)
     
     end_time = time.time()
     print("Total Time: " + str(end_time - start_time))

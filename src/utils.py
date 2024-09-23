@@ -149,23 +149,25 @@ def uploadToHuf(results, hf_dataset, split, case):
     updated_dataset.push_to_hub(hf_dataset)
 
 
-def logToWandb(wandb, meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate, text_drop_count):
-    if not np.isnan(meteor_score):
-        wandb.log({"Meteor Scores": meteor_score})
-    if not np.isnan(cos_sim_score):
-        wandb.log({"Cos Sim Scores": cos_sim_score})
-    if not np.isnan(rouge1):
-        wandb.log({"Rouge1 Scores": rouge1})
-    if not np.isnan(rouge2):
-        wandb.log({"Rouge2 Scores": rouge2})
-    if not np.isnan(rougeL):
-        wandb.log({"RougeL Scores": rougeL})
-    if not np.isnan(rmse_loss):
-        wandb.log({"RMSE Scores": rmse_loss})
-    if not np.isnan(drop_rate):
-        wandb.log({"Drop Rate": f"{drop_rate*100:.2f}%"})
-    if not np.isnan(text_drop_count):
-        wandb.log({"Text Drop Count": text_drop_count})
+def logToWandb(wandb, meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, drop_rate, text_drop_count, std_error):
+    # if not np.isnan(meteor_score):
+    #     wandb.log({"Meteor Scores": meteor_score})
+    # if not np.isnan(cos_sim_score):
+    #     wandb.log({"Cos Sim Scores": cos_sim_score})
+    # if not np.isnan(rouge1):
+    #     wandb.log({"Rouge1 Scores": rouge1})
+    # if not np.isnan(rouge2):
+    #     wandb.log({"Rouge2 Scores": rouge2})
+    # if not np.isnan(rougeL):
+    #     wandb.log({"RougeL Scores": rougeL})
+    # if not np.isnan(rmse_loss):
+    #     wandb.log({"RMSE Scores": rmse_loss})
+    # if not np.isnan(drop_rate):
+    #     wandb.log({"Drop Rate": f"{drop_rate*100:.2f}%"})
+    # if not np.isnan(text_drop_count):
+    #     wandb.log({"Text Drop Count": text_drop_count})
+    if not np.isnan(std_error):
+        wandb.log({"Standard Error": std_error})
     
     wandb.finish()
 

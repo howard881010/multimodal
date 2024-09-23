@@ -11,7 +11,7 @@ from utils import open_record_directory
 from transformers import set_seed
 from datasets import load_dataset
 import ast
-from text_evaluation import getRMSEScore
+from text_evaluation import getRMSEScore, getStdError
 
 def nlinear_darts(train_input, test_input, window_size):
     # Convert to TimeSeries object required by Darts
@@ -53,7 +53,8 @@ def numberEval(filename):
     pred_values = data['pred_num'].apply(lambda x: ast.literal_eval(x)).to_list()
     fut_values = data['output_num'].apply(lambda x: ast.literal_eval(x)).to_list()
     rmse_loss = getRMSEScore(pred_values, fut_values)
-    return rmse_loss
+    std_error = getStdError(pred_values, fut_values)
+    return rmse_loss, std_error
 
 
 
@@ -86,11 +87,12 @@ if __name__ == "__main__":
     start_time = time.time()
     
     out_filename = getLLMTIMEOutput(dataset, unit, window_size, split, hf_dataset)
-    out_rmse = numberEval(
+    out_rmse, std_error = numberEval(
         out_filename
     )
     print("RMSE Scores: ", out_rmse)
     wandb.log({"RMSE Scores": out_rmse})
+    print("Standard Error: ", std_error)
 
     end_time = time.time()
     print("Total Time: " + str(end_time - start_time))
