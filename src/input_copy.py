@@ -6,7 +6,7 @@ import wandb
 import time
 from loguru import logger
 from transformers import set_seed
-from text_evaluation import getMeteorScore, getCosineSimilarity, getROUGEScore, getRMSEScore
+from text_evaluation import getMeteorScore, getCosineSimilarity, getROUGEScore, getRMSEScore, getStdError
 from datasets import load_dataset
 from utils import split_text
 
@@ -27,8 +27,9 @@ def getTextScore(hf_dataset, text_key_name, window_size):
     meteor_score = getMeteorScore(output_texts, pred_texts)
     cosine_similarity_score = getCosineSimilarity(output_texts, pred_texts)
     rouge1, rouge2, rougeL = getROUGEScore(output_texts, pred_texts)
+    std_error = getStdError(pred_values, fut_values)
 
-    return meteor_score, cosine_similarity_score, rouge1, rouge2, rougeL, rmse_loss
+    return meteor_score, cosine_similarity_score, rouge1, rouge2, rougeL, rmse_loss, std_error
 
 if __name__ == "__main__":
     # add seed
@@ -64,7 +65,7 @@ if __name__ == "__main__":
                         "model": "input-copy"})
     
     start_time = time.time()
-    meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss = getTextScore(
+    meteor_score, cos_sim_score, rouge1, rouge2, rougeL, rmse_loss, std_error = getTextScore(
         hf_dataset, text_key_name, window_size
     )
 
@@ -74,6 +75,9 @@ if __name__ == "__main__":
     wandb.log({"Rouge2 Scores": rouge2})
     wandb.log({"RougeL Scores": rougeL})
     wandb.log({"RMSE Scores": rmse_loss})
+    wandb.log({"Standard Error": std_error})
+    
+    wandb.finish()
     
     end_time = time.time()
     print("Total Time: " + str(end_time - start_time))
