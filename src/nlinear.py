@@ -92,6 +92,7 @@ if __name__ == "__main__":
     )
     print("RMSE Scores: ", out_rmse)
     wandb.log({"RMSE Scores": out_rmse})
+    wandb.log({"Standard Error": std_error})
     print("Standard Error: ", std_error)
 
     end_time = time.time()
