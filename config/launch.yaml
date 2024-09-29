@@ -6,24 +6,13 @@ model:
       git pull &&
       sudo apt update &&
       sudo apt install -y libaio-dev &&
-      python src/multimodal.py climate 4 1 test &&
-      python src/multimodal.py climate 4 2 test &&
-      python src/multimodal.py climate 4 3 test &&
-      python src/multimodal.py climate 4 4 test &&
-      python src/multimodal.py climate 5 1 test &&
-      python src/multimodal.py climate 5 2 test &&
-      python src/multimodal.py climate 5 3 test &&
-      python src/multimodal.py climate 5 4 test &&
-      python src/multimodal.py climate 6 1 test &&
-      python src/multimodal.py climate 6 2 test &&
-      python src/multimodal.py climate 6 3 test &&
-      python src/multimodal.py climate 6 4 test
-    cpu_count: 20
-    gpu_count: 4
-    memory: 250
+      python src/nlinear.py medical 7
+    cpu_count: 10
+    gpu_count: 1
+    memory: 60
 # irrelevant:
 dataset:
-  climate:
+  medical:
     hparam:
       _fn: Howard881010/Yelp-dataset
   mimic:
@@ -32,12 +21,14 @@ dataset:
 # irrelevant:
 run:
   model: [gpt]
-  dataset: [climate]
+  dataset: [medical]
 # file:
 #   - ./axolotl/examples/llama-2/myconfig.yml
 # hostname_whitelist:
 #   - hcc-chase-shor-c4715.unl.edu
-prefix: climateday456
+prefix: test2
 special_gpu: a100
-file: [src/utils.py, src/modelchat.py, src/batch_inference_chat.py, src/multimodal.py]
+file: [src/utils.py, src/modelchat.py, src/batch_inference_chat.py, src/text_evaluation.py, src/multimodal_inContext.py, src/nlinear_textEmbedding.py]
 # gpu_count: 2
+# cpu_count: 10
+# memory: 10
