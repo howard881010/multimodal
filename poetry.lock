@@ -952,17 +952,6 @@ files = [
 ]
 
 [[package]]
-name = "docstring-parser"
-version = "0.16"
-description = "Parse Python docstrings in reST, Google and Numpydoc format"
-optional = false
-python-versions = ">=3.6,<4.0"
-files = [
-    {file = "docstring_parser-0.16-py3-none-any.whl", hash = "sha256:bf0a1387354d3691d102edef7ec124f219ef639982d096e26e3b60aeffa90637"},
-    {file = "docstring_parser-0.16.tar.gz", hash = "sha256:538beabd0af1e2db0146b6bd3caa526c35a34d61af9fd2887f3a8a27a739aa6e"},
-]
-
-[[package]]
 name = "fastapi"
 version = "0.115.0"
 description = "FastAPI framework, high performance, easy to learn, fast to code, ready for production"
@@ -1309,70 +1298,6 @@ python-versions = ">=3.7"
 files = [
     {file = "h11-0.14.0-py3-none-any.whl", hash = "sha256:e3fe4ac4b851c468cc8363d500db52c2ead036020723024a109d37346efaa761"},
     {file = "h11-0.14.0.tar.gz", hash = "sha256:8f19fbbe99e72420ff35c00b27a34cb9937e902a8b810e2c88300c6f0a3b699d"},
-]
-
-[[package]]
-name = "hf-transfer"
-version = "0.1.8"
-description = "Speed up file transfers with the Hugging Face Hub."
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "hf_transfer-0.1.8-cp310-cp310-macosx_10_12_x86_64.whl", hash = "sha256:70858f9e94286738ed300484a45beb5cfee6a7ddac4c5886f9c6fce7823ac5ab"},
-    {file = "hf_transfer-0.1.8-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:38adc73f0a8526319d90f7cc5dc2d5e4bb66f487a513d94b98aa6725be732e4a"},
-    {file = "hf_transfer-0.1.8-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:44d2f0c08198d8d899fe9d66e86aee2dd844bd7ce33888f261373fcec81d2a54"},
-    {file = "hf_transfer-0.1.8-cp310-cp310-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:1de2a4ef36f9e60b3d3bec00193c0aafd75771709f2ca51b9b162373f5af3d32"},
-    {file = "hf_transfer-0.1.8-cp310-cp310-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:e319269e3606a5ff2979296841766649ac73598a4a8eee2a968f86c8071fea5a"},
-    {file = "hf_transfer-0.1.8-cp310-cp310-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:0f6026cf3be6a53ea42f92172f60c1c0675baaa9073f865e671b661dde5fd157"},
-    {file = "hf_transfer-0.1.8-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f865c33ada5bd3650c2b46e59979f2d7755c3f517f8d0facc78576a0c7d26406"},
-    {file = "hf_transfer-0.1.8-cp310-none-win32.whl", hash = "sha256:2054730e8d8ed21917c64be7199e06424b2bd08df1c43a72766afaed7992f2d3"},
-    {file = "hf_transfer-0.1.8-cp310-none-win_amd64.whl", hash = "sha256:2b4f1a9446ba31170b5b1eca4e916504d18378a6b5fe959896bdac8a736a5ecb"},
-    {file = "hf_transfer-0.1.8-cp311-cp311-macosx_10_12_x86_64.whl", hash = "sha256:e27c15fcc5869ad7e52bbc0bdec6106b288d1c463f8d2da92f28615a3b181361"},
-    {file = "hf_transfer-0.1.8-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:871a0032d011ebc6409a73a8406b98b84ff2cd3ed7d9e1af8cdf4d660b9fab9b"},
-    {file = "hf_transfer-0.1.8-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:686fa756e1e0214bb6327d33c66732c52274d94a8460beb50604ad988b391cf6"},
-    {file = "hf_transfer-0.1.8-cp311-cp311-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:36a03b1b2911b0cf15b1b9d971a34b32dadcc4f2fd979aaff5979d6ce4017c34"},
-    {file = "hf_transfer-0.1.8-cp311-cp311-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:079db90c81f41f4cf3227dfaaa855a9b8e9aef45bc7c2be29ce7232cd83ff881"},
-    {file = "hf_transfer-0.1.8-cp311-cp311-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:ac08a4524127fdd14c234d4bcbe49d1c498acf5335c781714823179bcc8dc039"},
-    {file = "hf_transfer-0.1.8-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:837432e73cb17274a6782b6216e8ce058aa325a475dc44a5a6a753d48b86d18a"},
-    {file = "hf_transfer-0.1.8-cp311-none-win32.whl", hash = "sha256:b180f9823dde35aba9bc0f1d0c04ac8a873baebd3732a7ffe4f11940abc7df0d"},
-    {file = "hf_transfer-0.1.8-cp311-none-win_amd64.whl", hash = "sha256:37907d2135cebcf8b6d419bb575148d89c224f16b69357f027bd29d0e85c6529"},
-    {file = "hf_transfer-0.1.8-cp312-cp312-macosx_10_12_x86_64.whl", hash = "sha256:baf948f4f493949309cbe60529620b9b0aef854a22b6e526753364acc57c09b6"},
-    {file = "hf_transfer-0.1.8-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:0bce5c8bdefa478c5d5eaa646cc4ce1df5cfe764d98572ad0c6b8773e98d49f6"},
-    {file = "hf_transfer-0.1.8-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:54d6f8a1a86128d651a3799e1267c343d60f81f2c565d7c5416eb8e674e4cf0e"},
-    {file = "hf_transfer-0.1.8-cp312-cp312-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:f79fd1b0c2ed93efb4c5f684118d7a762ecdd218e170df8208c4e13d3dcd4959"},
-    {file = "hf_transfer-0.1.8-cp312-cp312-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:414df35692670683bf5623498ef9d88a8df5d77e9516515da6e2b34d1054c11f"},
-    {file = "hf_transfer-0.1.8-cp312-cp312-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:3c9798d5f951f66b96d40a7a53910260cb5874fda56cf5944dddb7c571f37ec3"},
-    {file = "hf_transfer-0.1.8-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:060c661691f85a61392e57579c80eb64b5ee277434e81fb582f605c1c8ff05d5"},
-    {file = "hf_transfer-0.1.8-cp312-none-win32.whl", hash = "sha256:f7840e32379820c3e1571a480238e05ea043e970c99d2e999578004a2eb17788"},
-    {file = "hf_transfer-0.1.8-cp312-none-win_amd64.whl", hash = "sha256:9a3204ec423cc5e659872e8179f8704ad9ce2abb1e6a991f8838aedf1dc07830"},
-    {file = "hf_transfer-0.1.8-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:09949e86ad63ee139e463fd0dfaf401515ae70445854199f61d545514c65f744"},
-    {file = "hf_transfer-0.1.8-cp37-cp37m-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:bf1a74552845b93ea972e6e7131ef54e56056aa54137e93a40faf3fbcb2442ff"},
-    {file = "hf_transfer-0.1.8-cp37-cp37m-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:959bcb3afb4ee6f2a07031a947dba98ec0b64c001bc914fbd8fc32e13a287162"},
-    {file = "hf_transfer-0.1.8-cp37-cp37m-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:e01eecdb8162bd61dab9090fbd9f8034dd8b5755ef727a21ca8a057f80cb91ee"},
-    {file = "hf_transfer-0.1.8-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:50650a38e9d31f5ad8f010e4598bf304ecd99c17162e7d93f67e031571b864ee"},
-    {file = "hf_transfer-0.1.8-cp37-none-win32.whl", hash = "sha256:e29b9d1d378138f2f4eae0e93ca94af3b5d45f4532eef69f1ab97fe06f9c9d9e"},
-    {file = "hf_transfer-0.1.8-cp37-none-win_amd64.whl", hash = "sha256:cfd6cef43ae883103117a371f8ebae4e7f9637bc6fb480f1be5568e2fe22a8a7"},
-    {file = "hf_transfer-0.1.8-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:92a68f7a0043cca8a0de4decc760dca177530944cbab502afac503bd1b2fa01a"},
-    {file = "hf_transfer-0.1.8-cp38-cp38-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:e3138e408179f80a5480598e32f8e1abb564915cbde4d3bc8da52811c75dc3ea"},
-    {file = "hf_transfer-0.1.8-cp38-cp38-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:4544d148930ad34442d43b8fa911c8479c04a95b858b1d1f91e0b7da77082fad"},
-    {file = "hf_transfer-0.1.8-cp38-cp38-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:a851794b9f029965664f8c3002c957fccf21685e9397ceb4f9f19c986dee8ad3"},
-    {file = "hf_transfer-0.1.8-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:791aaf87c5319ac83edb6ab2994b3db19924c49d6ff667dd3d8a610b455ff70a"},
-    {file = "hf_transfer-0.1.8-cp38-none-win32.whl", hash = "sha256:8f71e5d35d3a3160dcca12fdcc8119033aeacaa6a32838a7ad9f9cb1008bbe58"},
-    {file = "hf_transfer-0.1.8-cp38-none-win_amd64.whl", hash = "sha256:543287b4ceb1e25501580b99690f7f0df9d3631d29306f37cbd97e918c732944"},
-    {file = "hf_transfer-0.1.8-cp39-cp39-macosx_10_12_x86_64.whl", hash = "sha256:7ce02a18bd0bb2343e707ac85b68c946bc37623ee24150c69158f6b2b2c7a98f"},
-    {file = "hf_transfer-0.1.8-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:64d7f8dbd64ba183ed1df75d47c84e075ff666ceaa335bff1de16b09eaac5b80"},
-    {file = "hf_transfer-0.1.8-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:1e7858694e11419ae27e542fb8fc0d0e54d46ff7768fe73bc359d70b8f5aa578"},
-    {file = "hf_transfer-0.1.8-cp39-cp39-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:bed116cd9d1edfa32c0136d7cb8e5f1afd2b32df43c49085d428f108fc8e1c8f"},
-    {file = "hf_transfer-0.1.8-cp39-cp39-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:6e385d0da9c6b3472ab29285d2d46c9f9903205b8d108f88a82f3f85aafae0ab"},
-    {file = "hf_transfer-0.1.8-cp39-cp39-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:98f75fa4b86ef15433cd907807ac77d1fb39d7e7b790bfd39c7ae9c385bf0200"},
-    {file = "hf_transfer-0.1.8-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:d1a63ad947d2901425ac0a3ed70c3696dfde27fadb0482ed763bdd5cc946b278"},
-    {file = "hf_transfer-0.1.8-cp39-none-win32.whl", hash = "sha256:3e74096915813ae842ea6a5bdf10c0fef960aa51a35a560955b3e61cdfe3db57"},
-    {file = "hf_transfer-0.1.8-cp39-none-win_amd64.whl", hash = "sha256:05ea16307bf4a5eb097cbc6e5057e4eb5e080a138af23ef639fd38857723c288"},
-    {file = "hf_transfer-0.1.8-pp310-pypy310_pp73-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:928ff036c3e98e10dcfbdb4fcdfc4592d37a5cc8e365a7ba8dfd4337e849d675"},
-    {file = "hf_transfer-0.1.8-pp310-pypy310_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:d49ba3ce67035f460ae1924fe2feafec155cb535eec7f31ed5109c19064cd294"},
-    {file = "hf_transfer-0.1.8-pp39-pypy39_pp73-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:b01f5872c62cfee3ec9ca5c738818296f69f8adf84b4d8d15f2a5601d9dda339"},
-    {file = "hf_transfer-0.1.8-pp39-pypy39_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:659d4212d50847a5165666bf43d67727679b4f694ef9c413613cc27093136527"},
-    {file = "hf_transfer-0.1.8.tar.gz", hash = "sha256:26d229468152e7a3ec12664cac86b8c2800695fd85f9c9a96677a775cc04f0b3"},
 ]
 
 [[package]]
@@ -1997,30 +1922,6 @@ win32-setctime = {version = ">=1.0.0", markers = "sys_platform == \"win32\""}
 dev = ["Sphinx (==7.2.5)", "colorama (==0.4.5)", "colorama (==0.4.6)", "exceptiongroup (==1.1.3)", "freezegun (==1.1.0)", "freezegun (==1.2.2)", "mypy (==v0.910)", "mypy (==v0.971)", "mypy (==v1.4.1)", "mypy (==v1.5.1)", "pre-commit (==3.4.0)", "pytest (==6.1.2)", "pytest (==7.4.0)", "pytest-cov (==2.12.1)", "pytest-cov (==4.1.0)", "pytest-mypy-plugins (==1.9.3)", "pytest-mypy-plugins (==3.0.0)", "sphinx-autobuild (==2021.3.14)", "sphinx-rtd-theme (==1.3.0)", "tox (==3.27.1)", "tox (==4.11.0)"]
 
 [[package]]
-name = "markdown-it-py"
-version = "3.0.0"
-description = "Python port of markdown-it. Markdown parsing, done right!"
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "markdown-it-py-3.0.0.tar.gz", hash = "sha256:e3f60a94fa066dc52ec76661e37c851cb232d92f9886b15cb560aaada2df8feb"},
-    {file = "markdown_it_py-3.0.0-py3-none-any.whl", hash = "sha256:355216845c60bd96232cd8d8c40e8f9765cc86f46880e43a8fd22dc1a1a8cab1"},
-]
-
-[package.dependencies]
-mdurl = ">=0.1,<1.0"
-
-[package.extras]
-benchmarking = ["psutil", "pytest", "pytest-benchmark"]
-code-style = ["pre-commit (>=3.0,<4.0)"]
-compare = ["commonmark (>=0.9,<1.0)", "markdown (>=3.4,<4.0)", "mistletoe (>=1.0,<2.0)", "mistune (>=2.0,<3.0)", "panflute (>=2.3,<3.0)"]
-linkify = ["linkify-it-py (>=1,<3)"]
-plugins = ["mdit-py-plugins"]
-profiling = ["gprof2dot"]
-rtd = ["jupyter_sphinx", "mdit-py-plugins", "myst-parser", "pyyaml", "sphinx", "sphinx-copybutton", "sphinx-design", "sphinx_book_theme"]
-testing = ["coverage", "pytest", "pytest-cov", "pytest-regressions"]
-
-[[package]]
 name = "markupsafe"
 version = "2.1.5"
 description = "Safely add untrusted strings to HTML/XML markup."
@@ -2151,17 +2052,6 @@ python-dateutil = ">=2.7"
 
 [package.extras]
 dev = ["meson-python (>=0.13.1)", "numpy (>=1.25)", "pybind11 (>=2.6)", "setuptools (>=64)", "setuptools_scm (>=7)"]
-
-[[package]]
-name = "mdurl"
-version = "0.1.2"
-description = "Markdown URL utilities"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "mdurl-0.1.2-py3-none-any.whl", hash = "sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8"},
-    {file = "mdurl-0.1.2.tar.gz", hash = "sha256:bb413d29f5eea38f31dd4754dd7377d4465116fb207585f97bf925588687c1ba"},
-]
 
 [[package]]
 name = "mpmath"
@@ -2897,8 +2787,8 @@ files = [
 
 [package.dependencies]
 numpy = [
-    {version = ">=1.26.0", markers = "python_version >= \"3.12\""},
     {version = ">=1.23.2", markers = "python_version == \"3.11\""},
+    {version = ">=1.26.0", markers = "python_version >= \"3.12\""},
 ]
 python-dateutil = ">=2.8.2"
 pytz = ">=2020.1"
@@ -3360,8 +3250,8 @@ files = [
 annotated-types = ">=0.6.0"
 pydantic-core = "2.23.4"
 typing-extensions = [
-    {version = ">=4.12.2", markers = "python_version >= \"3.13\""},
     {version = ">=4.6.1", markers = "python_version < \"3.13\""},
+    {version = ">=4.12.2", markers = "python_version >= \"3.13\""},
 ]
 
 [package.extras]
@@ -3985,24 +3875,6 @@ urllib3 = ">=1.21.1,<3"
 [package.extras]
 socks = ["PySocks (>=1.5.6,!=1.5.7)"]
 use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
-
-[[package]]
-name = "rich"
-version = "13.8.1"
-description = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal"
-optional = false
-python-versions = ">=3.7.0"
-files = [
-    {file = "rich-13.8.1-py3-none-any.whl", hash = "sha256:1760a3c0848469b97b558fc61c85233e3dafb69c7a071b4d60c38099d3cd4c06"},
-    {file = "rich-13.8.1.tar.gz", hash = "sha256:8260cda28e3db6bf04d2d1ef4dbc03ba80a824c88b0e7668a0f23126a424844a"},
-]
-
-[package.dependencies]
-markdown-it-py = ">=2.2.0"
-pygments = ">=2.13.0,<3.0.0"
-
-[package.extras]
-jupyter = ["ipywidgets (>=7.5.1,<9)"]
 
 [[package]]
 name = "rouge-score"
@@ -4712,20 +4584,6 @@ plots = ["ipython", "matplotlib"]
 test = ["catboost", "gpboost", "lightgbm", "ngboost", "opencv-python", "protobuf (==3.20.3)", "pyod", "pyspark", "pytest", "pytest-cov", "pytest-mpl", "sentencepiece", "tensorflow", "tf-keras", "torch", "torch (==2.2.0)", "torchvision", "transformers", "xgboost"]
 test-core = ["pytest", "pytest-cov", "pytest-mpl"]
 test-notebooks = ["datasets", "jupyter", "keras", "nbconvert", "nbformat", "nlp", "transformers"]
-
-[[package]]
-name = "shtab"
-version = "1.7.1"
-description = "Automagic shell tab completion for Python CLI applications"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "shtab-1.7.1-py3-none-any.whl", hash = "sha256:32d3d2ff9022d4c77a62492b6ec875527883891e33c6b479ba4d41a51e259983"},
-    {file = "shtab-1.7.1.tar.gz", hash = "sha256:4e4bcb02eeb82ec45920a5d0add92eac9c9b63b2804c9196c1f1fdc2d039243c"},
-]
-
-[package.extras]
-dev = ["pytest (>=6)", "pytest-cov", "pytest-timeout"]
 
 [[package]]
 name = "six"
@@ -5463,27 +5321,6 @@ files = [
 ]
 
 [[package]]
-name = "tyro"
-version = "0.8.11"
-description = "Strongly typed, zero-effort CLI interfaces"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "tyro-0.8.11-py3-none-any.whl", hash = "sha256:0a8dd180e6afcd5df9d9f940b7e6225f67ceb348678d49df9df00a59576174fb"},
-    {file = "tyro-0.8.11.tar.gz", hash = "sha256:486e6ed6672df2222303877a39a498e8f0fc762cdb9deacac67320c44a8eba45"},
-]
-
-[package.dependencies]
-colorama = {version = ">=0.4.0", markers = "platform_system == \"Windows\""}
-docstring-parser = ">=0.16"
-rich = ">=11.1.0"
-shtab = ">=1.5.6"
-typing-extensions = ">=4.7.0"
-
-[package.extras]
-dev = ["PyYAML (>=6.0)", "attrs (>=21.4.0)", "coverage[toml] (>=6.5.0)", "eval-type-backport (>=0.1.3)", "flax (>=0.6.9)", "frozendict (>=2.3.4)", "mypy (>=1.4.1)", "numpy (>=1.20.0)", "omegaconf (>=2.2.2)", "pydantic (>=2.5.2)", "pyright (>=1.1.349,!=1.1.379)", "pytest (>=7.1.2)", "pytest-cov (>=3.0.0)", "ruff (>=0.1.13)", "torch (>=1.10.0)"]
-
-[[package]]
 name = "tzdata"
 version = "2024.2"
 description = "Provider of IANA time zone data"
@@ -5493,83 +5330,6 @@ files = [
     {file = "tzdata-2024.2-py2.py3-none-any.whl", hash = "sha256:a48093786cdcde33cad18c2555e8532f34422074448fbc874186f0abd79565cd"},
     {file = "tzdata-2024.2.tar.gz", hash = "sha256:7d85cc416e9382e69095b7bdf4afd9e3880418a2413feec7069d533d6b4e31cc"},
 ]
-
-[[package]]
-name = "unsloth"
-version = "2024.9.post3"
-description = "2-5X faster LLM finetuning"
-optional = false
-python-versions = ">=3.9"
-files = []
-develop = false
-
-[package.dependencies]
-datasets = {version = ">=2.16.0", optional = true, markers = "extra == \"colab-new\""}
-hf_transfer = {version = "*", optional = true, markers = "extra == \"colab-new\""}
-huggingface_hub = {version = "*", optional = true, markers = "extra == \"colab-new\""}
-numpy = {version = "*", optional = true, markers = "extra == \"colab-new\""}
-packaging = {version = "*", optional = true, markers = "extra == \"colab-new\""}
-protobuf = {version = "<4.0.0", optional = true, markers = "extra == \"colab-new\""}
-psutil = {version = "*", optional = true, markers = "extra == \"colab-new\""}
-sentencepiece = {version = ">=0.2.0", optional = true, markers = "extra == \"colab-new\""}
-tqdm = {version = "*", optional = true, markers = "extra == \"colab-new\""}
-transformers = {version = ">=4.45.1", optional = true, markers = "extra == \"colab-new\""}
-tyro = {version = "*", optional = true, markers = "extra == \"colab-new\""}
-wheel = {version = ">=0.42.0", optional = true, markers = "extra == \"colab-new\""}
-
-[package.extras]
-colab = ["unsloth[cu121]"]
-colab-ampere = ["flash-attn (>=2.6.3)", "ninja", "packaging", "unsloth[colab-ampere-torch220]"]
-colab-ampere-torch211 = ["bitsandbytes (>=0.43.3)", "flash-attn (>=2.6.3)", "ninja", "packaging", "unsloth[cu121onlytorch211]", "unsloth[huggingface]"]
-colab-ampere-torch220 = ["bitsandbytes (>=0.43.3)", "flash-attn (>=2.6.3)", "ninja", "packaging", "unsloth[cu121onlytorch220]", "unsloth[huggingface]"]
-colab-new = ["datasets (>=2.16.0)", "hf_transfer", "huggingface_hub", "numpy", "packaging", "protobuf (<4.0.0)", "psutil", "sentencepiece (>=0.2.0)", "tqdm", "transformers (>=4.45.1)", "tyro", "wheel (>=0.42.0)"]
-colab-no-deps = ["accelerate (>=0.26.1)", "bitsandbytes (>=0.43.3)", "peft (>=0.7.1)", "protobuf (<4.0.0)", "trl (>=0.7.9,!=0.9.0,!=0.9.1,!=0.9.2,!=0.9.3)", "xformers (<0.0.27)"]
-colab-torch211 = ["bitsandbytes (>=0.43.3)", "unsloth[cu121onlytorch211]", "unsloth[huggingface]"]
-colab-torch220 = ["bitsandbytes (>=0.43.3)", "unsloth[cu121onlytorch220]", "unsloth[huggingface]"]
-conda = ["unsloth[huggingface]"]
-cu118 = ["bitsandbytes (>=0.43.3)", "unsloth[cu118only]", "unsloth[huggingface]"]
-cu118-ampere = ["bitsandbytes (>=0.43.3)", "flash-attn (>=2.6.3)", "ninja", "packaging", "unsloth[cu118only]", "unsloth[huggingface]"]
-cu118-ampere-torch211 = ["bitsandbytes (>=0.43.3)", "flash-attn (>=2.6.3)", "ninja", "packaging", "unsloth[cu118onlytorch211]", "unsloth[huggingface]"]
-cu118-ampere-torch220 = ["bitsandbytes (>=0.43.3)", "flash-attn (>=2.6.3)", "ninja", "packaging", "unsloth[cu118onlytorch220]", "unsloth[huggingface]"]
-cu118-ampere-torch230 = ["bitsandbytes (>=0.43.3)", "flash-attn (>=2.6.3)", "ninja", "packaging", "unsloth[cu118onlytorch230]", "unsloth[huggingface]"]
-cu118-ampere-torch240 = ["bitsandbytes (>=0.43.3)", "flash-attn (>=2.6.3)", "ninja", "packaging", "unsloth[cu118onlytorch240]", "unsloth[huggingface]"]
-cu118-torch211 = ["bitsandbytes (>=0.43.3)", "unsloth[cu118onlytorch211]", "unsloth[huggingface]"]
-cu118-torch212 = ["bitsandbytes (>=0.43.3)", "unsloth[cu118onlytorch212]", "unsloth[huggingface]"]
-cu118-torch220 = ["bitsandbytes (>=0.43.3)", "unsloth[cu118onlytorch220]", "unsloth[huggingface]"]
-cu118-torch230 = ["bitsandbytes (>=0.43.3)", "unsloth[cu118onlytorch230]", "unsloth[huggingface]"]
-cu118-torch240 = ["bitsandbytes (>=0.43.3)", "unsloth[cu118onlytorch240]", "unsloth[huggingface]"]
-cu118only = ["xformers @ https://download.pytorch.org/whl/cu118/xformers-0.0.22.post7%2Bcu118-cp310-cp310-manylinux2014_x86_64.whl", "xformers @ https://download.pytorch.org/whl/cu118/xformers-0.0.22.post7%2Bcu118-cp311-cp311-manylinux2014_x86_64.whl", "xformers @ https://download.pytorch.org/whl/cu118/xformers-0.0.22.post7%2Bcu118-cp39-cp39-manylinux2014_x86_64.whl"]
-cu118onlytorch211 = ["xformers @ https://download.pytorch.org/whl/cu118/xformers-0.0.23%2Bcu118-cp310-cp310-manylinux2014_x86_64.whl", "xformers @ https://download.pytorch.org/whl/cu118/xformers-0.0.23%2Bcu118-cp311-cp311-manylinux2014_x86_64.whl", "xformers @ https://download.pytorch.org/whl/cu118/xformers-0.0.23%2Bcu118-cp39-cp39-manylinux2014_x86_64.whl"]
-cu118onlytorch212 = ["xformers @ https://download.pytorch.org/whl/cu118/xformers-0.0.23.post1%2Bcu118-cp310-cp310-manylinux2014_x86_64.whl", "xformers @ https://download.pytorch.org/whl/cu118/xformers-0.0.23.post1%2Bcu118-cp311-cp311-manylinux2014_x86_64.whl", "xformers @ https://download.pytorch.org/whl/cu118/xformers-0.0.23.post1%2Bcu118-cp39-cp39-manylinux2014_x86_64.whl"]
-cu118onlytorch220 = ["xformers @ https://download.pytorch.org/whl/cu118/xformers-0.0.24%2Bcu118-cp310-cp310-manylinux2014_x86_64.whl", "xformers @ https://download.pytorch.org/whl/cu118/xformers-0.0.24%2Bcu118-cp311-cp311-manylinux2014_x86_64.whl", "xformers @ https://download.pytorch.org/whl/cu118/xformers-0.0.24%2Bcu118-cp39-cp39-manylinux2014_x86_64.whl"]
-cu118onlytorch230 = ["xformers @ https://download.pytorch.org/whl/cu118/xformers-0.0.27%2Bcu118-cp310-cp310-manylinux2014_x86_64.whl", "xformers @ https://download.pytorch.org/whl/cu118/xformers-0.0.27%2Bcu118-cp311-cp311-manylinux2014_x86_64.whl", "xformers @ https://download.pytorch.org/whl/cu118/xformers-0.0.27%2Bcu118-cp312-cp312-manylinux2014_x86_64.whl", "xformers @ https://download.pytorch.org/whl/cu118/xformers-0.0.27%2Bcu118-cp39-cp39-manylinux2014_x86_64.whl"]
-cu118onlytorch240 = ["xformers @ https://download.pytorch.org/whl/cu118/xformers-0.0.27.post2%2Bcu118-cp310-cp310-manylinux2014_x86_64.whl", "xformers @ https://download.pytorch.org/whl/cu118/xformers-0.0.27.post2%2Bcu118-cp311-cp311-manylinux2014_x86_64.whl", "xformers @ https://download.pytorch.org/whl/cu118/xformers-0.0.27.post2%2Bcu118-cp312-cp312-manylinux2014_x86_64.whl", "xformers @ https://download.pytorch.org/whl/cu118/xformers-0.0.27.post2%2Bcu118-cp39-cp39-manylinux2014_x86_64.whl"]
-cu121 = ["bitsandbytes (>=0.43.3)", "unsloth[cu121only]", "unsloth[huggingface]"]
-cu121-ampere = ["bitsandbytes (>=0.43.3)", "flash-attn (>=2.6.3)", "ninja", "packaging", "unsloth[cu121only]", "unsloth[huggingface]"]
-cu121-ampere-torch211 = ["bitsandbytes (>=0.43.3)", "flash-attn (>=2.6.3)", "ninja", "packaging", "unsloth[cu121onlytorch211]", "unsloth[huggingface]"]
-cu121-ampere-torch220 = ["bitsandbytes (>=0.43.3)", "flash-attn (>=2.6.3)", "ninja", "packaging", "unsloth[cu121onlytorch220]", "unsloth[huggingface]"]
-cu121-ampere-torch230 = ["bitsandbytes (>=0.43.3)", "flash-attn (>=2.6.3)", "ninja", "packaging", "unsloth[cu121onlytorch230]", "unsloth[huggingface]"]
-cu121-ampere-torch240 = ["bitsandbytes (>=0.43.3)", "flash-attn (>=2.6.3)", "ninja", "packaging", "unsloth[cu121onlytorch240]", "unsloth[huggingface]"]
-cu121-torch211 = ["bitsandbytes (>=0.43.3)", "unsloth[cu121onlytorch211]", "unsloth[huggingface]"]
-cu121-torch212 = ["bitsandbytes (>=0.43.3)", "unsloth[cu121onlytorch212]", "unsloth[huggingface]"]
-cu121-torch220 = ["bitsandbytes (>=0.43.3)", "unsloth[cu121onlytorch220]", "unsloth[huggingface]"]
-cu121-torch230 = ["bitsandbytes (>=0.43.3)", "unsloth[cu121onlytorch230]", "unsloth[huggingface]"]
-cu121-torch240 = ["bitsandbytes (>=0.43.3)", "unsloth[cu121onlytorch240]", "unsloth[huggingface]"]
-cu121only = ["xformers @ https://download.pytorch.org/whl/cu121/xformers-0.0.22.post7-cp310-cp310-manylinux2014_x86_64.whl", "xformers @ https://download.pytorch.org/whl/cu121/xformers-0.0.22.post7-cp311-cp311-manylinux2014_x86_64.whl", "xformers @ https://download.pytorch.org/whl/cu121/xformers-0.0.22.post7-cp39-cp39-manylinux2014_x86_64.whl"]
-cu121onlytorch211 = ["xformers @ https://download.pytorch.org/whl/cu121/xformers-0.0.23-cp310-cp310-manylinux2014_x86_64.whl", "xformers @ https://download.pytorch.org/whl/cu121/xformers-0.0.23-cp311-cp311-manylinux2014_x86_64.whl", "xformers @ https://download.pytorch.org/whl/cu121/xformers-0.0.23-cp39-cp39-manylinux2014_x86_64.whl"]
-cu121onlytorch212 = ["xformers @ https://download.pytorch.org/whl/cu121/xformers-0.0.23.post1-cp310-cp310-manylinux2014_x86_64.whl", "xformers @ https://download.pytorch.org/whl/cu121/xformers-0.0.23.post1-cp311-cp311-manylinux2014_x86_64.whl", "xformers @ https://download.pytorch.org/whl/cu121/xformers-0.0.23.post1-cp39-cp39-manylinux2014_x86_64.whl"]
-cu121onlytorch220 = ["xformers @ https://download.pytorch.org/whl/cu121/xformers-0.0.24-cp310-cp310-manylinux2014_x86_64.whl", "xformers @ https://download.pytorch.org/whl/cu121/xformers-0.0.24-cp311-cp311-manylinux2014_x86_64.whl", "xformers @ https://download.pytorch.org/whl/cu121/xformers-0.0.24-cp39-cp39-manylinux2014_x86_64.whl"]
-cu121onlytorch230 = ["xformers @ https://download.pytorch.org/whl/cu121/xformers-0.0.27-cp310-cp310-manylinux2014_x86_64.whl", "xformers @ https://download.pytorch.org/whl/cu121/xformers-0.0.27-cp311-cp311-manylinux2014_x86_64.whl", "xformers @ https://download.pytorch.org/whl/cu121/xformers-0.0.27-cp312-cp312-manylinux2014_x86_64.whl", "xformers @ https://download.pytorch.org/whl/cu121/xformers-0.0.27-cp39-cp39-manylinux2014_x86_64.whl"]
-cu121onlytorch240 = ["xformers @ https://download.pytorch.org/whl/cu121/xformers-0.0.27.post2-cp310-cp310-manylinux2014_x86_64.whl", "xformers @ https://download.pytorch.org/whl/cu121/xformers-0.0.27.post2-cp311-cp311-manylinux2014_x86_64.whl", "xformers @ https://download.pytorch.org/whl/cu121/xformers-0.0.27.post2-cp312-cp312-manylinux2014_x86_64.whl", "xformers @ https://download.pytorch.org/whl/cu121/xformers-0.0.27.post2-cp39-cp39-manylinux2014_x86_64.whl"]
-huggingface = ["accelerate (>=0.26.1)", "datasets (>=2.16.0)", "hf_transfer", "huggingface_hub", "numpy", "packaging", "peft (>=0.7.1,!=0.11.0)", "protobuf (<4.0.0)", "psutil", "sentencepiece (>=0.2.0)", "tqdm", "transformers (>=4.45.1)", "trl (>=0.7.9,!=0.9.0,!=0.9.1,!=0.9.2,!=0.9.3)", "tyro", "wheel (>=0.42.0)"]
-kaggle = ["unsloth[huggingface]"]
-kaggle-new = ["bitsandbytes (>=0.43.3)", "unsloth[huggingface]"]
-
-[package.source]
-type = "git"
-url = "https://github.com/unslothai/unsloth.git"
-reference = "HEAD"
-resolved_reference = "a0acecb50f39d9b62a144684be9ed9e3c3755a1f"
 
 [[package]]
 name = "urllib3"
@@ -5979,20 +5739,6 @@ files = [
 ]
 
 [[package]]
-name = "wheel"
-version = "0.44.0"
-description = "A built-package format for Python"
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "wheel-0.44.0-py3-none-any.whl", hash = "sha256:2376a90c98cc337d18623527a97c31797bd02bad0033d41547043a1cbfbe448f"},
-    {file = "wheel-0.44.0.tar.gz", hash = "sha256:a29c3f2817e95ab89aa4660681ad547c0e9547f20e75b0562fe7723c9a2a9d49"},
-]
-
-[package.extras]
-test = ["pytest (>=6.0.0)", "setuptools (>=65)"]
-
-[[package]]
 name = "win32-setctime"
 version = "1.1.0"
 description = "A small Python utility to set file creation time on Windows"
@@ -6343,4 +6089,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "669b7cd4faf229bb9d76a235aa9529554c4e9466f767fa911b354c8566dd5a6a"
+content-hash = "2a63de2b750314530c90222e12c0ce40690bcb0074faf3354e4a264671da1c09"
