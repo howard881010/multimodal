@@ -35,6 +35,8 @@ vllm = "^0.5.4"
 pygments = "^2.18.0"
 lm-format-enforcer = "^0.10.6"
 docker = "^7.1.0"
+unsloth = {git = "https://github.com/unslothai/unsloth.git", extras = ["colab-new"]}
+pyyaml = "^6.0.2"
 
 
 
